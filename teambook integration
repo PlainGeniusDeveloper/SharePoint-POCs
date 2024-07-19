@@ -1,0 +1,17 @@
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Select all rich text fields containing the widget script
+        var richTextFields = document.querySelectorAll(".ms-rtestate-field");
+
+        richTextFields.forEach(function(field) {
+            // Find script tags within the rich text field
+            var scripts = field.querySelectorAll("script");
+
+            scripts.forEach(function(script) {
+                var newScript = document.createElement("script");
+                newScript.textContent = script.textContent;
+                document.body.appendChild(newScript);
+            });
+        });
+    });
+</script>
