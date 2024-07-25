@@ -1,23 +1,43 @@
-<a href="#" title="demolish" data-toggle-text="hide POD ID">Click here to add POD ID</a>
-<div id="podField" style="display: none;">
-    <!-- Your field content here -->
-</div>
-
-
 $(document).ready(function() {
-    // Attach a click event handler to the tag with title "demolish"
-    $('a[title="demolish"]').click(function(event) {
-        event.preventDefault(); // Prevent the default action if necessary
-        
-        // Toggle the visibility of the field
-        $('#podField').toggle();
-        
-        // Retrieve the current text and the text to switch to from data attributes
-        var currentText = $(this).text();
-        var toggleText = $(this).data('toggle-text');
-        
-        // Set the current text to the data attribute and update the link text
-        $(this).text(toggleText);
-        $(this).data('toggle-text', currentText);
-    });
-});
+            // Function to set initial visibility and link text based on the POD ID field
+            function setInitialVisibility() {
+                var podField = $('input[title="Pod Id"]');
+                var toggleLink = $('a[title="demolish"]');
+                var podFieldValue = podField.val(); // Get the value of the input
+
+                // Get initial and toggle texts from data attributes
+                var initialText = toggleLink.data('initial-text');
+                var toggleText = toggleLink.data('toggle-text');
+
+                if (podFieldValue) {
+                    podField.show();
+                    toggleLink.text(toggleText);
+                } else {
+                    podField.hide();
+                    toggleLink.text(initialText);
+                }
+            }
+
+            // Call the function to set the initial visibility and link text
+            setInitialVisibility();
+
+            // Attach a click event handler to the tag with title "demolish"
+            $('a[title="demolish"]').click(function(event) {
+                event.preventDefault(); // Prevent the default action if necessary
+
+                // Toggle the visibility of the field
+                $('input[title="Pod Id"]').toggle();
+
+                // Retrieve the current text and the text to switch to from data attributes
+                var currentText = $(this).text();
+                var initialText = $(this).data('initial-text');
+                var toggleText = $(this).data('toggle-text');
+
+                // Toggle the text
+                if (currentText === initialText) {
+                    $(this).text(toggleText);
+                } else {
+                    $(this).text(initialText);
+                }
+            });
+        });
