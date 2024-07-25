@@ -1,0 +1,8 @@
+$(document).ready(function() {
+    // Attach a click event handler to the tag with title "demolish"
+    $('a[title="demolish"]').click(function(event) {
+        event.preventDefault(); // Prevent the default action if necessary
+        // Your code here
+        alert('Tag with title "demolish" clicked!');
+    });
+});
