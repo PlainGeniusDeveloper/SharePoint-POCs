@@ -1,8 +1,23 @@
+<a href="#" title="demolish" data-toggle-text="hide POD ID">Click here to add POD ID</a>
+<div id="podField" style="display: none;">
+    <!-- Your field content here -->
+</div>
+
+
 $(document).ready(function() {
     // Attach a click event handler to the tag with title "demolish"
     $('a[title="demolish"]').click(function(event) {
         event.preventDefault(); // Prevent the default action if necessary
-        // Your code here
-        alert('Tag with title "demolish" clicked!');
+        
+        // Toggle the visibility of the field
+        $('#podField').toggle();
+        
+        // Retrieve the current text and the text to switch to from data attributes
+        var currentText = $(this).text();
+        var toggleText = $(this).data('toggle-text');
+        
+        // Set the current text to the data attribute and update the link text
+        $(this).text(toggleText);
+        $(this).data('toggle-text', currentText);
     });
 });
