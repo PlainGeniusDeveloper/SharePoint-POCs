@@ -72,19 +72,25 @@
         }
     }
 
-    function waitForRibbon() {
-        var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
-        if (ribbonMenu) {
-            addCustomRibbonAction();
-            captureInsertTitleClick(); // Capture click event on Insert Title
-        } else {
-            // Check again after a short delay
-            setTimeout(waitForRibbon, 500); // Adjust the delay as needed
-        }
+    function observeRibbon() {
+        // Create a MutationObserver to watch for changes in the DOM
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                // Check if the Ribbon.EditingTools.CPInsert element is available
+                if (document.getElementById('Ribbon.EditingTools.CPInsert')) {
+                    addCustomRibbonAction();
+                    captureInsertTitleClick(); // Capture click event on Insert Title
+                    observer.disconnect(); // Stop observing after we found the ribbon
+                }
+            });
+        });
+
+        // Start observing the document body for changes
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Start checking for the ribbon menu once the DOM is fully loaded
-        waitForRibbon();
+        // Start observing for the ribbon once the DOM is fully loaded
+        observeRibbon();
     });
 </script>
