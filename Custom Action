@@ -18,46 +18,61 @@
             console.log("Ribbon not available yet. Waiting...");
             setTimeout(ensureRibbon, 500); // Wait and check again
         } else {
-            console.log("Ribbon is available. Customizing...");
+            console.log("Ribbon is available. Adding custom button...");
             addCustomButton();
         }
     }
 
     function addCustomButton() {
+        // Use ribbon instance to add custom button
         var ribbon = SP.Ribbon.PageManager.get_instance().get_ribbon();
-        var tab = ribbon.getChildByTitle("Items");
+        var newItemTab = ribbon.get_childById('Ribbon.ListForm.Edit'); // Ensure this ID is correct for New Item form
 
-        if (tab == null) {
-            console.log("Items tab not found. Waiting...");
+        if (newItemTab) {
+            // Create custom button
+            var customButton = {
+                id: "CustomButton",
+                title: "Custom Button",
+                description: "Click to perform custom action",
+                command: "CustomButtonCommand",
+                image16by16: "/_layouts/15/images/placeholder16x16.png",
+                image32by32: "/_layouts/15/images/placeholder32x32.png",
+                sequence: 1000,
+                templateAlias: "o1"
+            };
+
+            // Add button to the ribbon
+            var commandUIExtension = `
+                <CommandUIExtension xmlns="http://schemas.microsoft.com/sharepoint/">
+                    <CommandUIDefinitions>
+                        <CommandUIDefinition Location="Ribbon.ListForm.Edit.Controls._children">
+                            <Button Id="${customButton.id}"
+                                Command="${customButton.command}"
+                                Sequence="${customButton.sequence}"
+                                Image16by16="${customButton.image16by16}"
+                                Image32by32="${customButton.image32by32}"
+                                LabelText="${customButton.title}"
+                                TemplateAlias="${customButton.templateAlias}"/>
+                        </CommandUIDefinition>
+                    </CommandUIDefinitions>
+                    <CommandUIHandlers>
+                        <CommandUIHandler Command="${customButton.command}" CommandAction="javascript:customButtonAction();" />
+                    </CommandUIHandlers>
+                </CommandUIExtension>`;
+
+            // Adding the custom action
+            var customAction = SP.Ribbon.PageManager.get_instance().get_ribbon().get_customActions().add();
+            customAction.set_location('CommandUI.Ribbon.ListForm.New');
+            customAction.set_commandUIExtension(commandUIExtension);
+            customAction.update();
+
+            // Refresh ribbon to reflect changes
+            ribbon.refresh();
+            console.log("Custom button added to ribbon.");
+        } else {
+            console.log("New Item tab not found. Waiting...");
             setTimeout(addCustomButton, 500); // Wait and check again
-            return;
         }
-
-        var section = new CUI.Group({
-            id: "CustomGroup",
-            title: "Custom Group",
-            description: "Custom Group",
-            command: null,
-            sequence: 1000,
-            template: null
-        });
-
-        var button = new CUI.Controls.Button({
-            id: "CustomButton",
-            title: "Custom Button",
-            description: "Click to perform custom action",
-            command: "CustomButtonCommand",
-            image16by16: "/_layouts/15/images/placeholder16x16.png",
-            image32by32: "/_layouts/15/images/placeholder32x32.png",
-            sequence: 1000,
-            templateAlias: "o1"
-        });
-
-        section.addChild(button);
-        tab.addChild(section);
-
-        SP.Ribbon.PageManager.get_instance().get_ribbon().refresh();
-        console.log("Custom button added to ribbon.");
     }
 
     function customButtonAction() {
