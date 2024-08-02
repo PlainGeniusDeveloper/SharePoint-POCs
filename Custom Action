@@ -2,24 +2,34 @@
     function addCustomRibbonAction() {
         var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
         if (ribbonMenu) {
-            // Check if the button already exists to avoid duplicate additions
-            if (!document.getElementById('customTableInsertButton')) {
-                var newItem = document.createElement('li');
-                newItem.innerHTML = `
-                    <a href="#" id="customTableInsertButton" class="ms-cui-ctlms-d" title="Insert Predefined Table">
-                        <img src="https://yoursharepointsite.com/path/to/icon.png" alt="Insert Table" />
-                        <span class="ms-cui-ctlms-d" id="customTableInsertButtonLabel">Insert Table</span>
-                    </a>
+            // Check if the dropdown already exists to avoid duplicate additions
+            if (!document.getElementById('customTableInsertDropdown')) {
+                var dropdown = document.createElement('li');
+                dropdown.innerHTML = `
+                    <div class="ms-cui-ctl ms-cui-ctl-large">
+                        <a class="ms-cui-ctl-large" href="#" id="customTableInsertDropdown" title="Insert Predefined Table">
+                            <img src="https://yoursharepointsite.com/path/to/icon.png" alt="Insert Table" />
+                            <span class="ms-cui-ctl-largeLabel">Insert Table</span>
+                        </a>
+                        <ul class="ms-cui-ctl-large-dropdown">
+                            <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
+                            <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
+                            <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
+                        </ul>
+                    </div>
                 `;
-                ribbonMenu.appendChild(newItem);
+                ribbonMenu.appendChild(dropdown);
 
-                // Attach click event to the new button
-                document.getElementById('customTableInsertButton').addEventListener('click', function(event) {
-                    event.preventDefault();
-                    insertTable(); // Call the function to insert the table
+                // Attach click events to the dropdown options
+                var options = document.querySelectorAll('.ms-cui-ctl-large-dropdown a');
+                options.forEach(option => {
+                    option.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        insertTable(this.getAttribute('data-table-url'));
+                    });
                 });
 
-                console.log("Custom button added successfully.");
+                console.log("Custom dropdown added successfully.");
             }
         } else {
             console.error('Ribbon menu not found.');
@@ -38,9 +48,7 @@
         }
     }
 
-    function insertTable() {
-        var tableHtmlUrl = "https://yoursharepointsite.com/path/to/tableTemplate.html"; // Replace with your HTML file URL
-        
+    function insertTable(tableHtmlUrl) {
         fetch(tableHtmlUrl)
             .then(response => response.text())
             .then(data => {
