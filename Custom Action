@@ -7,30 +7,21 @@
                 var newGroup = document.createElement('li');
                 newGroup.className = 'ms-cui-tt ms-cui-tt-medium ms-cui-tt-split';
                 newGroup.innerHTML = `
-                    <a class="ms-cui-tt-a" href="javascript:;" id="customTableInsertDropdown" title="Insert Predefined Table">
-                        <span class="ms-cui-tt-span">
-                            <span class="ms-cui-tt-img" style="background-image:url('https://yoursharepointsite.com/path/to/icon.png');"></span>
-                            <span class="ms-cui-tt-text">Insert Table</span>
-                        </span>
-                    </a>
-                    <ul class="ms-cui-tt-ul" style="display: none;">
-                        <li><a href="javascript:;" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
-                        <li><a href="javascript:;" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
-                        <li><a href="javascript:;" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
-                    </ul>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="customTableInsertDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            Insert Table
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="customTableInsertDropdown">
+                            <li><a class="dropdown-item" href="javascript:;" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
+                            <li><a class="dropdown-item" href="javascript:;" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
+                            <li><a class="dropdown-item" href="javascript:;" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
+                        </ul>
+                    </div>
                 `;
                 ribbonMenu.appendChild(newGroup);
 
-                // Attach click event to the main button to toggle the dropdown menu
-                var mainButton = document.getElementById('customTableInsertDropdown');
-                mainButton.addEventListener('click', function(event) {
-                    event.preventDefault();
-                    var dropdown = this.nextElementSibling;
-                    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-                });
-
                 // Attach click events to the dropdown options
-                var options = document.querySelectorAll('.ms-cui-tt-ul a');
+                var options = document.querySelectorAll('.dropdown-item');
                 options.forEach(option => {
                     option.addEventListener('click', function(event) {
                         event.preventDefault();
@@ -110,3 +101,65 @@
         observeRibbon();
     });
 </script>
+
+
+
+<style>
+    .dropdown-toggle {
+        display: inline-block;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        user-select: none;
+        background-color: #6c757d;
+        border: 1px solid transparent;
+        border-radius: 0.25rem;
+        color: #fff;
+        text-decoration: none;
+    }
+    
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        display: none;
+        float: left;
+        min-width: 10rem;
+        padding: 0.5rem 0;
+        margin: 0.125rem 0 0;
+        font-size: 1rem;
+        color: #212529;
+        text-align: left;
+        list-style: none;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        border-radius: 0.25rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+    }
+    
+    .dropdown-item {
+        display: block;
+        width: 100%;
+        padding: 0.25rem 1.5rem;
+        clear: both;
+        font-weight: 400;
+        color: #212529;
+        text-align: inherit;
+        text-decoration: none;
+        white-space: nowrap;
+        background-color: transparent;
+        border: 0;
+    }
+    
+    .dropdown-item:hover {
+        color: #16181b;
+        text-decoration: none;
+        background-color: #f8f9fa;
+    }
+</style>
