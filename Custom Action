@@ -23,7 +23,7 @@
     function AddCustomUserAction() {
         // Get the client context and list object
         var context = new SP.ClientContext.get_current();
-        var list = context.get_web().get_lists().getByTitle("Check List");
+        var list = context.get_web().get_lists().getByTitle("Check List"); // Make sure the list name matches
         // Get the custom user action collection and add the user action
         var customUserAction = list.get_userCustomActions().add();
         // Set the location of the user action
