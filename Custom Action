@@ -5,26 +5,6 @@
         SP.SOD.executeOrDelayUntilScriptLoaded(AddCustomUserAction, "sp.js");
     });
 
-    function insertTable(tableHtmlUrl) {
-        console.log("Inserting table from URL:", tableHtmlUrl);
-        fetch(tableHtmlUrl)
-            .then(response => response.text())
-            .then(data => {
-                console.log("Table template loaded:", data);
-                var richTextField = document.querySelector('.ms-rtefield'); // Adjust selector as per your form field
-                if (richTextField) {
-                    richTextField.innerHTML += data;
-                    console.log("Table inserted successfully.");
-                } else {
-                    alert("Rich text field not found!");
-                    console.error("Rich text field not found!");
-                }
-            })
-            .catch(error => {
-                console.error('Error loading the table template:', error);
-            });
-    }
-
     function AddCustomUserAction() {
         console.log("Adding custom user action...");
         // Get the client context and list object
@@ -39,19 +19,21 @@
             <CommandUIExtension xmlns="http://schemas.microsoft.com/sharepoint/">
                 <CommandUIDefinitions>
                     <CommandUIDefinition Location="Ribbon.ListForm.New.Controls._children">
-                        <Button Id="Ribbon.ListForm.New.InsertTableButton"
-                            Command="InsertTableCommand"
-                            Sequence="55"
-                            Image16by16="/_layouts/images/NoteBoard_16x16.png"
-                            Image32by32="/_layouts/images/NoteBoard_32x32.png"
-                            Description="Insert a predefined table."
-                            LabelText="Insert Table"
-                            TemplateAlias="o1"/>
+                        <Group Id="Ribbon.CustomGroup" Title="Custom Group" Sequence="1000">
+                            <Controls Id="Ribbon.CustomGroup.Controls">
+                                <Button Id="Ribbon.CustomGroup.CustomButton"
+                                    Sequence="10"
+                                    Command="CustomButtonCommand"
+                                    Image16by16="/_layouts/images/NoteBoard_16x16.png"
+                                    Image32by32="/_layouts/images/NoteBoard_32x32.png"
+                                    LabelText="Custom Button"
+                                    TemplateAlias="o1"/>
+                            </Controls>
+                        </Group>
                     </CommandUIDefinition>
                 </CommandUIDefinitions>
                 <CommandUIHandlers>
-                    <CommandUIHandler Command="InsertTableCommand"
-                        CommandAction="javascript:showTableMenu();"/>
+                    <CommandUIHandler Command="CustomButtonCommand" CommandAction="javascript:alert('Custom button clicked!');" />
                 </CommandUIHandlers>
             </CommandUIExtension>`;
         // Add the command UI extension and update the custom user action
@@ -63,25 +45,6 @@
             console.log("Custom User Action added successfully to ribbon.");
         }, function(sender, args) {
             console.error("Error adding custom user action:", args.get_message());
-        });
-    }
-
-    function showTableMenu() {
-        console.log("Showing table menu...");
-        var menu = `
-            <ul style="list-style:none; padding:0;">
-                <li style="cursor:pointer;" onclick="insertTable('https://yoursharepointsite.com/path/to/tableTemplate1.html')">Table 1</li>
-                <li style="cursor:pointer;" onclick="insertTable('https://yoursharepointsite.com/path/to/tableTemplate2.html')">Table 2</li>
-                <li style="cursor:pointer;" onclick="insertTable('https://yoursharepointsite.com/path/to/tableTemplate3.html')">Table 3</li>
-            </ul>`;
-        
-        SP.UI.ModalDialog.showModalDialog({
-            title: 'Insert Table',
-            html: menu,
-            width: 300,
-            height: 200,
-            allowMaximize: false,
-            showClose: true
         });
     }
 </script>
