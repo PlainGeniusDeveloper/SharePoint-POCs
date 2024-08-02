@@ -1,46 +1,67 @@
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
 <script type="text/javascript">
-    $(document).ready(function () {
-        console.log("Document ready. Waiting for SP.js to load...");
-        SP.SOD.executeFunc('sp.js', 'SP.ClientContext', function() {
-            console.log("SP.js loaded.");
-            SP.SOD.executeFunc('sp.ribbon.js', 'SP.Ribbon.PageManager', function() {
-                console.log("SP.Ribbon.js loaded.");
-                waitForRibbon();
-            });
-        });
-    });
-
-    function waitForRibbon() {
-        console.log("Waiting for ribbon to be fully loaded...");
-        var checkRibbon = function() {
-            var tabBody = $('ul.ms-cui-tabBody');
-            if (tabBody.length) {
-                console.log("Ribbon tab body found. Adding custom <li>...");
-                addCustomListItem(tabBody);
-            } else {
-                console.log("Ribbon tab body not found. Checking again...");
-                setTimeout(checkRibbon, 500); // Retry after 500ms
-            }
-        };
-        checkRibbon();
-    }
-
-    function addCustomListItem(tabBody) {
-        // Create and append the new <li> element
-        var newListItem = `
-            <li id="CustomListItem" class="ms-cui-tab ms-cui-tab-extended">
-                <a href="javascript:void(0);" id="CustomLink">
-                    <span class="ms-cui-ctxt">Custom Item</span>
+    function addCustomRibbonAction() {
+        // Check if the ribbon is available
+        var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
+        if (ribbonMenu) {
+            // Create a new list item for the custom action
+            var newItem = document.createElement('li');
+            newItem.innerHTML = `
+                <a href="#" id="customTableInsertButton" class="ms-cui-ctlms-d" title="Insert Predefined Table">
+                    <img src="https://yoursharepointsite.com/path/to/icon.png" alt="Insert Table" />
+                    <span class="ms-cui-ctlms-d" id="customTableInsertButtonLabel">Insert Table</span>
                 </a>
-            </li>`;
+            `;
 
-        // Append the new item if it does not already exist
-        if ($('#CustomListItem').length === 0) {
-            tabBody.append(newListItem);
-            console.log("Custom <li> item added to ribbon.");
+            // Add the new item to the ribbon menu
+            ribbonMenu.appendChild(newItem);
+
+            // Attach click event to the new button
+            document.getElementById('customTableInsertButton').addEventListener('click', function(event) {
+                event.preventDefault();
+                insertTable(); // Call the function to insert the table
+            });
         } else {
-            console.log("Custom <li> item already exists.");
+            console.error('Ribbon menu not found.');
         }
     }
+
+    // Function to insert table (defined previously)
+    function insertTable() {
+        var tableHtmlUrl = "https://yoursharepointsite.com/path/to/tableTemplate.html"; // Replace with your HTML file URL
+        
+        fetch(tableHtmlUrl)
+            .then(response => response.text())
+            .then(data => {
+                var richTextField = document.querySelector('.ms-rtestate-field'); // Adjust selector as per your form field
+                if (richTextField) {
+                    insertHTMLAtCursor(richTextField, data);
+                } else {
+                    alert("Rich text field not found!");
+                }
+            })
+            .catch(error => {
+                console.error('Error loading the table template:', error);
+            });
+    }
+
+    function insertHTMLAtCursor(el, html) {
+        var range, sel;
+        if (window.getSelection) {
+            sel = window.getSelection();
+            if (sel.getRangeAt && sel.rangeCount) {
+                range = sel.getRangeAt(0);
+                range.deleteContents();
+                var fragment = range.createContextualFragment(html);
+                range.insertNode(fragment);
+                range.collapse(false);
+            }
+        } else if (document.selection && document.selection.createRange) {
+            document.selection.createRange().pasteHTML(html);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delay execution to ensure ribbon is loaded
+        setTimeout(addCustomRibbonAction, 1000); // Adjust timeout as needed
+    });
 </script>
