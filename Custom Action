@@ -2,61 +2,47 @@
 <script type="text/javascript">
     $(document).ready(function () {
         console.log("Document ready. Waiting for SP.js to load...");
-        SP.SOD.executeOrDelayUntilScriptLoaded(AddCustomUserAction, "sp.js");
+        SP.SOD.executeOrDelayUntilScriptLoaded(customizeRibbon, "sp.ribbon.js");
     });
 
-    function AddCustomUserAction() {
-        console.log("Adding custom user action...");
-        var context = SP.ClientContext.get_current();
-        var web = context.get_web();
-        var list = web.get_lists().getByTitle("Check List");
-        var customUserActions = list.get_userCustomActions();
-        var customAction = customUserActions.add();
-
-        customAction.set_location('CommandUI.Ribbon.ListForm.New');
-        customAction.set_sequence(1000);
-
-        var customActionXml = `
-            <CommandUIExtension xmlns="http://schemas.microsoft.com/sharepoint/">
-                <CommandUIDefinitions>
-                    <CommandUIDefinition Location="Ribbon.ListForm.New.Controls._children">
-                        <Group Id="Ribbon.CustomGroup" Title="Custom Group" Sequence="1000">
-                            <Controls Id="Ribbon.CustomGroup.Controls">
-                                <Button Id="Ribbon.CustomGroup.CustomButton"
-                                    Sequence="10"
-                                    Command="CustomButtonCommand"
-                                    Image16by16="/_layouts/15/images/placeholder16x16.png"
-                                    Image32by32="/_layouts/15/images/placeholder32x32.png"
-                                    LabelText="Custom Button"
-                                    TemplateAlias="o1"/>
-                            </Controls>
-                        </Group>
-                    </CommandUIDefinition>
-                </CommandUIDefinitions>
-                <CommandUIHandlers>
-                    <CommandUIHandler Command="CustomButtonCommand" CommandAction="javascript:alert('Custom button clicked!');" />
-                </CommandUIHandlers>
-            </CommandUIExtension>`;
-
-        customAction.set_commandUIExtension(customActionXml);
-        customAction.update();
-
-        context.load(customAction);
-        context.executeQueryAsync(function () {
-            console.log("Custom User Action added successfully to ribbon.");
-            setTimeout(CheckIfButtonExists, 3000); // Wait for a few seconds to ensure the ribbon is updated
-        }, function (sender, args) {
-            console.error("Error adding custom user action:", args.get_message());
-        });
+    function customizeRibbon() {
+        console.log("Customizing ribbon...");
+        var ribbon = SP.Ribbon.PageManager.get_instance().get_ribbon();
+        if (!ribbon) {
+            console.error("Ribbon is not available.");
+            return;
+        }
+        addCustomButtonToRibbon();
     }
 
-    function CheckIfButtonExists() {
-        console.log("Checking if custom button exists in the ribbon...");
-        var isButtonVisible = $('#Ribbon\\.CustomGroup\\.CustomButton').length > 0;
-        if (isButtonVisible) {
-            console.log("Custom button is visible in the ribbon.");
-        } else {
-            console.error("Custom button is not visible in the ribbon.");
-        }
+    function addCustomButtonToRibbon() {
+        var ribbonData = '<CommandUIExtension xmlns="http://schemas.microsoft.com/sharepoint/">' +
+            '<CommandUIDefinitions>' +
+            '<CommandUIDefinition Location="Ribbon.ListForm.Edit.Controls._children">' +
+            '<Button Id="Ribbon.ListForm.Edit.CustomGroup.CustomButton" ' +
+            'Command="CustomButtonCommand" ' +
+            'Sequence="1000" ' +
+            'Image16by16="/_layouts/15/images/placeholder16x16.png" ' +
+            'Image32by32="/_layouts/15/images/placeholder32x32.png" ' +
+            'LabelText="Custom Button" ' +
+            'TemplateAlias="o1"/>' +
+            '</CommandUIDefinition>' +
+            '</CommandUIDefinitions>' +
+            '<CommandUIHandlers>' +
+            '<CommandUIHandler Command="CustomButtonCommand" CommandAction="javascript:customButtonAction();" />' +
+            '</CommandUIHandlers>' +
+            '</CommandUIExtension>';
+
+        var options = {
+            'location': 'Ribbon.ListForm.Edit',
+            'commandUIExtension': ribbonData
+        };
+
+        SP.Ribbon.PageManager.get_instance().get_ribbon().addChild(new CUI.Component(options));
+        console.log("Custom button added to ribbon.");
+    }
+
+    function customButtonAction() {
+        alert('Custom button clicked!');
     }
 </script>
