@@ -1,112 +1,196 @@
-<!-- Bootstrap CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Ribbon Action</title>
 
-<!-- jQuery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- Minimal CSS for Dropdown -->
+    <style>
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
 
-<!-- Bootstrap JS -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        .dropdown-toggle {
+            display: inline-block;
+            font-weight: 400;
+            color: #333;
+            text-align: center;
+            vertical-align: middle;
+            cursor: pointer;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 14px;
+        }
 
-<script type="text/javascript">
-    function addCustomRibbonAction() {
-        var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
-        if (ribbonMenu) {
-            // Check if the dropdown already exists to avoid duplicate additions
-            if (!document.getElementById('customTableInsertDropdown')) {
-                var newItem = document.createElement('li');
-                newItem.innerHTML = `
-                    <div class="dropdown">
-                      <button class="btn btn-primary dropdown-toggle" type="button" id="customTableInsertDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Insert Table
-                        <span class="caret"></span>
-                      </button>
-                      <ul class="dropdown-menu" aria-labelledby="customTableInsertDropdown">
-                        <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
-                        <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
-                        <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
-                      </ul>
-                    </div>
-                `;
-                ribbonMenu.appendChild(newItem);
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 1000;
+            float: left;
+            min-width: 160px;
+            padding: 5px 0;
+            margin: 2px 0 0;
+            font-size: 14px;
+            text-align: left;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
 
-                // Attach click events to the dropdown options
-                var options = document.querySelectorAll('.dropdown-menu a');
-                options.forEach(option => {
-                    option.addEventListener('click', function(event) {
-                        event.preventDefault();
-                        insertTable(this.getAttribute('data-table-url'));
+        .dropdown-menu a {
+            display: block;
+            padding: 3px 20px;
+            clear: both;
+            font-weight: 400;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #f5f5f5;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-toggle .caret {
+            border-top: 4px solid #333;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 0;
+            content: "";
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 5px;
+            border-width: 0 4px 4px 4px;
+        }
+    </style>
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        function addCustomRibbonAction() {
+            var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
+            if (ribbonMenu) {
+                // Check if the dropdown already exists to avoid duplicate additions
+                if (!document.getElementById('customTableInsertDropdown')) {
+                    var newItem = document.createElement('li');
+                    newItem.innerHTML = `
+                        <div class="dropdown">
+                          <button class="btn dropdown-toggle" type="button" id="customTableInsertDropdown" aria-haspopup="true" aria-expanded="false">
+                            Insert Table
+                            <span class="caret"></span>
+                          </button>
+                          <ul class="dropdown-menu" aria-labelledby="customTableInsertDropdown">
+                            <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
+                            <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
+                            <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
+                          </ul>
+                        </div>
+                    `;
+                    ribbonMenu.appendChild(newItem);
+
+                    // Attach click events to the dropdown options
+                    var options = document.querySelectorAll('.dropdown-menu a');
+                    options.forEach(option => {
+                        option.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            insertTable(this.getAttribute('data-table-url'));
+                        });
                     });
+
+                    // Toggle dropdown visibility
+                    $(document).on('click', function(e) {
+                        if (!$(e.target).closest('.dropdown').length) {
+                            $('.dropdown-menu').removeClass('show');
+                        }
+                    });
+
+                    $('#' + 'customTableInsertDropdown').on('click', function(e) {
+                        e.stopPropagation();
+                        $(this).next('.dropdown-menu').toggleClass('show');
+                    });
+
+                    console.log("Custom dropdown added successfully.");
+                }
+            } else {
+                console.error('Ribbon menu not found.');
+            }
+        }
+
+        function captureInsertTitleClick() {
+            var insertTitle = document.getElementById('Ribbon.EditingTools.CPInsert-Title');
+            if (insertTitle) {
+                insertTitle.addEventListener('click', function() {
+                    console.log('Insert title clicked');
+                    setTimeout(addCustomRibbonAction, 500); // Delay to ensure the ribbon is fully loaded
                 });
-
-                console.log("Custom dropdown added successfully.");
+            } else {
+                console.error('Insert title not found.');
             }
-        } else {
-            console.error('Ribbon menu not found.');
         }
-    }
 
-    function captureInsertTitleClick() {
-        var insertTitle = document.getElementById('Ribbon.EditingTools.CPInsert-Title');
-        if (insertTitle) {
-            insertTitle.addEventListener('click', function() {
-                console.log('Insert title clicked');
-                setTimeout(addCustomRibbonAction, 500); // Delay to ensure the ribbon is fully loaded
-            });
-        } else {
-            console.error('Insert title not found.');
+        function insertTable(tableHtmlUrl) {
+            fetch(tableHtmlUrl)
+                .then(response => response.text())
+                .then(data => {
+                    var richTextField = document.querySelector('.ms-rtestate-field'); // Adjust selector as per your form field
+                    if (richTextField) {
+                        insertHTMLAtCursor(richTextField, data);
+                    } else {
+                        alert("Rich text field not found!");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading the table template:', error);
+                });
         }
-    }
 
-    function insertTable(tableHtmlUrl) {
-        fetch(tableHtmlUrl)
-            .then(response => response.text())
-            .then(data => {
-                var richTextField = document.querySelector('.ms-rtestate-field'); // Adjust selector as per your form field
-                if (richTextField) {
-                    insertHTMLAtCursor(richTextField, data);
-                } else {
-                    alert("Rich text field not found!");
+        function insertHTMLAtCursor(el, html) {
+            var range, sel;
+            if (window.getSelection) {
+                sel = window.getSelection();
+                if (sel.getRangeAt && sel.rangeCount) {
+                    range = sel.getRangeAt(0);
+                    range.deleteContents();
+                    var fragment = range.createContextualFragment(html);
+                    range.insertNode(fragment);
+                    range.collapse(false);
                 }
-            })
-            .catch(error => {
-                console.error('Error loading the table template:', error);
-            });
-    }
-
-    function insertHTMLAtCursor(el, html) {
-        var range, sel;
-        if (window.getSelection) {
-            sel = window.getSelection();
-            if (sel.getRangeAt && sel.rangeCount) {
-                range = sel.getRangeAt(0);
-                range.deleteContents();
-                var fragment = range.createContextualFragment(html);
-                range.insertNode(fragment);
-                range.collapse(false);
+            } else if (document.selection && document.selection.createRange) {
+                document.selection.createRange().pasteHTML(html);
             }
-        } else if (document.selection && document.selection.createRange) {
-            document.selection.createRange().pasteHTML(html);
         }
-    }
 
-    function observeRibbon() {
-        // Create a MutationObserver to watch for changes in the DOM
-        var observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
-                if (ribbonMenu) {
-                    addCustomRibbonAction();
-                    captureInsertTitleClick(); // Capture click event on Insert Title
-                }
+        function observeRibbon() {
+            // Create a MutationObserver to watch for changes in the DOM
+            var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
+                    if (ribbonMenu) {
+                        addCustomRibbonAction();
+                        captureInsertTitleClick(); // Capture click event on Insert Title
+                    }
+                });
             });
+
+            // Start observing the document body for changes
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+
+        // Initialize MutationObserver to watch for changes in the ribbon
+        document.addEventListener('DOMContentLoaded', function() {
+            observeRibbon();
         });
-
-        // Start observing the document body for changes
-        observer.observe(document.body, { childList: true, subtree: true });
-    }
-
-    // Initialize MutationObserver to watch for changes in the ribbon
-    document.addEventListener('DOMContentLoaded', function() {
-        observeRibbon();
-    });
-</script>
+    </script>
+</body>
+</html>
