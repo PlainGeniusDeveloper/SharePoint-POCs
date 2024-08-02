@@ -2,8 +2,18 @@
 <script type="text/javascript">
     $(document).ready(function () {
         console.log("Document ready. Waiting for SP.js to load...");
-        SP.SOD.executeOrDelayUntilScriptLoaded(customizeRibbon, "sp.ribbon.js");
+        SP.SOD.executeOrDelayUntilScriptLoaded(waitForRibbon, "sp.ribbon.js");
     });
+
+    function waitForRibbon() {
+        console.log("Waiting for ribbon...");
+        var ribbon = SP.Ribbon.PageManager.get_instance().get_ribbon();
+        if (!ribbon) {
+            setTimeout(waitForRibbon, 100); // Wait and check again
+        } else {
+            customizeRibbon();
+        }
+    }
 
     function customizeRibbon() {
         console.log("Customizing ribbon...");
@@ -18,8 +28,8 @@
     function addCustomButtonToRibbon() {
         var ribbonData = '<CommandUIExtension xmlns="http://schemas.microsoft.com/sharepoint/">' +
             '<CommandUIDefinitions>' +
-            '<CommandUIDefinition Location="Ribbon.ListForm.Edit.Controls._children">' +
-            '<Button Id="Ribbon.ListForm.Edit.CustomGroup.CustomButton" ' +
+            '<CommandUIDefinition Location="Ribbon.ListForm.New.Controls._children">' +
+            '<Button Id="Ribbon.ListForm.New.CustomGroup.CustomButton" ' +
             'Command="CustomButtonCommand" ' +
             'Sequence="1000" ' +
             'Image16by16="/_layouts/15/images/placeholder16x16.png" ' +
@@ -34,7 +44,7 @@
             '</CommandUIExtension>';
 
         var options = {
-            'location': 'Ribbon.ListForm.Edit',
+            'location': 'Ribbon.ListForm.New',
             'commandUIExtension': ribbonData
         };
 
