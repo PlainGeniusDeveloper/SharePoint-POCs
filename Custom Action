@@ -26,6 +26,18 @@
         }
     }
 
+    function captureInsertTitleClick() {
+        var insertTitle = document.getElementById('Ribbon.EditingTools.CPInsert-Title');
+        if (insertTitle) {
+            insertTitle.addEventListener('click', function() {
+                console.log('Insert title clicked');
+                // Add your custom logic here
+            });
+        } else {
+            console.error('Insert title not found.');
+        }
+    }
+
     function insertTable() {
         var tableHtmlUrl = "https://yoursharepointsite.com/path/to/tableTemplate.html"; // Replace with your HTML file URL
         
@@ -64,6 +76,7 @@
         var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
         if (ribbonMenu) {
             addCustomRibbonAction();
+            captureInsertTitleClick(); // Capture click event on Insert Title
         } else {
             // Check again after a short delay
             setTimeout(waitForRibbon, 500); // Adjust the delay as needed
