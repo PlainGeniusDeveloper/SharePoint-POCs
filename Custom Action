@@ -2,25 +2,27 @@
     function addCustomRibbonAction() {
         var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
         if (ribbonMenu) {
-            // Create a new list item for the custom action
-            var newItem = document.createElement('li');
-            newItem.innerHTML = `
-                <a href="#" id="customTableInsertButton" class="ms-cui-ctlms-d" title="Insert Predefined Table">
-                    <img src="https://yoursharepointsite.com/path/to/icon.png" alt="Insert Table" />
-                    <span class="ms-cui-ctlms-d" id="customTableInsertButtonLabel">Insert Table</span>
-                </a>
-            `;
+            // Check if the button already exists to avoid duplicate additions
+            if (!document.getElementById('customTableInsertButton')) {
+                var newItem = document.createElement('li');
+                newItem.innerHTML = `
+                    <a href="#" id="customTableInsertButton" class="ms-cui-ctlms-d" title="Insert Predefined Table">
+                        <img src="https://yoursharepointsite.com/path/to/icon.png" alt="Insert Table" />
+                        <span class="ms-cui-ctlms-d" id="customTableInsertButtonLabel">Insert Table</span>
+                    </a>
+                `;
 
-            // Add the new item to the ribbon menu
-            ribbonMenu.appendChild(newItem);
+                // Add the new item to the ribbon menu
+                ribbonMenu.appendChild(newItem);
 
-            // Attach click event to the new button
-            document.getElementById('customTableInsertButton').addEventListener('click', function(event) {
-                event.preventDefault();
-                insertTable(); // Call the function to insert the table
-            });
+                // Attach click event to the new button
+                document.getElementById('customTableInsertButton').addEventListener('click', function(event) {
+                    event.preventDefault();
+                    insertTable(); // Call the function to insert the table
+                });
 
-            console.log("Custom button added successfully.");
+                console.log("Custom button added successfully.");
+            }
         } else {
             console.error('Ribbon menu not found.');
         }
@@ -76,11 +78,9 @@
         // Create a MutationObserver to watch for changes in the DOM
         var observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
-                // Check if the Ribbon.EditingTools.CPInsert element is available
                 if (document.getElementById('Ribbon.EditingTools.CPInsert')) {
                     addCustomRibbonAction();
                     captureInsertTitleClick(); // Capture click event on Insert Title
-                    observer.disconnect(); // Stop observing after we found the ribbon
                 }
             });
         });
