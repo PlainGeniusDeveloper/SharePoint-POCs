@@ -1,18 +1,23 @@
 <script language="javascript" type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
 <script language="javascript" type="text/javascript">
     $(document).ready(function() {
+        console.log("Document ready. Waiting for SP.js to load...");
         SP.SOD.executeOrDelayUntilScriptLoaded(AddCustomUserAction, "sp.js");
     });
 
     function insertTable(tableHtmlUrl) {
+        console.log("Inserting table from URL:", tableHtmlUrl);
         fetch(tableHtmlUrl)
             .then(response => response.text())
             .then(data => {
+                console.log("Table template loaded:", data);
                 var richTextField = document.querySelector('.ms-rtefield'); // Adjust selector as per your form field
                 if (richTextField) {
                     richTextField.innerHTML += data;
+                    console.log("Table inserted successfully.");
                 } else {
                     alert("Rich text field not found!");
+                    console.error("Rich text field not found!");
                 }
             })
             .catch(error => {
@@ -21,6 +26,7 @@
     }
 
     function AddCustomUserAction() {
+        console.log("Adding custom user action...");
         // Get the client context and list object
         var context = new SP.ClientContext.get_current();
         var list = context.get_web().get_lists().getByTitle("Check List");
@@ -35,7 +41,7 @@
                     <CommandUIDefinition Location="Ribbon.ListForm.New.Controls._children">
                         <Button Id="Ribbon.ListForm.New.InsertTableButton"
                             Command="InsertTableCommand"
-                            Sequence="10"
+                            Sequence="55"
                             Image16by16="/_layouts/images/NoteBoard_16x16.png"
                             Image32by32="/_layouts/images/NoteBoard_32x32.png"
                             Description="Insert a predefined table."
@@ -56,11 +62,12 @@
         context.executeQueryAsync(function() {
             console.log("Custom User Action added successfully to ribbon.");
         }, function(sender, args) {
-            console.log(args.get_message());
+            console.error("Error adding custom user action:", args.get_message());
         });
     }
 
     function showTableMenu() {
+        console.log("Showing table menu...");
         var menu = `
             <ul style="list-style:none; padding:0;">
                 <li style="cursor:pointer;" onclick="insertTable('https://yoursharepointsite.com/path/to/tableTemplate1.html')">Table 1</li>
