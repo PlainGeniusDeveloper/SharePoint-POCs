@@ -1,6 +1,5 @@
 <script type="text/javascript">
     function addCustomRibbonAction() {
-        // Check if the ribbon is available
         var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
         if (ribbonMenu) {
             // Create a new list item for the custom action
@@ -20,12 +19,13 @@
                 event.preventDefault();
                 insertTable(); // Call the function to insert the table
             });
+
+            console.log("Custom button added successfully.");
         } else {
             console.error('Ribbon menu not found.');
         }
     }
 
-    // Function to insert table (defined previously)
     function insertTable() {
         var tableHtmlUrl = "https://yoursharepointsite.com/path/to/tableTemplate.html"; // Replace with your HTML file URL
         
@@ -60,8 +60,18 @@
         }
     }
 
+    function waitForRibbon() {
+        var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
+        if (ribbonMenu) {
+            addCustomRibbonAction();
+        } else {
+            // Check again after a short delay
+            setTimeout(waitForRibbon, 500); // Adjust the delay as needed
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-        // Delay execution to ensure ribbon is loaded
-        setTimeout(addCustomRibbonAction, 1000); // Adjust timeout as needed
+        // Start checking for the ribbon menu once the DOM is fully loaded
+        waitForRibbon();
     });
 </script>
