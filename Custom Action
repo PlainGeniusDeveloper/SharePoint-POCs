@@ -1,27 +1,37 @@
 <script type="text/javascript">
     function addCustomRibbonAction() {
-        var ribbonMenu = document.querySelector('#Ribbon\\.EditingTools\\.CPInsert .ms-cui-tts');
+        var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
         if (ribbonMenu) {
             // Check if the dropdown already exists to avoid duplicate additions
             if (!document.getElementById('customTableInsertDropdown')) {
-                var newGroup = document.createElement('li');
-                newGroup.className = 'ms-cui-tt ms-cui-tt-medium ms-cui-tt-split';
-                newGroup.innerHTML = `
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="customTableInsertDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            Insert Table
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="customTableInsertDropdown">
-                            <li><a class="dropdown-item" href="javascript:;" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
-                            <li><a class="dropdown-item" href="javascript:;" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
-                            <li><a class="dropdown-item" href="javascript:;" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
+                var group = document.createElement('div');
+                group.className = 'ms-cui-group';
+                group.innerHTML = `
+                    <div class="ms-cui-group-title">Insert Table</div>
+                    <div class="ms-cui-group-commands">
+                        <ul class="ms-cui-ctl-ul">
+                            <li class="ms-cui-ctl-li">
+                                <div class="ms-cui-ctl-large">
+                                    <a class="ms-cui-ctl-largeAnchor" href="#" id="customTableInsertDropdown" title="Insert Predefined Table">
+                                        <span class="ms-cui-img-16by16 ms-cui-img-cont-float">
+                                            <img src="https://yoursharepointsite.com/path/to/icon.png" alt="Insert Table" />
+                                        </span>
+                                        <span class="ms-cui-ctl-largeLabel">Insert Table</span>
+                                    </a>
+                                    <ul class="ms-cui-ctl-large-dropdown">
+                                        <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
+                                        <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
+                                        <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
+                                    </ul>
+                                </div>
+                            </li>
                         </ul>
                     </div>
                 `;
-                ribbonMenu.appendChild(newGroup);
+                ribbonMenu.appendChild(group);
 
                 // Attach click events to the dropdown options
-                var options = document.querySelectorAll('.dropdown-item');
+                var options = document.querySelectorAll('.ms-cui-ctl-large-dropdown a');
                 options.forEach(option => {
                     option.addEventListener('click', function(event) {
                         event.preventDefault();
@@ -100,66 +110,3 @@
         observeRibbon();
     });
 </script>
-
-
-
-
-<style>
-    .dropdown-toggle {
-        display: inline-block;
-        padding: 0.375rem 0.75rem;
-        font-size: 1rem;
-        font-weight: 400;
-        line-height: 1.5;
-        text-align: center;
-        white-space: nowrap;
-        vertical-align: middle;
-        user-select: none;
-        background-color: #6c757d;
-        border: 1px solid transparent;
-        border-radius: 0.25rem;
-        color: #fff;
-        text-decoration: none;
-    }
-    
-    .dropdown-menu {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        z-index: 1000;
-        display: none;
-        float: left;
-        min-width: 10rem;
-        padding: 0.5rem 0;
-        margin: 0.125rem 0 0;
-        font-size: 1rem;
-        color: #212529;
-        text-align: left;
-        list-style: none;
-        background-color: #fff;
-        background-clip: padding-box;
-        border: 1px solid rgba(0, 0, 0, 0.15);
-        border-radius: 0.25rem;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
-    }
-    
-    .dropdown-item {
-        display: block;
-        width: 100%;
-        padding: 0.25rem 1.5rem;
-        clear: both;
-        font-weight: 400;
-        color: #212529;
-        text-align: inherit;
-        text-decoration: none;
-        white-space: nowrap;
-        background-color: transparent;
-        border: 0;
-    }
-    
-    .dropdown-item:hover {
-        color: #16181b;
-        text-decoration: none;
-        background-color: #f8f9fa;
-    }
-</style>
