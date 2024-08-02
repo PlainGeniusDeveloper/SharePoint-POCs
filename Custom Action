@@ -1,26 +1,36 @@
 <script type="text/javascript">
     function addCustomRibbonAction() {
-        var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert.Links');
+        var ribbonMenu = document.querySelector('#Ribbon\\.EditingTools\\.CPInsert .ms-cui-tts');
         if (ribbonMenu) {
             // Check if the dropdown already exists to avoid duplicate additions
             if (!document.getElementById('customTableInsertDropdown')) {
-                var dropdown = document.createElement('div');
-                dropdown.className = 'ms-cui-ctl ms-cui-ctl-large';
-                dropdown.innerHTML = `
-                    <a class="ms-cui-ctl-large" href="#" id="customTableInsertDropdown" title="Insert Predefined Table">
-                        <img src="https://yoursharepointsite.com/path/to/icon.png" alt="Insert Table" />
-                        <span class="ms-cui-ctl-largeLabel">Insert Table</span>
+                var newGroup = document.createElement('li');
+                newGroup.className = 'ms-cui-tt ms-cui-tt-medium ms-cui-tt-split';
+                newGroup.innerHTML = `
+                    <a class="ms-cui-tt-a" href="javascript:;" id="customTableInsertDropdown" title="Insert Predefined Table">
+                        <span class="ms-cui-tt-span">
+                            <span class="ms-cui-tt-img" style="background-image:url('https://yoursharepointsite.com/path/to/icon.png');"></span>
+                            <span class="ms-cui-tt-text">Insert Table</span>
+                        </span>
                     </a>
-                    <ul class="ms-cui-ctl-large-dropdown">
-                        <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
-                        <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
-                        <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
+                    <ul class="ms-cui-tt-ul" style="display: none;">
+                        <li><a href="javascript:;" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
+                        <li><a href="javascript:;" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
+                        <li><a href="javascript:;" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
                     </ul>
                 `;
-                ribbonMenu.appendChild(dropdown);
+                ribbonMenu.appendChild(newGroup);
+
+                // Attach click event to the main button to toggle the dropdown menu
+                var mainButton = document.getElementById('customTableInsertDropdown');
+                mainButton.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    var dropdown = this.nextElementSibling;
+                    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                });
 
                 // Attach click events to the dropdown options
-                var options = document.querySelectorAll('.ms-cui-ctl-large-dropdown a');
+                var options = document.querySelectorAll('.ms-cui-tt-ul a');
                 options.forEach(option => {
                     option.addEventListener('click', function(event) {
                         event.preventDefault();
@@ -83,7 +93,7 @@
         // Create a MutationObserver to watch for changes in the DOM
         var observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
-                var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert.Links');
+                var ribbonMenu = document.querySelector('#Ribbon\\.EditingTools\\.CPInsert .ms-cui-tts');
                 if (ribbonMenu) {
                     addCustomRibbonAction();
                     captureInsertTitleClick(); // Capture click event on Insert Title
