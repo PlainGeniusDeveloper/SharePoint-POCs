@@ -1,22 +1,21 @@
 <script type="text/javascript">
     function addCustomRibbonAction() {
-        var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
+        var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert.Links');
         if (ribbonMenu) {
             // Check if the dropdown already exists to avoid duplicate additions
             if (!document.getElementById('customTableInsertDropdown')) {
-                var dropdown = document.createElement('li');
+                var dropdown = document.createElement('div');
+                dropdown.className = 'ms-cui-ctl ms-cui-ctl-large';
                 dropdown.innerHTML = `
-                    <div class="ms-cui-ctl ms-cui-ctl-large">
-                        <a class="ms-cui-ctl-large" href="#" id="customTableInsertDropdown" title="Insert Predefined Table">
-                            <img src="https://yoursharepointsite.com/path/to/icon.png" alt="Insert Table" />
-                            <span class="ms-cui-ctl-largeLabel">Insert Table</span>
-                        </a>
-                        <ul class="ms-cui-ctl-large-dropdown">
-                            <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
-                            <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
-                            <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
-                        </ul>
-                    </div>
+                    <a class="ms-cui-ctl-large" href="#" id="customTableInsertDropdown" title="Insert Predefined Table">
+                        <img src="https://yoursharepointsite.com/path/to/icon.png" alt="Insert Table" />
+                        <span class="ms-cui-ctl-largeLabel">Insert Table</span>
+                    </a>
+                    <ul class="ms-cui-ctl-large-dropdown">
+                        <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
+                        <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
+                        <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
+                    </ul>
                 `;
                 ribbonMenu.appendChild(dropdown);
 
@@ -41,7 +40,7 @@
         if (insertTitle) {
             insertTitle.addEventListener('click', function() {
                 console.log('Insert title clicked');
-                // Add your custom logic here
+                addCustomRibbonAction(); // Add custom ribbon action when the Insert tab is clicked
             });
         } else {
             console.error('Insert title not found.');
@@ -83,11 +82,13 @@
     function observeRibbon() {
         // Create a MutationObserver to watch for changes in the DOM
         var observer = new MutationObserver(function(mutations) {
-            var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
-            if (ribbonMenu) {
-                addCustomRibbonAction();
-                captureInsertTitleClick(); // Capture click event on Insert Title
-            }
+            mutations.forEach(function(mutation) {
+                var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert.Links');
+                if (ribbonMenu) {
+                    addCustomRibbonAction();
+                    captureInsertTitleClick(); // Capture click event on Insert Title
+                }
+            });
         });
 
         // Start observing the document body for changes
