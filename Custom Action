@@ -1,7 +1,7 @@
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
-        console.log("Document ready. Waiting for SP.js and SP.Ribbon.js to load...");
+        console.log("Document ready. Waiting for SP.js to load...");
         SP.SOD.executeFunc('sp.js', 'SP.ClientContext', function() {
             console.log("SP.js loaded.");
             SP.SOD.executeFunc('sp.ribbon.js', 'SP.Ribbon.PageManager', function() {
@@ -19,16 +19,23 @@
             setTimeout(ensureRibbon, 500); // Wait and check again
         } else {
             console.log("Ribbon is available. Customizing...");
-            customizeRibbon();
+            addCustomAction();
         }
     }
 
-    function customizeRibbon() {
-        var ribbonData = `
+    function addCustomAction() {
+        var context = new SP.ClientContext.get_current();
+        var list = context.get_web().get_lists().getByTitle("Check List");
+        var customUserAction = list.get_userCustomActions().add();
+        
+        customUserAction.set_location('CommandUI.Ribbon.ListForm');
+        customUserAction.set_sequence(1000);
+        
+        var userActionExtension = `
             <CommandUIExtension xmlns="http://schemas.microsoft.com/sharepoint/">
                 <CommandUIDefinitions>
-                    <CommandUIDefinition Location="Ribbon.ListForm.New.Controls._children">
-                        <Button Id="Ribbon.ListForm.New.CustomGroup.CustomButton"
+                    <CommandUIDefinition Location="Ribbon.ListForm.Edit.Controls._children">
+                        <Button Id="Ribbon.ListForm.Edit.CustomGroup.CustomButton"
                             Command="CustomButtonCommand"
                             Sequence="1000"
                             Image16by16="/_layouts/15/images/placeholder16x16.png"
@@ -41,29 +48,16 @@
                     <CommandUIHandler Command="CustomButtonCommand" CommandAction="javascript:customButtonAction();" />
                 </CommandUIHandlers>
             </CommandUIExtension>`;
-
-        var ribbonPageComponent = new SP.Ribbon.PageComponent({
-            id: 'CustomRibbonPageComponent',
-            init: function() {},
-            getFocusedCommands: function() {
-                return ['CustomButtonCommand'];
-            },
-            getGlobalCommands: function() {
-                return ['CustomButtonCommand'];
-            },
-            canHandleCommand: function(commandId) {
-                return commandId === 'CustomButtonCommand';
-            },
-            handleCommand: function(commandId, properties, sequence) {
-                if (commandId === 'CustomButtonCommand') {
-                    customButtonAction();
-                }
-            }
+        
+        customUserAction.set_commandUIExtension(userActionExtension);
+        customUserAction.update();
+        
+        context.load(customUserAction);
+        context.executeQueryAsync(function() {
+            console.log("Custom action added successfully.");
+        }, function(sender, args) {
+            console.error("Error adding custom action: " + args.get_message());
         });
-
-        SP.Ribbon.PageManager.get_instance().addPageComponent(ribbonPageComponent);
-        SP.Ribbon.PageManager.get_instance().get_ribbon().addExtension(ribbonData);
-        console.log("Custom button added to ribbon.");
     }
 
     function customButtonAction() {
