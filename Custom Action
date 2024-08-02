@@ -1,48 +1,46 @@
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
-        console.log("Document ready. Waiting for SP.js and SP.Ribbon.js to load...");
+        console.log("Document ready. Waiting for SP.js to load...");
         SP.SOD.executeFunc('sp.js', 'SP.ClientContext', function() {
             console.log("SP.js loaded.");
             SP.SOD.executeFunc('sp.ribbon.js', 'SP.Ribbon.PageManager', function() {
                 console.log("SP.Ribbon.js loaded.");
-                ensureRibbon();
+                waitForRibbon();
             });
         });
     });
 
-    function ensureRibbon() {
-        console.log("Ensuring ribbon is available...");
-        var ribbon = SP.Ribbon.PageManager.get_instance().get_ribbon();
-        if (!ribbon) {
-            console.log("Ribbon not available yet. Waiting...");
-            setTimeout(ensureRibbon, 500); // Wait and check again
-        } else {
-            console.log("Ribbon is available. Adding custom <li>...");
-            addCustomListItem();
-        }
+    function waitForRibbon() {
+        console.log("Waiting for ribbon to be fully loaded...");
+        var checkRibbon = function() {
+            var tabBody = $('ul.ms-cui-tabBody');
+            if (tabBody.length) {
+                console.log("Ribbon tab body found. Adding custom <li>...");
+                addCustomListItem(tabBody);
+            } else {
+                console.log("Ribbon tab body not found. Checking again...");
+                setTimeout(checkRibbon, 500); // Retry after 500ms
+            }
+        };
+        checkRibbon();
     }
 
-    function addCustomListItem() {
-        var tabBody = $('ul.ms-cui-tabBody');
-        if (tabBody.length) {
-            var newListItem = `
-                <li id="CustomListItem" class="ms-cui-tab ms-cui-tab-extended">
-                    <a href="javascript:void(0);" id="CustomLink">
-                        <span class="ms-cui-ctxt">Custom Item</span>
-                    </a>
-                </li>`;
-                
-            // Check if the item already exists
-            if ($('#CustomListItem').length === 0) {
-                tabBody.append(newListItem);
-                console.log("Custom <li> item added to ribbon.");
-            } else {
-                console.log("Custom <li> item already exists.");
-            }
+    function addCustomListItem(tabBody) {
+        // Create and append the new <li> element
+        var newListItem = `
+            <li id="CustomListItem" class="ms-cui-tab ms-cui-tab-extended">
+                <a href="javascript:void(0);" id="CustomLink">
+                    <span class="ms-cui-ctxt">Custom Item</span>
+                </a>
+            </li>`;
+
+        // Append the new item if it does not already exist
+        if ($('#CustomListItem').length === 0) {
+            tabBody.append(newListItem);
+            console.log("Custom <li> item added to ribbon.");
         } else {
-            console.log("Tab body not found. Waiting...");
-            setTimeout(addCustomListItem, 500); // Wait and check again
+            console.log("Custom <li> item already exists.");
         }
     }
 </script>
