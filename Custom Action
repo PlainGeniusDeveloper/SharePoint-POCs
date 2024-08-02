@@ -1,3 +1,12 @@
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
 <script type="text/javascript">
     function addCustomRibbonAction() {
         var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
@@ -6,28 +15,22 @@
             if (!document.getElementById('customTableInsertDropdown')) {
                 var newItem = document.createElement('li');
                 newItem.innerHTML = `
-                    <a href="#" id="customTableInsertDropdown" class="custom-dropdown-btn" title="Insert Predefined Table">
-                        <img src="https://yoursharepointsite.com/path/to/icon.png" alt="Insert Table" />
-                        <span class="custom-dropdown-label">Insert Table</span>
-                        <span class="custom-dropdown-arrow">&#9662;</span> <!-- Downward arrow for dropdown -->
-                    </a>
-                    <ul class="custom-dropdown-menu">
+                    <div class="dropdown">
+                      <button class="btn btn-primary dropdown-toggle" type="button" id="customTableInsertDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Insert Table
+                        <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu" aria-labelledby="customTableInsertDropdown">
                         <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
                         <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
                         <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
-                    </ul>
+                      </ul>
+                    </div>
                 `;
                 ribbonMenu.appendChild(newItem);
 
-                // Attach click event to toggle the dropdown
-                document.getElementById('customTableInsertDropdown').addEventListener('click', function(event) {
-                    event.preventDefault();
-                    var dropdown = this.nextElementSibling;
-                    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-                });
-
                 // Attach click events to the dropdown options
-                var options = document.querySelectorAll('.custom-dropdown-menu a');
+                var options = document.querySelectorAll('.dropdown-menu a');
                 options.forEach(option => {
                     option.addEventListener('click', function(event) {
                         event.preventDefault();
@@ -107,56 +110,3 @@
         observeRibbon();
     });
 </script>
-
-<style>
-    .custom-dropdown-btn {
-        display: flex;
-        align-items: center;
-        padding: 5px 10px;
-        text-decoration: none;
-        color: #333;
-        background-color: #f1f1f1;
-        border-radius: 4px;
-        border: 1px solid #ccc;
-    }
-    .custom-dropdown-btn img {
-        width: 16px;
-        height: 16px;
-        margin-right: 8px;
-    }
-    .custom-dropdown-label {
-        margin-right: 8px;
-    }
-    .custom-dropdown-arrow {
-        font-size: 12px;
-    }
-    .custom-dropdown-menu {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        min-width: 160px;
-        background-color: #ffffff;
-        border: 1px solid #ccc;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        z-index: 1000;
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    .custom-dropdown-menu li {
-        border-bottom: 1px solid #ddd;
-    }
-    .custom-dropdown-menu li:last-child {
-        border-bottom: none;
-    }
-    .custom-dropdown-menu a {
-        display: block;
-        padding: 8px 12px;
-        text-decoration: none;
-        color: #333;
-    }
-    .custom-dropdown-menu a:hover {
-        background-color: #f1f1f1;
-    }
-</style>
