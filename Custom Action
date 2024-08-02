@@ -1,26 +1,24 @@
-SP.SOD.executeOrDelayUntilScriptLoaded(function () {
-    // Register your custom ribbon button
-    var ribbonContext = new SP.Ribbon.WebPartComponentId();
+// custom-ribbon.js
+function addCustomRibbonButton() {
+    var ribbonContext = SP.Ribbon.WebPartComponentId;
     var ribbonButtonId = "MyCustomButton";
     var ribbonButtonName = "Custom Button";
     var ribbonImageUrl = "/_layouts/15/images/my-icon.png"; // Replace with your icon URL
 
     // Add the button to the ribbon
-    AddRibbonButton(ribbonContext, ribbonButtonId, ribbonButtonName, ribbonImageUrl);
-}, "sp.ribbon.js");
-
-function AddRibbonButton(context, buttonId, buttonName, imageUrl) {
     var ribbon = SP.Ribbon.PageManager.get_instance().get_ribbon();
-    if (!ribbon) return;
-
-    var tabId = "Ribbon.ListForm.Edit";
-    var tab = ribbon.getChild(tabId);
-
-    if (tab) {
-        var group = tab.getChild("Ribbon.ListForm.Edit.Commit.Controls");
-        if (group) {
-            var button = new CUI.Controls.Button(context, buttonId, buttonName, "", imageUrl, imageUrl, null);
-            group.addChild(button);
+    if (ribbon) {
+        var tabId = "Ribbon.ListForm.Edit";
+        var tab = ribbon.getChild(tabId);
+        if (tab) {
+            var group = tab.getChild("Ribbon.ListForm.Edit.Commit.Controls");
+            if (group) {
+                var button = new CUI.Controls.Button(ribbonContext, ribbonButtonId, ribbonButtonName, "", ribbonImageUrl, ribbonImageUrl, null);
+                group.addChild(button);
+            }
         }
     }
 }
+
+// Call the function when the page loads
+SP.SOD.executeOrDelayUntilScriptLoaded(addCustomRibbonButton, "sp.ribbon.js");
