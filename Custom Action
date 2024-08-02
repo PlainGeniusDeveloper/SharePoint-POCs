@@ -24,8 +24,7 @@
     }
 
     function customizeRibbon() {
-        var ribbon = SP.Ribbon.PageManager.get_instance().get_ribbon();
-        var customActionXml = `
+        var ribbonData = `
             <CommandUIExtension xmlns="http://schemas.microsoft.com/sharepoint/">
                 <CommandUIDefinitions>
                     <CommandUIDefinition Location="Ribbon.ListForm.New.Controls._children">
@@ -43,15 +42,28 @@
                 </CommandUIHandlers>
             </CommandUIExtension>`;
 
-        try {
-            SP.Ribbon.PageManager.get_instance().get_ribbon().addChild(new CUI.Component({
-                location: 'Ribbon.ListForm.New',
-                commandUIExtension: customActionXml
-            }));
-            console.log("Custom button added to ribbon.");
-        } catch (e) {
-            console.error("Error adding custom button: ", e);
-        }
+        var ribbonPageComponent = new SP.Ribbon.PageComponent({
+            id: 'CustomRibbonPageComponent',
+            init: function() {},
+            getFocusedCommands: function() {
+                return ['CustomButtonCommand'];
+            },
+            getGlobalCommands: function() {
+                return ['CustomButtonCommand'];
+            },
+            canHandleCommand: function(commandId) {
+                return commandId === 'CustomButtonCommand';
+            },
+            handleCommand: function(commandId, properties, sequence) {
+                if (commandId === 'CustomButtonCommand') {
+                    customButtonAction();
+                }
+            }
+        });
+
+        SP.Ribbon.PageManager.get_instance().addPageComponent(ribbonPageComponent);
+        SP.Ribbon.PageManager.get_instance().get_ribbon().addExtension(ribbonData);
+        console.log("Custom button added to ribbon.");
     }
 
     function customButtonAction() {
