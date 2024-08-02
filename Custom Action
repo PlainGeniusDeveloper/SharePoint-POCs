@@ -11,8 +11,6 @@
                         <span class="ms-cui-ctlms-d" id="customTableInsertButtonLabel">Insert Table</span>
                     </a>
                 `;
-
-                // Add the new item to the ribbon menu
                 ribbonMenu.appendChild(newItem);
 
                 // Attach click event to the new button
@@ -77,20 +75,19 @@
     function observeRibbon() {
         // Create a MutationObserver to watch for changes in the DOM
         var observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (document.getElementById('Ribbon.EditingTools.CPInsert')) {
-                    addCustomRibbonAction();
-                    captureInsertTitleClick(); // Capture click event on Insert Title
-                }
-            });
+            var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
+            if (ribbonMenu) {
+                addCustomRibbonAction();
+                captureInsertTitleClick(); // Capture click event on Insert Title
+            }
         });
 
         // Start observing the document body for changes
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
+    // Initialize MutationObserver to watch for changes in the ribbon
     document.addEventListener('DOMContentLoaded', function() {
-        // Start observing for the ribbon once the DOM is fully loaded
         observeRibbon();
     });
 </script>
