@@ -6,11 +6,12 @@
             if (!document.getElementById('customTableInsertDropdown')) {
                 var newItem = document.createElement('li');
                 newItem.innerHTML = `
-                    <a href="#" id="customTableInsertDropdown" class="ms-cui-ctlms-d" title="Insert Predefined Table">
+                    <a href="#" id="customTableInsertDropdown" class="custom-dropdown-btn" title="Insert Predefined Table">
                         <img src="https://yoursharepointsite.com/path/to/icon.png" alt="Insert Table" />
-                        <span class="ms-cui-ctlms-d" id="customTableInsertDropdownLabel">Insert Table</span>
+                        <span class="custom-dropdown-label">Insert Table</span>
+                        <span class="custom-dropdown-arrow">&#9662;</span> <!-- Downward arrow for dropdown -->
                     </a>
-                    <ul class="ms-cui-ctl-large-dropdown" style="display:none;">
+                    <ul class="custom-dropdown-menu">
                         <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
                         <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
                         <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
@@ -26,7 +27,7 @@
                 });
 
                 // Attach click events to the dropdown options
-                var options = document.querySelectorAll('.ms-cui-ctl-large-dropdown a');
+                var options = document.querySelectorAll('.custom-dropdown-menu a');
                 options.forEach(option => {
                     option.addEventListener('click', function(event) {
                         event.preventDefault();
@@ -108,21 +109,54 @@
 </script>
 
 <style>
-    .ms-cui-ctl-large-dropdown {
+    .custom-dropdown-btn {
+        display: flex;
+        align-items: center;
+        padding: 5px 10px;
+        text-decoration: none;
+        color: #333;
+        background-color: #f1f1f1;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+    .custom-dropdown-btn img {
+        width: 16px;
+        height: 16px;
+        margin-right: 8px;
+    }
+    .custom-dropdown-label {
+        margin-right: 8px;
+    }
+    .custom-dropdown-arrow {
+        font-size: 12px;
+    }
+    .custom-dropdown-menu {
         display: none;
         position: absolute;
-        background-color: #f9f9f9;
+        top: 100%;
+        left: 0;
         min-width: 160px;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        z-index: 1;
+        background-color: #ffffff;
+        border: 1px solid #ccc;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        list-style: none;
+        padding: 0;
+        margin: 0;
     }
-    .ms-cui-ctl-large-dropdown a {
-        color: black;
-        padding: 12px 16px;
-        text-decoration: none;
+    .custom-dropdown-menu li {
+        border-bottom: 1px solid #ddd;
+    }
+    .custom-dropdown-menu li:last-child {
+        border-bottom: none;
+    }
+    .custom-dropdown-menu a {
         display: block;
+        padding: 8px 12px;
+        text-decoration: none;
+        color: #333;
     }
-    .ms-cui-ctl-large-dropdown a:hover {
+    .custom-dropdown-menu a:hover {
         background-color: #f1f1f1;
     }
 </style>
