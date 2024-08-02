@@ -3,13 +3,16 @@
     $(document).ready(function () {
         console.log("Document ready. Waiting for SP.js and SP.Ribbon.js to load...");
         SP.SOD.executeFunc('sp.js', 'SP.ClientContext', function() {
+            console.log("SP.js loaded.");
             SP.SOD.executeFunc('sp.ribbon.js', 'SP.Ribbon.PageManager', function() {
+                console.log("SP.Ribbon.js loaded.");
                 ensureRibbon();
             });
         });
     });
 
     function ensureRibbon() {
+        console.log("Ensuring ribbon is available...");
         var ribbon = SP.Ribbon.PageManager.get_instance().get_ribbon();
         if (!ribbon) {
             console.log("Ribbon not available yet. Waiting...");
@@ -40,13 +43,15 @@
                 </CommandUIHandlers>
             </CommandUIExtension>`;
 
-        var options = {
-            'location': 'Ribbon.ListForm.New',
-            'commandUIExtension': customActionXml
-        };
-
-        SP.Ribbon.PageManager.get_instance().get_ribbon().addChild(new CUI.Component(options));
-        console.log("Custom button added to ribbon.");
+        try {
+            SP.Ribbon.PageManager.get_instance().get_ribbon().addChild(new CUI.Component({
+                location: 'Ribbon.ListForm.New',
+                commandUIExtension: customActionXml
+            }));
+            console.log("Custom button added to ribbon.");
+        } catch (e) {
+            console.error("Error adding custom button: ", e);
+        }
     }
 
     function customButtonAction() {
