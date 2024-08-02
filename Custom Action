@@ -25,8 +25,8 @@
                                 <Button Id="Ribbon.CustomGroup.CustomButton"
                                     Sequence="10"
                                     Command="CustomButtonCommand"
-                                    Image16by16="/_layouts/images/NoteBoard_16x16.png"
-                                    Image32by32="/_layouts/images/NoteBoard_32x32.png"
+                                    Image16by16="/_layouts/15/images/placeholder16x16.png"
+                                    Image32by32="/_layouts/15/images/placeholder32x32.png"
                                     LabelText="Custom Button"
                                     TemplateAlias="o1"/>
                             </Controls>
@@ -44,7 +44,7 @@
         context.load(customAction);
         context.executeQueryAsync(function () {
             console.log("Custom User Action added successfully to ribbon.");
-            CheckIfButtonExists();
+            setTimeout(CheckIfButtonExists, 3000); // Wait for a few seconds to ensure the ribbon is updated
         }, function (sender, args) {
             console.error("Error adding custom user action:", args.get_message());
         });
