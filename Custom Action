@@ -1,11 +1,87 @@
-<a class="ms-cui-ctl-large" href="#" id="customTableInsertDropdown" title="Insert Predefined Table">
-                            <span class="ms-cui-ctl-largeIconContainer">
-                                <span class="ms-cui-img-16by16 ms-cui-img-cont-float" style="background-image: url('https://yoursharepointsite.com/path/to/icon.png');"></span>
-                            </span>
-                            <span class="ms-cui-ctl-largeLabel">Insert Table</span>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</a></li>
-                            <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</a></li>
-                            <li><a href="#" data-table-url="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</a></li>
-                        </ul>
+<script>
+    function addCustomRibbonAction() {
+        var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
+        if (ribbonMenu) {
+            // Check if the select element already exists to avoid duplicate additions
+            if (!document.getElementById('customTableInsertSelect')) {
+                var newItem = document.createElement('li');
+                newItem.className = 'ms-cui-ctl-large ms-cui-ctl';
+                newItem.id = 'customTableInsertSelectContainer';
+                newItem.innerHTML = `
+                    <div>
+                        <select class="ddlTableTemplate" id="customTableInsertSelect">
+                            <option value="">Insert Table</option>
+                            <option value="https://yoursharepointsite.com/path/to/tableTemplate1.html">Table 1</option>
+                            <option value="https://yoursharepointsite.com/path/to/tableTemplate2.html">Table 2</option>
+                            <option value="https://yoursharepointsite.com/path/to/tableTemplate3.html">Table 3</option>
+                        </select>
+                    </div>
+                `;
+                ribbonMenu.appendChild(newItem);
+
+                // Attach change event to the new select element
+                document.getElementById('customTableInsertSelect').addEventListener('change', function(event) {
+                    var tableUrl = event.target.value;
+                    if (tableUrl) {
+                        insertTable(tableUrl);
+                    }
+                    event.target.selectedIndex = 0; // Reset the select element
+                });
+
+                console.log("Custom select element added successfully.");
+            }
+        } else {
+            console.error('Ribbon menu not found.');
+        }
+    }
+
+    function insertTable(tableHtmlUrl) {
+        fetch(tableHtmlUrl)
+            .then(response => response.text())
+            .then(data => {
+                var richTextField = document.querySelector('.ms-rtestate-field'); // Adjust selector as per your form field
+                if (richTextField) {
+                    insertHTMLAtCursor(richTextField, data);
+                } else {
+                    alert("Rich text field not found!");
+                }
+            })
+            .catch(error => {
+                console.error('Error loading the table template:', error);
+            });
+    }
+
+    function insertHTMLAtCursor(el, html) {
+        var range, sel;
+        if (window.getSelection) {
+            sel = window.getSelection();
+            if (sel.getRangeAt && sel.rangeCount) {
+                range = sel.getRangeAt(0);
+                range.deleteContents();
+                var fragment = range.createContextualFragment(html);
+                range.insertNode(fragment);
+                range.collapse(false);
+            }
+        } else if (document.selection && document.selection.createRange) {
+            document.selection.createRange().pasteHTML(html);
+        }
+    }
+
+    function observeRibbon() {
+        // Create a MutationObserver to watch for changes in the DOM
+        var observer = new MutationObserver(function(mutations) {
+            var ribbonMenu = document.getElementById('Ribbon.EditingTools.CPInsert');
+            if (ribbonMenu) {
+                addCustomRibbonAction();
+            }
+        });
+
+        // Start observing the document body for changes
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    // Initialize MutationObserver to watch for changes in the ribbon
+    document.addEventListener('DOMContentLoaded', function() {
+        observeRibbon();
+    });
+</script>
