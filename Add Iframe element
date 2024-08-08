@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>jQuery Iframe Example</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div id="iframeContainer"></div>
+
+    <script>
+        $(document).ready(function() {
+            // Create an iframe element
+            var iframe = $('<iframe>', {
+                src: 'https://www.example.com',
+                width: '600',
+                height: '400',
+                frameborder: '0',
+                scrolling: 'auto'
+            });
+
+            // Append the iframe to the div with id 'iframeContainer'
+            $('#iframeContainer').append(iframe);
+        });
+    </script>
+</body>
+</html>
