@@ -2,10 +2,13 @@ $(document).ready(function() {
     // Replace with your SharePoint site URL and list names
     var siteUrl = '/sites/yoursite';
     var configListName = 'Field Visibility Config';
-    
-    // Event handler for Tab dropdown change
-    $('#TabDropdown').change(function() {
-        var selectedTab = $(this).val(); // Get selected tab value
+
+    // Initialize Select2 on your dropdown if not already initialized
+    $('select[title="Tab Required Field"]').select2();
+
+    // Event handler for Select2 dropdown change
+    $('select[title="Tab Required Field"]').on('select2:select', function(e) {
+        var selectedTab = e.params.data.id; // Get selected tab value from Select2
         
         // Fetch configuration data
         $.ajax({
@@ -16,14 +19,14 @@ $(document).ready(function() {
             },
             success: function(data) {
                 var results = data.d.results;
-                
+
                 // Reset visibility of all fields
-                $('.field-class').show(); // Replace with a class or ID that applies to all your fields
-                
+                $('select[title]').show(); // Show all fields initially
+
                 // Iterate through results and hide fields as per configuration
                 $.each(results, function(index, item) {
                     var fieldName = item.FieldName; // Field name from the configuration
-                    var fieldSelector = "[id$='" + fieldName + "']"; // Adjust selector based on field naming conventions
+                    var fieldSelector = "select[title='" + fieldName + "']"; // Selector based on the title attribute
                     $(fieldSelector).hide(); // Hide field
                 });
             },
