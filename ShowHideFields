@@ -1,0 +1,35 @@
+$(document).ready(function() {
+    // Replace with your SharePoint site URL and list names
+    var siteUrl = '/sites/yoursite';
+    var configListName = 'Field Visibility Config';
+    
+    // Event handler for Tab dropdown change
+    $('#TabDropdown').change(function() {
+        var selectedTab = $(this).val(); // Get selected tab value
+        
+        // Fetch configuration data
+        $.ajax({
+            url: siteUrl + "/_api/web/lists/getbytitle('" + configListName + "')/items?$filter=Tab eq '" + selectedTab + "'",
+            type: 'GET',
+            headers: {
+                'Accept': 'application/json;odata=verbose'
+            },
+            success: function(data) {
+                var results = data.d.results;
+                
+                // Reset visibility of all fields
+                $('.field-class').show(); // Replace with a class or ID that applies to all your fields
+                
+                // Iterate through results and hide fields as per configuration
+                $.each(results, function(index, item) {
+                    var fieldName = item.FieldName; // Field name from the configuration
+                    var fieldSelector = "[id$='" + fieldName + "']"; // Adjust selector based on field naming conventions
+                    $(fieldSelector).hide(); // Hide field
+                });
+            },
+            error: function(error) {
+                console.log("Error fetching data: " + JSON.stringify(error));
+            }
+        });
+    });
+});
