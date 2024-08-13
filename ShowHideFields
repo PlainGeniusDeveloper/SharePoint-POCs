@@ -1,15 +1,48 @@
 $(document).ready(function() {
-    // Replace with your SharePoint site URL and list names
     var siteUrl = '/sites/yoursite';
     var configListName = 'Field Visibility Config';
 
-    // Initialize Select2 on your dropdown if not already initialized
-    $('select[title="Tab Required Field"]').select2();
+    function hideFields(fieldNames) {
+        $.each(fieldNames, function(index, fieldName) {
+            $('nobr:contains("' + fieldName + '")').closest('tr').hide();
+        });
+    }
+
+    function showAllFields() {
+        // Show all previously hidden fields
+        $('tr').each(function() {
+            if ($(this).css('display') === 'none') {
+                $(this).show();
+            }
+        });
+    }
+
+    // Initial setup: hide fields based on configuration
+    function applyInitialConfig() {
+        $.ajax({
+            url: siteUrl + "/_api/web/lists/getbytitle('" + configListName + "')/items?$filter=Tab eq 'InitialTabValue'", // Adjust filter to get initial config if needed
+            type: 'GET',
+            headers: {
+                'Accept': 'application/json;odata=verbose'
+            },
+            success: function(data) {
+                var results = data.d.results;
+                var fieldNames = $.map(results, function(item) { return item.FieldName; });
+
+                hideFields(fieldNames);
+            },
+            error: function(error) {
+                console.log("Error fetching initial data: " + JSON.stringify(error));
+            }
+        });
+    }
 
     // Event handler for Select2 dropdown change
     $('select[title="Tab Required Field"]').on('select2:select', function(e) {
         var selectedTab = e.params.data.id; // Get selected tab value from Select2
         
+        showAllFields(); // Show all fields before applying new rules
+
         // Fetch configuration data
         $.ajax({
             url: siteUrl + "/_api/web/lists/getbytitle('" + configListName + "')/items?$filter=Tab eq '" + selectedTab + "'",
@@ -19,20 +52,16 @@ $(document).ready(function() {
             },
             success: function(data) {
                 var results = data.d.results;
+                var fieldNames = $.map(results, function(item) { return item.FieldName; });
 
-                // Reset visibility of all fields
-                $('select[title]').show(); // Show all fields initially
-
-                // Iterate through results and hide fields as per configuration
-                $.each(results, function(index, item) {
-                    var fieldName = item.FieldName; // Field name from the configuration
-                    var fieldSelector = "select[title='" + fieldName + "']"; // Selector based on the title attribute
-                    $(fieldSelector).hide(); // Hide field
-                });
+                hideFields(fieldNames);
             },
             error: function(error) {
                 console.log("Error fetching data: " + JSON.stringify(error));
             }
         });
     });
+
+    // Apply initial configuration on page load
+    applyInitialConfig();
 });
