@@ -2,6 +2,7 @@ $(document).ready(function() {
     var siteUrl = '/sites/yoursite';
     var configListName = 'Field Visibility Config';
 
+    // Function to fetch data from the config list
     function fetchConfigData(tabValue) {
         var filterQuery = tabValue ? "?$filter=Tab eq '" + tabValue + "'" : ""; // Conditional filter query
 
@@ -14,27 +15,28 @@ $(document).ready(function() {
         });
     }
 
+    // Function to hide specific fields
     function hideFields(fieldNames) {
         $.each(fieldNames, function(index, fieldName) {
             $('nobr:contains("' + fieldName + '")').closest('tr').hide();
         });
     }
 
-    function showAllFields() {
-        // Show all previously hidden fields
-        $('tr').each(function() {
-            if ($(this).css('display') === 'none') {
-                $(this).show();
-            }
+    // Function to show specific fields
+    function showFields(fieldNames) {
+        $.each(fieldNames, function(index, fieldName) {
+            $('nobr:contains("' + fieldName + '")').closest('tr').show();
         });
     }
 
+    // Function to apply initial config
     function applyInitialConfig() {
-        fetchConfigData(null).done(function(data) {
+        return fetchConfigData(null).then(function(data) {
             var results = data.d.results;
             var fieldNames = $.map(results, function(item) { return item.FieldName; });
-            hideFields(fieldNames);
-        }).fail(function(error) {
+            hideFields(fieldNames); // Hide all fields initially based on the config list
+            return results; // Return results to chain the next step
+        }).catch(function(error) {
             console.log("Error fetching initial data: " + JSON.stringify(error));
         });
     }
@@ -42,17 +44,19 @@ $(document).ready(function() {
     // Event handler for Select2 dropdown change
     $('select[title="Tab Required Field"]').on('select2:select', function(e) {
         var selectedTab = e.params.data.id; // Get selected tab value from Select2
-        
-        showAllFields(); // Show all fields before applying new rules
 
-        // Fetch configuration data based on selected tab
-        fetchConfigData(selectedTab).done(function(data) {
-            var results = data.d.results;
-            var fieldNames = $.map(results, function(item) { return item.FieldName; });
-            hideFields(fieldNames);
-        }).fail(function(error) {
-            console.log("Error fetching data: " + JSON.stringify(error));
-        });
+        applyInitialConfig() // Reapply initial configuration to hide all specified fields
+            .then(function() {
+                return fetchConfigData(selectedTab); // Fetch data based on the selected tab
+            })
+            .then(function(data) {
+                var results = data.d.results;
+                var fieldNames = $.map(results, function(item) { return item.FieldName; });
+                showFields(fieldNames); // Show only the fields relevant to the selected tab
+            })
+            .catch(function(error) {
+                console.log("Error fetching data: " + JSON.stringify(error));
+            });
     });
 
     // Apply initial configuration on page load
