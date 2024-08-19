@@ -2,6 +2,18 @@ $(document).ready(function() {
     var siteUrl = '/sites/yoursite';
     var configListName = 'Field Visibility Config';
 
+    function fetchConfigData(tabValue) {
+        var filterQuery = tabValue ? "?$filter=Tab eq '" + tabValue + "'" : ""; // Conditional filter query
+
+        return $.ajax({
+            url: siteUrl + "/_api/web/lists/getbytitle('" + configListName + "')/items" + filterQuery,
+            type: 'GET',
+            headers: {
+                'Accept': 'application/json;odata=verbose'
+            }
+        });
+    }
+
     function hideFields(fieldNames) {
         $.each(fieldNames, function(index, fieldName) {
             $('nobr:contains("' + fieldName + '")').closest('tr').hide();
@@ -17,23 +29,13 @@ $(document).ready(function() {
         });
     }
 
-    // Initial setup: hide fields based on configuration
     function applyInitialConfig() {
-        $.ajax({
-            url: siteUrl + "/_api/web/lists/getbytitle('" + configListName + "')/items?$filter=Tab eq 'InitialTabValue'", // Adjust filter to get initial config if needed
-            type: 'GET',
-            headers: {
-                'Accept': 'application/json;odata=verbose'
-            },
-            success: function(data) {
-                var results = data.d.results;
-                var fieldNames = $.map(results, function(item) { return item.FieldName; });
-
-                hideFields(fieldNames);
-            },
-            error: function(error) {
-                console.log("Error fetching initial data: " + JSON.stringify(error));
-            }
+        fetchConfigData(null).done(function(data) {
+            var results = data.d.results;
+            var fieldNames = $.map(results, function(item) { return item.FieldName; });
+            hideFields(fieldNames);
+        }).fail(function(error) {
+            console.log("Error fetching initial data: " + JSON.stringify(error));
         });
     }
 
@@ -43,22 +45,13 @@ $(document).ready(function() {
         
         showAllFields(); // Show all fields before applying new rules
 
-        // Fetch configuration data
-        $.ajax({
-            url: siteUrl + "/_api/web/lists/getbytitle('" + configListName + "')/items?$filter=Tab eq '" + selectedTab + "'",
-            type: 'GET',
-            headers: {
-                'Accept': 'application/json;odata=verbose'
-            },
-            success: function(data) {
-                var results = data.d.results;
-                var fieldNames = $.map(results, function(item) { return item.FieldName; });
-
-                hideFields(fieldNames);
-            },
-            error: function(error) {
-                console.log("Error fetching data: " + JSON.stringify(error));
-            }
+        // Fetch configuration data based on selected tab
+        fetchConfigData(selectedTab).done(function(data) {
+            var results = data.d.results;
+            var fieldNames = $.map(results, function(item) { return item.FieldName; });
+            hideFields(fieldNames);
+        }).fail(function(error) {
+            console.log("Error fetching data: " + JSON.stringify(error));
         });
     });
 
