@@ -3,57 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Section Editor with Banner and CKEditor</title>
+    <title>Dynamic Section Editor</title>
+    <!-- Include CKEditor 5 from CDN -->
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <!-- Include jQuery from CDN -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include jQuery UI for sorting -->
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        #content-area {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            min-height: 50px;
         }
         .section {
             border: 1px solid #ccc;
-            margin-bottom: 20px;
             padding: 10px;
+            margin-bottom: 10px;
             position: relative;
-            background-color: #f9f9f9;
+            background-color: #fff;
         }
-        .banner-section {
-            background-size: cover;
-            color: white;
-            padding: 20px;
-            height: 200px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .banner-section h1 {
-            margin: 0;
-        }
-        .banner-section h2 {
-            margin: 5px 0 20px;
-        }
-        .banner-section .tools {
+        .tools {
             position: absolute;
             top: 10px;
             right: 10px;
         }
         .tools button {
             margin-left: 5px;
-            padding: 5px 10px;
         }
-        .section .tools {
-            position: absolute;
-            top: 10px;
-            right: 10px;
+        .banner-section {
+            padding: 20px;
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            position: relative;
         }
-        .section .tools button {
-            margin-left: 5px;
-            padding: 5px 10px;
+        .placeholder-image {
+            background-image: url('https://via.placeholder.com/800x200.png?text=Banner+Placeholder');
         }
-        #editor-modal {
+        #editor-modal, #teambook-modal {
             display: none;
             position: fixed;
             top: 50%;
@@ -63,59 +54,87 @@
             padding: 20px;
             border: 1px solid #ccc;
             z-index: 1000;
-            width: 80%;
-            max-width: 600px;
         }
-        #editor-modal textarea {
+        .input-group {
+            margin-bottom: 10px;
+        }
+        iframe {
             width: 100%;
-            height: 150px;
-        }
-        #save-content, #cancel-edit, #add-section {
-            margin-top: 20px;
+            height: 400px;
+            border: none;
         }
     </style>
 </head>
 <body>
 
-<div class="banner-section section" style="background-image: url('https://via.placeholder.com/800x200');">
-    <h1>Banner Title</h1>
-    <h2>Banner Subtitle</h2>
-    <a href="#" class="order-now-button" style="display: none;">Order Now</a>
-    <div class="tools">
-        <button class="edit">Edit</button>
+<div id="content-area">
+    <!-- Banner Section -->
+    <div class="section banner-section placeholder-image" data-type="banner">
+        <h1>Banner Title</h1>
+        <h2>Banner Subtitle</h2>
+        <a href="#" class="banner-button" style="display:none;">Order Now</a>
+        <div class="tools">
+            <button class="edit">Edit</button>
+            <button class="delete">Delete</button>
+            <button class="swap-up">↑</button>
+            <button class="swap-down">↓</button>
+        </div>
     </div>
-</div>
 
-<div class="section">
-    <h3>Summary Title</h3>
-    <p>Summary description content.</p>
-    <div class="tools">
-        <button class="edit">Edit</button>
-        <button class="delete">Delete</button>
+    <!-- Existing Summary Section -->
+    <div class="section" data-type="summary">
+        <h3>Summary Title</h3>
+        <p>Summary Description</p>
+        <div class="tools">
+            <button class="edit">Edit</button>
+            <button class="delete">Delete</button>
+            <button class="swap-up">↑</button>
+            <button class="swap-down">↓</button>
+        </div>
     </div>
 </div>
 
 <button id="add-section">Add New Section</button>
+<button id="add-teambook">Add Teambook Integration</button>
 
+<!-- Modal for Editing Banner and Summary -->
 <div id="editor-modal">
     <div class="input-group">
         <label for="section-title">Title:</label>
         <input type="text" id="section-title">
     </div>
     <div class="input-group">
+        <label for="section-subtitle">Subtitle:</label>
+        <input type="text" id="section-subtitle">
+    </div>
+    <div class="input-group" id="banner-url-group" style="display:none;">
+        <label for="banner-url">Banner Image URL:</label>
+        <input type="text" id="banner-url">
+    </div>
+    <div class="input-group">
         <label for="section-description">Description:</label>
-        <textarea id="section-description"></textarea>
+        <div id="rich-editor"></div>
     </div>
-    <div class="input-group">
-        <label for="image-url">Image URL (for Banner):</label>
-        <input type="text" id="image-url">
+    <div class="input-group" id="button-url-group" style="display:none;">
+        <label for="button-url">Button Link URL:</label>
+        <input type="text" id="button-url">
     </div>
-    <div class="input-group">
-        <label for="order-now-link">Order Now Link (for Banner):</label>
-        <input type="text" id="order-now-link">
+    <div class="input-group" id="button-text-group" style="display:none;">
+        <label for="button-text">Button Text:</label>
+        <input type="text" id="button-text">
     </div>
     <button id="save-content">Save</button>
     <button id="cancel-edit">Cancel</button>
+</div>
+
+<!-- Modal for Teambook Integration -->
+<div id="teambook-modal">
+    <div class="input-group">
+        <label for="team-id">Team ID:</label>
+        <input type="text" id="team-id">
+    </div>
+    <button id="save-teambook">Save</button>
+    <button id="cancel-teambook">Cancel</button>
 </div>
 
 <script>
@@ -124,86 +143,135 @@ $(document).ready(function() {
     let editorInstance = null;
 
     // Initialize CKEditor
-    function initEditor() {
-        ClassicEditor
-            .create(document.querySelector('#section-description'), {
-                toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'insertTable', 'mediaEmbed', 'undo', 'redo', 'imageUpload', 'imageInsert'],
-                image: {
-                    toolbar: ['imageTextAlternative', 'imageStyle:full', 'imageStyle:side', 'linkImage'],
-                    insert: {
-                        integrations: ['insertImageViaUrl']
-                    }
-                }
-            })
-            .then(editor => {
-                editorInstance = editor;
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    }
+    ClassicEditor
+        .create(document.querySelector('#rich-editor'), {
+            extraPlugins: [ 'ImageInsert' ], // Enable image insert plugin
+        })
+        .then(editor => {
+            editorInstance = editor;
+        })
+        .catch(error => {
+            console.error(error);
+        });
 
-    initEditor();
-
-    // Function to open the editor modal for editing
+    // Function to handle opening the editor modal
     function openEditor(section) {
         currentSection = section;
-        $('#section-title').val(section.find('h1, h2, h3').first().text());
-        editorInstance.setData(section.find('p').html());
-        
-        if (section.hasClass('banner-section')) {
-            $('#image-url').closest('.input-group').show();
-            $('#order-now-link').closest('.input-group').show();
-            $('#image-url').val(section.css('background-image').replace(/url\(|\)|"|'/g, ""));
-            $('#order-now-link').val(section.find('.order-now-button').attr('href'));
+        $('#section-title').val(section.find('h1, h3').text());
+
+        // Handle specific data for banner section
+        if (section.data('type') === 'banner') {
+            $('#banner-url-group').show();
+            $('#banner-url').val(section.css('background-image').replace(/url\(["']?|["']?\)$/g, ""));
+            $('#section-subtitle').val(section.find('h2').text());
+            $('#button-url-group').show();
+            $('#button-text-group').show();
+            $('#button-url').val(section.find('.banner-button').attr('href'));
+            $('#button-text').val(section.find('.banner-button').text());
         } else {
-            $('#image-url').closest('.input-group').hide();
-            $('#order-now-link').closest('.input-group').hide();
+            $('#banner-url-group').hide();
+            $('#button-url-group').hide();
+            $('#button-text-group').hide();
         }
+
+        editorInstance.setData(section.find('p').html() || section.find('h2').html() || '');
         $('#editor-modal').show();
     }
 
-    // Edit button click event
+    // Attach edit event handler
     $(document).on('click', '.edit', function() {
-        let section = $(this).closest('.section');
+        const section = $(this).closest('.section');
         openEditor(section);
     });
 
-    // Save button click event
+    // Save changes made in the editor modal
     $('#save-content').click(function() {
-        let title = $('#section-title').val();
-        let description = editorInstance.getData();
+        const title = $('#section-title').val();
+        const subtitle = $('#section-subtitle').val();
+        const description = editorInstance.getData();
+        const buttonUrl = $('#button-url').val();
+        const buttonText = $('#button-text').val();
+        const bannerUrl = $('#banner-url').val();
 
-        currentSection.find('h1, h2, h3').first().text(title);
-        currentSection.find('p').html(description);
+        currentSection.find('h1, h3').text(title);
 
-        if (currentSection.hasClass('banner-section')) {
-            let imageUrl = $('#image-url').val();
-            let orderNowLink = $('#order-now-link').val();
-
-            currentSection.css('background-image', 'url(' + (imageUrl || 'https://via.placeholder.com/800x200') + ')');
-            if (orderNowLink) {
-                currentSection.find('.order-now-button').attr('href', orderNowLink).show();
+        if (currentSection.data('type') === 'banner') {
+            currentSection.find('h2').text(subtitle);
+            currentSection.css('background-image', `url('${bannerUrl}')`);
+            if (buttonUrl && buttonText) {
+                currentSection.find('.banner-button')
+                    .attr('href', buttonUrl)
+                    .text(buttonText)
+                    .show();
             } else {
-                currentSection.find('.order-now-button').hide();
+                currentSection.find('.banner-button').hide();
             }
+        } else {
+            currentSection.find('p').html(description);
         }
-
         $('#editor-modal').hide();
     });
 
-    // Cancel button click event
     $('#cancel-edit').click(function() {
         $('#editor-modal').hide();
     });
 
-    // Add new section
+    // Function to add a new section
     $('#add-section').click(function() {
-        let newSection = $('<div class="section"><h3>New Title</h3><p>New description content.</p><div class="tools"><button class="edit">Edit</button><button class="delete">Delete</button></div></div>');
-        $('#add-section').before(newSection);
+        const newSection = $(`
+            <div class="section" data-type="summary">
+                <h3>New Section Title</h3>
+                <p>New Section Description</p>
+                <div class="tools">
+                    <button class="edit">Edit</button>
+                    <button class="delete">Delete</button>
+                    <button class="swap-up">↑</button>
+                    <button class="swap-down">↓</button>
+                </div>
+            </div>
+        `);
+        $('#content-area').append(newSection);
     });
 
-    // Delete button click event
+    // Function to add Teambook integration
+    $('#add-teambook').click(function() {
+        $('#teambook-modal').show();
+    });
+
+    $('#save-teambook').click(function() {
+        const teamId = $('#team-id').val();
+        const iframeHtml = `<iframe src="https://example.com/teambook/${teamId}" title="Teambook"></iframe>`;
+        const newSection = $(`
+            <div class="section" data-type="teambook">
+                ${iframeHtml}
+                <div class="tools">
+                    <button class="edit">Edit</button>
+                    <button class="delete">Delete</button>
+                    <button class="swap-up">↑</button>
+                    <button class="swap-down">↓</button>
+                </div>
+            </div>
+        `);
+        $('#content-area').append(newSection);
+        $('#teambook-modal').hide();
+    });
+
+    $('#cancel-teambook').click(function() {
+        $('#teambook-modal').hide();
+    });
+
+    // Swap sections
+    $(document).on('click', '.swap-up', function() {
+        const section = $(this).closest('.section');
+        section.prev().before(section);
+    });
+
+    $(document).on('click', '.swap-down', function() {
+        const section = $(this).closest('.section');
+        section.next().after(section);
+    });
+
+    // Delete section
     $(document).on('click', '.delete', function() {
         $(this).closest('.section').remove();
     });
