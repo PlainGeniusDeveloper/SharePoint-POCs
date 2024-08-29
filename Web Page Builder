@@ -1,158 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Section Editor</title>
-    <!-- Include CKEditor 5 from CDN -->
-    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
-    <!-- Include jQuery from CDN -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Include jQuery UI for sorting -->
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <style>
-        #content-area {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin: 10px;
-            min-height: 50px;
-        }
-        .section {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-            position: relative;
-            background-color: #fff;
-        }
-        .tools {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
-        .tools button {
-            margin-left: 5px;
-        }
-        .banner-section {
-            padding: 20px;
-            background-size: cover;
-            background-position: center;
-            color: white;
-            text-align: center;
-            position: relative;
-        }
-        .placeholder-image {
-            background-image: url('https://via.placeholder.com/800x200.png?text=Banner+Placeholder');
-        }
-        #editor-modal, #teambook-modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #fff;
-            padding: 20px;
-            border: 1px solid #ccc;
-            z-index: 1000;
-        }
-        .input-group {
-            margin-bottom: 10px;
-        }
-        iframe {
-            width: 100%;
-            height: 400px;
-            border: none;
-        }
-    </style>
-</head>
-<body>
-
-<div id="content-area">
-    <!-- Banner Section -->
-    <div class="section banner-section placeholder-image" data-type="banner">
-        <h1>Banner Title</h1>
-        <h2>Banner Subtitle</h2>
-        <a href="#" class="banner-button" style="display:none;">Order Now</a>
-        <div class="tools">
-            <button class="edit">Edit</button>
-            <button class="delete">Delete</button>
-            <button class="swap-up">↑</button>
-            <button class="swap-down">↓</button>
-        </div>
-    </div>
-
-    <!-- Existing Summary Section -->
-    <div class="section" data-type="summary">
-        <h3>Summary Title</h3>
-        <p>Summary Description</p>
-        <div class="tools">
-            <button class="edit">Edit</button>
-            <button class="delete">Delete</button>
-            <button class="swap-up">↑</button>
-            <button class="swap-down">↓</button>
-        </div>
-    </div>
-</div>
-
-<button id="add-section">Add New Section</button>
-<button id="add-teambook">Add Teambook Integration</button>
-
-<!-- Modal for Editing Banner and Summary -->
-<div id="editor-modal">
-    <div class="input-group">
-        <label for="section-title">Title:</label>
-        <input type="text" id="section-title">
-    </div>
-    <div class="input-group">
-        <label for="section-subtitle">Subtitle:</label>
-        <input type="text" id="section-subtitle">
-    </div>
-    <div class="input-group" id="banner-url-group" style="display:none;">
-        <label for="banner-url">Banner Image URL:</label>
-        <input type="text" id="banner-url">
-    </div>
-    <div class="input-group">
-        <label for="section-description">Description:</label>
-        <div id="rich-editor"></div>
-    </div>
-    <div class="input-group" id="button-url-group" style="display:none;">
-        <label for="button-url">Button Link URL:</label>
-        <input type="text" id="button-url">
-    </div>
-    <div class="input-group" id="button-text-group" style="display:none;">
-        <label for="button-text">Button Text:</label>
-        <input type="text" id="button-text">
-    </div>
-    <button id="save-content">Save</button>
-    <button id="cancel-edit">Cancel</button>
-</div>
-
-<!-- Modal for Teambook Integration -->
-<div id="teambook-modal">
-    <div class="input-group">
-        <label for="team-id">Team ID:</label>
-        <input type="text" id="team-id">
-    </div>
-    <button id="save-teambook">Save</button>
-    <button id="cancel-teambook">Cancel</button>
-</div>
-
-<script>
 $(document).ready(function() {
     let currentSection = null;
     let editorInstance = null;
 
     // Initialize CKEditor
-    ClassicEditor
-        .create(document.querySelector('#rich-editor'), {
-            extraPlugins: [ 'ImageInsert' ], // Enable image insert plugin
-        })
-        .then(editor => {
-            editorInstance = editor;
-        })
-        .catch(error => {
-            console.error(error);
-        });
+    function initializeEditor() {
+        return ClassicEditor
+            .create(document.querySelector('#rich-editor'), {
+                extraPlugins: [ 'ImageInsert' ], // Enable image insert plugin
+            })
+            .then(editor => {
+                editorInstance = editor;
+            })
+            .catch(error => {
+                console.error('CKEditor initialization error:', error);
+            });
+    }
+
+    // Call initializeEditor to ensure the editor is ready
+    initializeEditor();
 
     // Function to handle opening the editor modal
     function openEditor(section) {
@@ -174,7 +39,12 @@ $(document).ready(function() {
             $('#button-text-group').hide();
         }
 
-        editorInstance.setData(section.find('p').html() || section.find('h2').html() || '');
+        if (editorInstance) {
+            editorInstance.setData(section.find('p').html() || section.find('h2').html() || '');
+        } else {
+            console.error('Editor instance is not ready');
+        }
+
         $('#editor-modal').show();
     }
 
@@ -276,7 +146,3 @@ $(document).ready(function() {
         $(this).closest('.section').remove();
     });
 });
-</script>
-
-</body>
-</html>
