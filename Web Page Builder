@@ -1,148 +1,205 @@
-$(document).ready(function() {
-    let currentSection = null;
-    let editorInstance = null;
-
-    // Initialize CKEditor
-    function initializeEditor() {
-        return ClassicEditor
-            .create(document.querySelector('#rich-editor'), {
-                extraPlugins: [ 'ImageInsert' ], // Enable image insert plugin
-            })
-            .then(editor => {
-                editorInstance = editor;
-            })
-            .catch(error => {
-                console.error('CKEditor initialization error:', error);
-            });
-    }
-
-    // Call initializeEditor to ensure the editor is ready
-    initializeEditor();
-
-    // Function to handle opening the editor modal
-    function openEditor(section) {
-        currentSection = section;
-        $('#section-title').val(section.find('h1, h3').text());
-
-        // Handle specific data for banner section
-        if (section.data('type') === 'banner') {
-            $('#banner-url-group').show();
-            $('#banner-url').val(section.css('background-image').replace(/url\(["']?|["']?\)$/g, ""));
-            $('#section-subtitle').val(section.find('h2').text());
-            $('#button-url-group').show();
-            $('#button-text-group').show();
-            $('#button-url').val(section.find('.banner-button').attr('href'));
-            $('#button-text').val(section.find('.banner-button').text());
-        } else {
-            $('#banner-url-group').hide();
-            $('#button-url-group').hide();
-            $('#button-text-group').hide();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page with Editable Sections</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.0/classic/ckeditor.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .section {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            position: relative;
         }
 
-        if (editorInstance) {
-            editorInstance.setData(section.find('p').html() || section.find('h2').html() || '');
-        } else {
-            console.error('Editor instance is not ready');
+        .banner-section img {
+            width: 100%;
+            height: auto;
+            background-color: #f0f0f0;
         }
 
-        $('#editor-modal').show();
-    }
+        .section-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
 
-    // Attach edit event handler
-    $(document).on('click', '.edit', function() {
-        const section = $(this).closest('.section');
-        openEditor(section);
-    });
+        .default-placeholder {
+            background-color: #f0f0f0;
+            color: #999;
+            text-align: center;
+            padding: 50px;
+            border: 1px dashed #ccc;
+        }
+    </style>
+</head>
+<body>
 
-    // Save changes made in the editor modal
-    $('#save-content').click(function() {
-        const title = $('#section-title').val();
-        const subtitle = $('#section-subtitle').val();
-        const description = editorInstance.getData();
-        const buttonUrl = $('#button-url').val();
-        const buttonText = $('#button-text').val();
-        const bannerUrl = $('#banner-url').val();
+<div id="page-content">
+    <!-- Banner Section -->
+    <div class="section banner-section" data-section-type="banner">
+        <div class="section-controls">
+            <button class="btn btn-primary btn-sm edit-section">Edit</button>
+            <button class="btn btn-danger btn-sm delete-section">Delete</button>
+        </div>
+        <img src="https://via.placeholder.com/1200x400?text=Default+Banner+Image" alt="Banner Image">
+        <h1>Default Banner Title</h1>
+        <h2>Default Banner Subtitle</h2>
+        <a href="#" class="btn btn-success order-now-button">Order Now</a>
+    </div>
 
-        currentSection.find('h1, h3').text(title);
+    <!-- Title and Description Sections -->
+    <div class="section" data-section-type="content">
+        <div class="section-controls">
+            <button class="btn btn-primary btn-sm edit-section">Edit</button>
+            <button class="btn btn-danger btn-sm delete-section">Delete</button>
+        </div>
+        <h1>Title 1</h1>
+        <p>Description 1</p>
+    </div>
+    <div class="section" data-section-type="content">
+        <div class="section-controls">
+            <button class="btn btn-primary btn-sm edit-section">Edit</button>
+            <button class="btn btn-danger btn-sm delete-section">Delete</button>
+        </div>
+        <h1>Title 2</h1>
+        <p>Description 2</p>
+    </div>
 
-        if (currentSection.data('type') === 'banner') {
-            currentSection.find('h2').text(subtitle);
-            currentSection.css('background-image', `url('${bannerUrl}')`);
-            if (buttonUrl && buttonText) {
-                currentSection.find('.banner-button')
-                    .attr('href', buttonUrl)
-                    .text(buttonText)
-                    .show();
-            } else {
-                currentSection.find('.banner-button').hide();
+    <!-- Add New Section -->
+    <button id="add-section" class="btn btn-info">Add New Section</button>
+</div>
+
+<!-- Modal for CKEditor -->
+<div class="modal fade" id="editorModal" tabindex="-1" aria-labelledby="editorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editorModalLabel">Edit Content</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <textarea id="editor"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary save-changes">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script Dependencies -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Code starts here
+
+$(document).ready(function () {
+    let editorInstance;
+    let currentSection;
+
+    function initializeEditor(data) {
+        ClassicEditor.create(document.querySelector('#editor'), {
+            toolbar: {
+                items: [
+                    'heading', '|',
+                    'bold', 'italic', 'link', '|',
+                    'bulletedList', 'numberedList', '|',
+                    'insertImage', '|',
+                    'undo', 'redo'
+                ]
+            },
+            simpleUpload: {
+                uploadUrl: '/upload' // Replace with your upload URL
             }
-        } else {
-            currentSection.find('p').html(description);
+        })
+        .then(editor => {
+            editorInstance = editor;
+            editorInstance.setData(data);
+        })
+        .catch(error => {
+            console.error(error);
+        });
+    }
+
+    function openEditorModal(section) {
+        currentSection = section;
+        const content = $(section).html();
+        initializeEditor(content);
+        $('#editorModal').modal('show');
+    }
+
+    function saveChanges() {
+        const updatedContent = editorInstance.getData();
+        if (currentSection) {
+            $(currentSection).html(updatedContent);
+            editorInstance.destroy();
+            $('#editorModal').modal('hide');
         }
-        $('#editor-modal').hide();
-    });
+    }
 
-    $('#cancel-edit').click(function() {
-        $('#editor-modal').hide();
-    });
-
-    // Function to add a new section
-    $('#add-section').click(function() {
-        const newSection = $(`
-            <div class="section" data-type="summary">
-                <h3>New Section Title</h3>
-                <p>New Section Description</p>
-                <div class="tools">
-                    <button class="edit">Edit</button>
-                    <button class="delete">Delete</button>
-                    <button class="swap-up">↑</button>
-                    <button class="swap-down">↓</button>
-                </div>
-            </div>
-        `);
-        $('#content-area').append(newSection);
-    });
-
-    // Function to add Teambook integration
-    $('#add-teambook').click(function() {
-        $('#teambook-modal').show();
-    });
-
-    $('#save-teambook').click(function() {
-        const teamId = $('#team-id').val();
-        const iframeHtml = `<iframe src="https://example.com/teambook/${teamId}" title="Teambook"></iframe>`;
-        const newSection = $(`
-            <div class="section" data-type="teambook">
-                ${iframeHtml}
-                <div class="tools">
-                    <button class="edit">Edit</button>
-                    <button class="delete">Delete</button>
-                    <button class="swap-up">↑</button>
-                    <button class="swap-down">↓</button>
-                </div>
-            </div>
-        `);
-        $('#content-area').append(newSection);
-        $('#teambook-modal').hide();
-    });
-
-    $('#cancel-teambook').click(function() {
-        $('#teambook-modal').hide();
-    });
-
-    // Swap sections
-    $(document).on('click', '.swap-up', function() {
+    // Edit Section
+    $('.edit-section').click(function () {
         const section = $(this).closest('.section');
-        section.prev().before(section);
+        openEditorModal(section);
     });
 
-    $(document).on('click', '.swap-down', function() {
-        const section = $(this).closest('.section');
-        section.next().after(section);
+    // Save Changes
+    $('.save-changes').click(saveChanges);
+
+    // Add New Section
+    $('#add-section').click(function () {
+        const newSection = `
+            <div class="section" data-section-type="content">
+                <div class="section-controls">
+                    <button class="btn btn-primary btn-sm edit-section">Edit</button>
+                    <button class="btn btn-danger btn-sm delete-section">Delete</button>
+                </div>
+                <h1>New Title</h1>
+                <p>New Description</p>
+            </div>`;
+        $('#page-content').append(newSection);
     });
 
-    // Delete section
-    $(document).on('click', '.delete', function() {
-        $(this).closest('.section').remove();
+    // Delete Section
+    $(document).on('click', '.delete-section', function () {
+        if (confirm('Are you sure you want to delete this section?')) {
+            $(this).closest('.section').remove();
+        }
     });
+
+    // Placeholder Image
+    function setPlaceholderImage(imgElement) {
+        const placeholderUrl = "https://via.placeholder.com/1200x400?text=Default+Banner+Image";
+        if (!imgElement.attr('src')) {
+            imgElement.attr('src', placeholderUrl);
+        }
+    }
+
+    setPlaceholderImage($('.banner-section img'));
+
+    // Hide Order Now Button if no text or link
+    function updateOrderNowButton() {
+        $('.order-now-button').each(function () {
+            const buttonText = $(this).text().trim();
+            const buttonLink = $(this).attr('href').trim();
+            if (!buttonText || buttonLink === '#') {
+                $(this).hide();
+            }
+        });
+    }
+
+    updateOrderNowButton();
 });
+
+// Code ends here
+</script>
+</body>
+</html>
