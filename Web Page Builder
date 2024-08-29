@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page with Editable Sections</title>
+    <title>Editable Page with Sections</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.0/classic/ckeditor.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -90,7 +90,8 @@
             <button class="btn btn-info btn-sm move-down">↓</button>
         </div>
         <h1>Team Book</h1>
-        <iframe src="https://your-teambook-url.com/embed/team-id"></iframe>
+        <input type="text" id="team-book-id" placeholder="Enter Team Book ID">
+        <iframe id="team-book-iframe" src="" style="display: none;"></iframe>
     </div>
 
     <!-- Add New Section -->
@@ -146,7 +147,8 @@ $(document).ready(function () {
                     'X-CSRF-TOKEN': 'CSRF-Token',
                     Authorization: 'Bearer <JSON Web Token>'
                 }
-            }
+            },
+            extraPlugins: [MyImagePlugin] // Custom plugin for image URL insertion
         })
         .then(editor => {
             editorInstance = editor;
@@ -174,16 +176,16 @@ $(document).ready(function () {
     }
 
     // Edit Section
-    $('.edit-section').click(function () {
+    $(document).on('click', '.edit-section', function () {
         const section = $(this).closest('.section');
         openEditorModal(section);
     });
 
     // Save Changes
-    $('.save-changes').click(saveChanges);
+    $(document).on('click', '.save-changes', saveChanges);
 
     // Add New Section
-    $('#add-section').click(function () {
+    $(document).on('click', '#add-section', function () {
         const newSection = `
             <div class="section" data-section-type="content">
                 <div class="section-controls">
@@ -217,17 +219,7 @@ $(document).ready(function () {
         section.next('.section').after(section);
     });
 
-    // Placeholder Image
-    function setPlaceholderImage(imgElement) {
-        const placeholderUrl = "https://via.placeholder.com/1200x400?text=Default+Banner+Image";
-        if (!imgElement.attr('src')) {
-            imgElement.attr('src', placeholderUrl);
-        }
-    }
-
-    setPlaceholderImage($('.banner-section img'));
-
-    // Hide Order Now Button if no text or link
+    // Update Order Now Button Visibility
     function updateOrderNowButton() {
         $('.order-now-button').each(function () {
             const buttonText = $(this).text().trim();
@@ -239,9 +231,74 @@ $(document).ready(function () {
     }
 
     updateOrderNowButton();
-});
 
-// Code ends here
+    // Set Placeholder Image
+    function setPlaceholderImage(imgElement) {
+        const placeholderUrl = "https://via.placeholder.com/1200x400?text=Default+Banner+Image";
+        if (!imgElement.attr('src') || imgElement.attr('src') === '') {
+            imgElement.attr('src', placeholderUrl);
+        }
+    }
+
+    setPlaceholderImage($('.banner-section img'));
+
+    // Team Book Integration
+    function updateTeamBookIframe() {
+        const teamBookId = $('#team-book-id').val();
+        const iframe = $('#team-book-iframe');
+        if (teamBookId) {
+            iframe.attr('src', `https://teambook.com/${teamBookId}`);
+            iframe.show();
+        } else {
+            iframe.hide();
+        }
+    }
+
+    $(document).on('input', '#team-book-id', updateTeamBookIframe);
+
+    // Image Plugin for CKEditor
+    class MyImagePlugin {
+        constructor(editor) {
+            this.editor = editor;
+        }
+
+        init() {
+            const { editor } = this;
+            const { model, view } = editor;
+
+            editor.ui.componentFactory.add('insertImageFromURL', locale => {
+                const view = new ButtonView(locale);
+
+                view.set({
+                    label: 'Insert image from URL',
+                    icon: '<svg>...</svg>', // Add your SVG icon here
+                    tooltip: true
+                });
+
+                view.on('execute', () => {
+                    const url = prompt('Enter image URL');
+                    if (url) {
+                        editor.model.change(writer => {
+                            const imageElement = writer.createElement('imageBlock', { src: url });
+                            editor.model.insertContent(imageElement);
+                        });
+                    }
+                });
+
+                return view;
+            });
+        }
+    }
+
+    ClassicEditor
+        .create(document.querySelector('#editor'), {
+            plugins: [MyImagePlugin]
+        })
+        .catch(error => {
+            console.error(error);
+        });
+});
 </script>
+
 </body>
 </html>
