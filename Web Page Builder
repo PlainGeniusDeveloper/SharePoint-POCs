@@ -3,302 +3,317 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editable Page with Sections</title>
+    <title>Dynamic Section Editor with Static Sections</title>
+    <!-- Include CKEditor 5 from CDN -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <!-- Include jQuery from CDN -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.0/classic/ckeditor.js"></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Include jQuery UI for sorting -->
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <style>
-        .section {
-            margin-bottom: 20px;
+        #content-area {
+            border: 1px solid #ccc;
             padding: 10px;
-            border: 1px solid #ddd;
+            margin: 10px;
+            min-height: 50px;
+        }
+        .row, .accordion-section {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
             position: relative;
+            background-color: #fff;
         }
-
-        .banner-section img {
-            width: 100%;
-            height: auto;
-            background-color: #f0f0f0;
-        }
-
-        .section-controls {
+        .tools {
             position: absolute;
             top: 10px;
             right: 10px;
-            z-index: 10;
         }
-
-        .default-placeholder {
-            background-color: #f0f0f0;
-            color: #999;
-            text-align: center;
-            padding: 50px;
-            border: 1px dashed #ccc;
+        .tools button {
+            margin-left: 5px;
         }
-
-        .team-integration-section iframe {
+        #editor-modal, #teambook-modal, #accordion-editor-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            z-index: 1000;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        #teambook-modal input {
+            width: calc(100% - 22px);
+        }
+        iframe {
             width: 100%;
-            height: 300px;
+            height: 400px;
+            border: none;
+        }
+        .accordion-section {
+            margin-bottom: 10px;
+        }
+        .accordion-section .accordion-header {
+            background-color: #f1f1f1;
+            padding: 10px;
+            cursor: pointer;
+        }
+        .accordion-section .accordion-content {
+            display: none;
+            padding: 10px;
+            border-top: 1px solid #ccc;
         }
     </style>
 </head>
 <body>
 
-<div id="page-content">
-    <!-- Banner Section -->
-    <div class="section banner-section" data-section-type="banner">
-        <div class="section-controls">
-            <button class="btn btn-primary btn-sm edit-section">Edit</button>
-            <button class="btn btn-danger btn-sm delete-section">Delete</button>
-            <button class="btn btn-info btn-sm move-up">↑</button>
-            <button class="btn btn-info btn-sm move-down">↓</button>
+<div id="content-area">
+    <!-- Static Section 1 -->
+    <div class="row static-section">
+        <div class="column">
+            <h3>Static Title 1</h3>
+            <p>Static description content 1.</p>
         </div>
-        <img src="https://via.placeholder.com/1200x400?text=Default+Banner+Image" alt="Banner Image">
-        <h1>Default Banner Title</h1>
-        <h2>Default Banner Subtitle</h2>
-        <a href="#" class="btn btn-success order-now-button">Order Now</a>
+        <div class="tools">
+            <button class="edit">Edit</button>
+            <button class="delete">Delete</button>
+        </div>
     </div>
 
-    <!-- Title and Description Sections -->
-    <div class="section" data-section-type="content">
-        <div class="section-controls">
-            <button class="btn btn-primary btn-sm edit-section">Edit</button>
-            <button class="btn btn-danger btn-sm delete-section">Delete</button>
-            <button class="btn btn-info btn-sm move-up">↑</button>
-            <button class="btn btn-info btn-sm move-down">↓</button>
+    <!-- Static Section 2 -->
+    <div class="row static-section">
+        <div class="column">
+            <h3>Static Title 2</h3>
+            <p>Static description content 2.</p>
         </div>
-        <h1>Title 1</h1>
-        <p>Description 1</p>
-    </div>
-    <div class="section" data-section-type="content">
-        <div class="section-controls">
-            <button class="btn btn-primary btn-sm edit-section">Edit</button>
-            <button class="btn btn-danger btn-sm delete-section">Delete</button>
-            <button class="btn btn-info btn-sm move-up">↑</button>
-            <button class="btn btn-info btn-sm move-down">↓</button>
-        </div>
-        <h1>Title 2</h1>
-        <p>Description 2</p>
-    </div>
-
-    <!-- Team Book Integration Section -->
-    <div class="section team-integration-section" data-section-type="team">
-        <div class="section-controls">
-            <button class="btn btn-primary btn-sm edit-section">Edit</button>
-            <button class="btn btn-danger btn-sm delete-section">Delete</button>
-            <button class="btn btn-info btn-sm move-up">↑</button>
-            <button class="btn btn-info btn-sm move-down">↓</button>
-        </div>
-        <h1>Team Book</h1>
-        <input type="text" id="team-book-id" placeholder="Enter Team Book ID">
-        <iframe id="team-book-iframe" src="" style="display: none;"></iframe>
-    </div>
-
-    <!-- Add New Section -->
-    <button id="add-section" class="btn btn-info">Add New Section</button>
-</div>
-
-<!-- Modal for CKEditor -->
-<div class="modal fade" id="editorModal" tabindex="-1" aria-labelledby="editorModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editorModalLabel">Edit Content</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <textarea id="editor"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary save-changes">Save changes</button>
-            </div>
+        <div class="tools">
+            <button class="edit">Edit</button>
+            <button class="delete">Delete</button>
         </div>
     </div>
 </div>
 
-<!-- Script Dependencies -->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<button id="add-section">Add New Section</button>
+<button id="add-accordion">Add Accordion</button>
+<button id="add-teambook">Add Teambook Integration</button>
+
+<!-- Modal for Rich Text Editing -->
+<div id="editor-modal">
+    <div class="input-group">
+        <label for="section-title">Title:</label>
+        <input type="text" id="section-title">
+    </div>
+    <div class="input-group">
+        <label for="section-description">Description:</label>
+        <div id="rich-editor"></div>
+    </div>
+    <button id="save-content">Save</button>
+    <button id="cancel-edit">Cancel</button>
+</div>
+
+<!-- Modal for Accordion Editing -->
+<div id="accordion-editor-modal">
+    <div class="input-group">
+        <label for="accordion-header">Accordion Header:</label>
+        <input type="text" id="accordion-header">
+    </div>
+    <div class="input-group">
+        <label for="accordion-content">Accordion Content:</label>
+        <div id="accordion-editor"></div>
+    </div>
+    <button id="save-accordion">Save</button>
+    <button id="cancel-accordion-edit">Cancel</button>
+</div>
+
+<!-- Modal for Teambook Integration -->
+<div id="teambook-modal">
+    <div class="input-group">
+        <label for="team-id">Team ID:</label>
+        <input type="text" id="team-id">
+    </div>
+    <button id="save-teambook">Save</button>
+    <button id="cancel-teambook">Cancel</button>
+</div>
 
 <script>
-// Code starts here
+$(document).ready(function() {
+    let currentRow = null;
+    let currentAccordion = null;
+    let editorInstance = null;
+    let accordionEditorInstance = null;
 
-$(document).ready(function () {
-    let editorInstance;
-    let currentSection;
-
-    function initializeEditor(data) {
-        ClassicEditor.create(document.querySelector('#editor'), {
-            toolbar: {
-                items: [
-                    'heading', '|',
-                    'bold', 'italic', 'link', '|',
-                    'bulletedList', 'numberedList', '|',
-                    'insertImage', '|',
-                    'undo', 'redo'
-                ]
-            },
-            simpleUpload: {
-                uploadUrl: '/upload', // Replace with your upload URL
-                withCredentials: true,
-                headers: {
-                    'X-CSRF-TOKEN': 'CSRF-Token',
-                    Authorization: 'Bearer <JSON Web Token>'
-                }
-            },
-            extraPlugins: [MyImagePlugin] // Custom plugin for image URL insertion
-        })
-        .then(editor => {
-            editorInstance = editor;
-            editorInstance.setData(data);
-        })
-        .catch(error => {
-            console.error(error);
-        });
-    }
-
-    function openEditorModal(section) {
-        currentSection = section;
-        const content = $(section).html();
-        initializeEditor(content);
-        $('#editorModal').modal('show');
-    }
-
-    function saveChanges() {
-        const updatedContent = editorInstance.getData();
-        if (currentSection) {
-            $(currentSection).html(updatedContent);
-            editorInstance.destroy();
-            $('#editorModal').modal('hide');
-        }
-    }
-
-    // Edit Section
-    $(document).on('click', '.edit-section', function () {
-        const section = $(this).closest('.section');
-        openEditorModal(section);
-    });
-
-    // Save Changes
-    $(document).on('click', '.save-changes', saveChanges);
-
-    // Add New Section
-    $(document).on('click', '#add-section', function () {
-        const newSection = `
-            <div class="section" data-section-type="content">
-                <div class="section-controls">
-                    <button class="btn btn-primary btn-sm edit-section">Edit</button>
-                    <button class="btn btn-danger btn-sm delete-section">Delete</button>
-                    <button class="btn btn-info btn-sm move-up">↑</button>
-                    <button class="btn btn-info btn-sm move-down">↓</button>
-                </div>
-                <h1>New Title</h1>
-                <p>New Description</p>
-            </div>`;
-        $('#page-content').append(newSection);
-    });
-
-    // Delete Section
-    $(document).on('click', '.delete-section', function () {
-        if (confirm('Are you sure you want to delete this section?')) {
-            $(this).closest('.section').remove();
-        }
-    });
-
-    // Move Section Up
-    $(document).on('click', '.move-up', function () {
-        const section = $(this).closest('.section');
-        section.prev('.section').before(section);
-    });
-
-    // Move Section Down
-    $(document).on('click', '.move-down', function () {
-        const section = $(this).closest('.section');
-        section.next('.section').after(section);
-    });
-
-    // Update Order Now Button Visibility
-    function updateOrderNowButton() {
-        $('.order-now-button').each(function () {
-            const buttonText = $(this).text().trim();
-            const buttonLink = $(this).attr('href').trim();
-            if (!buttonText || buttonLink === '#') {
-                $(this).hide();
-            }
-        });
-    }
-
-    updateOrderNowButton();
-
-    // Set Placeholder Image
-    function setPlaceholderImage(imgElement) {
-        const placeholderUrl = "https://via.placeholder.com/1200x400?text=Default+Banner+Image";
-        if (!imgElement.attr('src') || imgElement.attr('src') === '') {
-            imgElement.attr('src', placeholderUrl);
-        }
-    }
-
-    setPlaceholderImage($('.banner-section img'));
-
-    // Team Book Integration
-    function updateTeamBookIframe() {
-        const teamBookId = $('#team-book-id').val();
-        const iframe = $('#team-book-iframe');
-        if (teamBookId) {
-            iframe.attr('src', `https://teambook.com/${teamBookId}`);
-            iframe.show();
-        } else {
-            iframe.hide();
-        }
-    }
-
-    $(document).on('input', '#team-book-id', updateTeamBookIframe);
-
-    // Image Plugin for CKEditor
-    class MyImagePlugin {
-        constructor(editor) {
-            this.editor = editor;
-        }
-
-        init() {
-            const { editor } = this;
-            const { model, view } = editor;
-
-            editor.ui.componentFactory.add('insertImageFromURL', locale => {
-                const view = new ButtonView(locale);
-
-                view.set({
-                    label: 'Insert image from URL',
-                    icon: '<svg>...</svg>', // Add your SVG icon here
-                    tooltip: true
-                });
-
-                view.on('execute', () => {
-                    const url = prompt('Enter image URL');
-                    if (url) {
-                        editor.model.change(writer => {
-                            const imageElement = writer.createElement('imageBlock', { src: url });
-                            editor.model.insertContent(imageElement);
-                        });
-                    }
-                });
-
-                return view;
+    // Function to initialize CKEditor 5 for any given element
+    function initCKEditor(selector) {
+        return ClassicEditor
+            .create(document.querySelector(selector))
+            .catch(error => {
+                console.error(error);
             });
-        }
     }
 
-    ClassicEditor
-        .create(document.querySelector('#editor'), {
-            plugins: [MyImagePlugin]
-        })
-        .catch(error => {
-            console.error(error);
+    // Function to add a new section
+    $('#add-section').click(function() {
+        let row = createRow();
+        $('#content-area').append(row);
+    });
+
+    // Function to add a new accordion
+    $('#add-accordion').click(function() {
+        let accordion = createAccordion();
+        $('#content-area').append(accordion);
+    });
+
+    // Function to add Teambook integration
+    $('#add-teambook').click(function() {
+        $('#teambook-modal').show();
+    });
+
+    // Function to create a new row
+    function createRow() {
+        let row = $('<div class="row"></div>');
+        let column = $('<div class="column"></div>');
+        column.append('<h3>Title</h3><p>Description</p>');
+
+        let tools = createTools();
+        row.append(column);
+        row.append(tools);
+
+        // Make the row sortable
+        $('#content-area').sortable();
+
+        return row;
+    }
+
+    // Function to create a new accordion
+    function createAccordion() {
+        let accordionSection = $('<div class="accordion-section"></div>');
+        let accordionHeader = $('<div class="accordion-header">Accordion Title</div>');
+        let accordionContent = $('<div class="accordion-content">Accordion Content</div>');
+        
+        let tools = createTools();
+        accordionHeader.append(tools);
+        
+        accordionSection.append(accordionHeader);
+        accordionSection.append(accordionContent);
+
+        // Add click event to toggle accordion content
+        accordionHeader.click(function() {
+            accordionContent.slideToggle();
         });
+
+        // Make the accordion sortable
+        $('#content-area').sortable();
+
+        return accordionSection;
+    }
+
+    // Function to create tools for a row or accordion
+    function createTools() {
+        let tools = $('<div class="tools"></div>');
+        let deleteButton = $('<button class="delete">Delete</button>');
+        let editButton = $('<button class="edit">Edit</button>');
+        let swapUpButton = $('<button class="swap-up">↑</button>');
+        let swapDownButton = $('<button class="swap-down">↓</button>');
+
+        tools.append(editButton, deleteButton, swapUpButton, swapDownButton);
+        return tools;
+    }
+
+    // Attach event handlers to document for static and dynamic sections
+    $(document).on('click', '.delete', function() {
+        if (!$(this).closest('.row, .accordion-section').hasClass('static-section')) {
+            $(this).closest('.row, .accordion-section').remove();
+        }
+    });
+
+    $(document).on('click', '.edit', function() {
+        let parent = $(this).closest('.row, .accordion-section');
+
+        if (parent.hasClass('accordion-section')) {
+            currentAccordion = parent;
+            $('#accordion-header').val(parent.find('.accordion-header').contents().filter(function() {
+                return this.nodeType === 3; // Node type 3 is text
+            }).text().trim());
+            initCKEditor('#accordion-editor').then(editor => {
+                accordionEditorInstance = editor;
+                editor.setData(parent.find('.accordion-content').html());
+            });
+            $('#accordion-editor-modal').show();
+        } else {
+            currentRow = parent;
+            $('#section-title').val(currentRow.find('h3').text());
+            initCKEditor('#rich-editor').then(editor => {
+                editorInstance = editor;
+                editor.setData(currentRow.find('p').html());
+            });
+            $('#editor-modal').show();
+        }
+    });
+
+    $(document).on('click', '.swap-up', function() {
+        if (!$(this).closest('.row, .accordion-section').hasClass('static-section')) {
+            let row = $(this).closest('.row, .accordion-section');
+            row.prev().before(row);
+        }
+    });
+
+    $(document).on('click', '.swap-down', function() {
+        if (!$(this).closest('.row, .accordion-section').hasClass('static-section')) {
+            let row = $(this).closest('.row, .accordion-section');
+            row.next().after(row);
+        }
+    });
+
+    $('#save-content').click(function() {
+        let title = $('#section-title').val();
+        let description = editorInstance.getData();
+
+        currentRow.find('h3').text(title);
+        currentRow.find('p').html(description);
+
+        editorInstance.destroy();
+        $('#editor-modal').hide();
+    });
+
+    $('#cancel-edit').click(function() {
+        editorInstance.destroy();
+        $('#editor-modal').hide();
+    });
+
+    $('#save-accordion').click(function() {
+        let header = $('#accordion-header').val();
+        let content = accordionEditorInstance.getData();
+
+        currentAccordion.find('.accordion-header').contents().filter(function() {
+            return this.nodeType === 3; // Node type 3 is text
+        }).first().replaceWith(header);
+        currentAccordion.find('.accordion-content').html(content);
+
+        accordionEditorInstance.destroy();
+        $('#accordion-editor-modal').hide();
+    });
+
+    $('#cancel-accordion-edit').click(function() {
+        accordionEditorInstance.destroy();
+        $('#accordion-editor-modal').hide();
+    });
+
+    $('#save-teambook').click(function() {
+        let teamID = $('#team-id').val();
+        let iframe = `<iframe src="https://example.com/teambook/${teamID}" frameborder="0"></iframe>`;
+        $('#content-area').append(iframe);
+        $('#teambook-modal').hide();
+    });
+
+    $('#cancel-teambook').click(function() {
+        $('#teambook-modal').hide();
+    });
 });
 </script>
-
 </body>
 </html>
