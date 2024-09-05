@@ -1,0 +1,58 @@
+// Assuming jsonTemplate is your predefined JSON object
+let jsonTemplate = {
+  "tabs": [
+    {
+      "id": 1,
+      "sections": [
+        { "id": 1, "title": "Title 1", "description": "Description 1" },
+        { "id": 2, "title": "Title 2", "description": "Description 2" }
+      ]
+    },
+    {
+      "id": 2,
+      "sections": [
+        { "id": 3, "title": "Title 3", "description": "Description 3" }
+      ]
+    }
+  ]
+};
+
+// Global Save button click handler
+$('#globalSaveButton').on('click', function() {
+    // Iterate over each tab-content div in the HTML
+    $('.tab-content').each(function() {
+        const tabId = $(this).data('tab-id'); // Get the tab's ID from the data attribute
+
+        // Find the corresponding tab in the jsonTemplate by matching the ID
+        let tabData = jsonTemplate.tabs.find(tab => tab.id === tabId);
+
+        // Clear the old sections data for the current tab
+        tabData.sections = [];
+
+        // Iterate over each section within this tab in the UI
+        $(this).find('.section').each(function() {
+            const sectionId = $(this).data('section-id'); // Get the section's ID
+            const updatedTitle = $(this).find('.section-title').val(); // Get updated title
+            const updatedDescription = $(this).find('.section-description').val(); // Get updated description
+
+            // Add the updated section data back to the tab's sections array
+            tabData.sections.push({
+                id: sectionId,
+                title: updatedTitle,
+                description: updatedDescription
+            });
+        });
+    });
+
+    // Log the updated JSON to verify
+    console.log('Updated JSON:', JSON.stringify(jsonTemplate, null, 2));
+
+    // Optionally, send the updated JSON to the server or store it as needed
+    saveTemplateToServer(jsonTemplate);
+});
+
+// Dummy function for saving template to server
+function saveTemplateToServer(jsonTemplate) {
+    // Add AJAX or API call to save the JSON on the server
+    console.log('Saving JSON to server...', jsonTemplate);
+}
