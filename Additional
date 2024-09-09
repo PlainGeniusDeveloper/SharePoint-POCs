@@ -1,6 +1,13 @@
-.replace(/\\/g, '')                     // Remove backslashes
-        .replace(/"/g, '\\"')                   // Escape double quotes
+let cleanHtml = htmlContent
         .replace(/\n/g, '')                     // Remove newline characters
         .replace(/<p>\s*<\/p>/g, '')            // Remove empty <p> tags
         .replace(/\s\s+/g, ' ')                 // Replace multiple spaces with a single space
-        .trim();  
+        .trim();                                // Trim leading/trailing spaces
+
+    // Create a JSON object with the cleaned HTML
+    let jsonData = {
+        content: cleanHtml
+    };
+
+    // Convert the JSON object to a JSON string
+    let jsonString = JSON.stringify(jsonData, null, 2);
