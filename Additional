@@ -1,7 +1,4 @@
-// Clean up the HTML content
-    let cleanHtml = htmlContent
-        .replace(/\\\"/g, '"')                  // Remove escaped quotes
-        .replace(/\n/g, '')                     // Remove newline characters
-        .replace(/<p>\s*<\/p>/g, '')            // Remove empty <p> tags
-        .replace(/\s\s+/g, ' ')                 // Replace multiple spaces with a single space
-        .trim();   
+.replace(/\n/g, '')                      // Remove newline characters
+        .replace(/<p>\s*<\/p>/g, '')             // Remove empty <p> tags
+        .replace(/\s\s+/g, ' ')                  // Replace multiple spaces with a single space
+        .trim();    
