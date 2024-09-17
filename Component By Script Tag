@@ -1,0 +1,104 @@
+<div id="content"></div>
+<ul id="tabs">
+    <li data-tab="tab1">Tab 1</li>
+    <li data-tab="tab2">Tab 2</li>
+    <li data-tab="tab3">Tab 3</li>
+</ul>
+
+<!-- Define templates in <script> tags -->
+<script type="text/template" id="template-tab1">
+    <div class="template-section">
+        <h2>Template for Tab 1</h2>
+        <p>This is content specific to Tab 1.</p>
+        <div class="custom-element">Element that needs custom ID for Tab 1</div>
+    </div>
+</script>
+
+<script type="text/template" id="template-tab2">
+    <div class="template-section">
+        <h2>Template for Tab 2</h2>
+        <p>This is content specific to Tab 2.</p>
+        <div class="custom-element">Element that needs custom ID for Tab 2</div>
+    </div>
+</script>
+
+<script type="text/template" id="template-tab3">
+    <div class="template-section">
+        <h2>Template for Tab 3</h2>
+        <p>This is content specific to Tab 3.</p>
+        <div class="custom-element">Element that needs custom ID for Tab 3</div>
+    </div>
+</script>
+
+<script type="text/template" id="template-default">
+    <div class="template-section">
+        <h2>Default Template</h2>
+        <p>No specific template was found, so this is the default content.</p>
+    </div>
+</script>
+
+<!-- jQuery CDN for convenience -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+==========================================================================
+$(document).ready(function() {
+    // Function to load and append the correct template, with dynamic ID assignment
+    const appendTemplate = (selector, templateId, customId) => {
+        const $container = $(selector);
+        $container.empty();  // Clear the current content
+
+        const $template = $(`#${templateId}`);
+        if ($template.length) {
+            // Clone the template's content
+            const $content = $($template.html());
+
+            // Find elements that need custom IDs and assign them
+            $content.find('.custom-element').attr('id', customId);
+
+            // Append the modified content to the container
+            $container.append($content);
+        } else {
+            // Fallback to default template if no specific template is found
+            const $defaultTemplate = $('#template-default');
+            $container.append($($defaultTemplate.html()));
+        }
+    };
+
+    // Add event listeners to tabs and assign custom IDs dynamically
+    $('#tabs li').on('click', function() {
+        const selectedTab = $(this).data('tab');
+        // Custom IDs can be assigned based on conditions
+        const customId = `custom-id-${selectedTab}`;
+        appendTemplate('#content', `template-${selectedTab}`, customId);
+    });
+
+    // Optionally, load a default template on page load with a custom ID
+    appendTemplate('#content', 'template-tab1', 'custom-id-tab1');
+});
+
+==========================================================================
+
+const appendTemplate = (selector, templateId) => {
+    const $container = $(selector);
+    $container.empty();  // Clear current content
+
+    const $template = $(`#${templateId}`);
+    if ($template.length) {
+        const $content = $($template.html());
+
+        // Assign unique IDs to multiple elements
+        $content.find('.custom-element').each(function(index) {
+            $(this).attr('id', `custom-id-${index + 1}`);
+        });
+
+        $container.append($content);
+    }
+};
+
+
+===============================================================
+
+
+
+
+
