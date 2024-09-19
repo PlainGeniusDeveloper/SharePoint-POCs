@@ -19,6 +19,9 @@
     <div id="tab-Features" class="tab-content"></div>
     <div id="tab-Dropdown" class="tab-content"></div>
 
+    <!-- Container for appending templates before binding data -->
+    <div id="ws_container"></div>
+
     <!-- Templates for different content types -->
     <script type="text/template" id="summary-template">
         <div class="summary-section">
@@ -45,9 +48,9 @@
         </div>
     </script>
 
-    <!-- Script to dynamically load content -->
+    <!-- Main JavaScript logic -->
     <script>
-        // Example JSON data without "sections"
+        // Example JSON data
         const jsonData = {
             "tabDetails": [
                 {
@@ -57,8 +60,8 @@
                 },
                 {
                     "tabName": "Features",
-                    "titleName": "Features Summary",
-                    "description": "This is the features summary content.",
+                    "titleName": "Features Title",
+                    "description": "This is the features content.",
                     "tabAccordionList": [
                         {
                             "title": "Accordion Item 1",
@@ -82,17 +85,18 @@
             ]
         };
 
-        // Function to get the template content and bind data
-        function getTemplate(templateId, data) {
-            let template = $(`#${templateId}`).html(); // Get the template content
-
-            // Replace placeholders in the template with actual data
+        // Function to replace placeholders with actual data
+        function bindDataToTemplate(template, data) {
             Object.keys(data).forEach(key => {
                 const regex = new RegExp(`{{${key}}}`, 'g'); // Placeholder syntax {{key}}
                 template = template.replace(regex, data[key]);
             });
-
             return template;
+        }
+
+        // Function to get template content
+        function getTemplate(templateId) {
+            return $(`#${templateId}`).html(); // Fetch the template content
         }
 
         // Function to create accordion items
@@ -112,45 +116,57 @@
             }).join('');
         }
 
-        // Function to determine the template and create HTML based on tab data
-        function createContent(tabDetail) {
-            if (tabDetail.tabAccordionList) {
-                // Handle accordion content
-                const accordionItems = createAccordionItems(tabDetail.tabAccordionList);
-                return getTemplate('accordion-template', {
-                    titleName: tabDetail.titleName,
+        // Mapping content types to their templates and processing functions
+        const contentTypeHandlers = {
+            "Summary": (content) => {
+                return bindDataToTemplate(getTemplate('summary-template'), {
+                    titleName: content.titleName,
+                    description: content.description
+                });
+            },
+            "Accordion": (content) => {
+                const accordionItems = createAccordionItems(content.tabAccordionList);
+                return bindDataToTemplate(getTemplate('accordion-template'), {
+                    titleName: content.titleName,
                     accordionItems: accordionItems
                 });
-            } else if (tabDetail.dropdownList) {
-                // Handle dropdown content
-                const dropdownItems = createDropdownItems(tabDetail.dropdownList);
-                return getTemplate('dropdown-template', {
-                    titleName: tabDetail.titleName,
+            },
+            "Dropdown": (content) => {
+                const dropdownItems = createDropdownItems(content.dropdownList);
+                return bindDataToTemplate(getTemplate('dropdown-template'), {
+                    titleName: content.titleName,
                     dropdownItems: dropdownItems
                 });
-            } else if (tabDetail.description) {
-                // Handle summary content
-                return getTemplate('summary-template', {
-                    titleName: tabDetail.titleName,
-                    description: tabDetail.description
-                });
-            } else {
-                // Handle unknown content type or empty section
-                return `<div class="unknown-section">Unknown content type</div>`;
             }
-        }
+        };
 
         // Function to bind content to the correct tab
         function bindTabContent() {
             jsonData.tabDetails.forEach(tabDetail => {
                 const tabName = tabDetail.tabName;
-
-                // Clear existing content
+                
+                // Clear existing content in the target tab
                 $(`#tab-${tabName}`).empty();
 
-                // Process and append the content
-                const htmlContent = createContent(tabDetail);
-                $(`#tab-${tabName}`).append(htmlContent);
+                let htmlContent = '';
+
+                // Determine the content type and bind the data accordingly
+                if (tabDetail.tabAccordionList) {
+                    htmlContent = contentTypeHandlers["Accordion"](tabDetail);
+                } else if (tabDetail.dropdownList) {
+                    htmlContent = contentTypeHandlers["Dropdown"](tabDetail);
+                } else {
+                    htmlContent = contentTypeHandlers["Summary"](tabDetail);
+                }
+
+                // Append the template to the ws_container
+                $('#ws_container').append(htmlContent);
+
+                // Now bind the data to the corresponding tab
+                $(`#tab-${tabName}`).append($('#ws_container').html());
+
+                // Clear ws_container for the next template
+                $('#ws_container').empty();
             });
         }
 
