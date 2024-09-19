@@ -1,48 +1,163 @@
-<div id="summary-content"></div>
-
-<!-- Define templates in <script> tags -->
-<script type="text/template" id="template-summary">
-    <div class="summary-item">
-        <h2 class="summary-title">{{title}}</h2>
-        <p class="summary-description">{{description}}</p>
-        <div class="summary-extra">{{extra}}</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Tab Content Loader</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-link" data-tab="Overview">Overview</button>
+        <button class="tab-link" data-tab="Features">Features</button>
+        <button class="tab-link" data-tab="Dropdown">Dropdown</button>
     </div>
-</script>
-==============================================================
 
+    <!-- Containers for tab content -->
+    <div id="tab-Overview" class="tab-content"></div>
+    <div id="tab-Features" class="tab-content"></div>
+    <div id="tab-Dropdown" class="tab-content"></div>
 
-$(document).ready(function() {
-    // Function to bind data to the template
-    const bindTemplate = (templateHtml, data) => {
-        let output = templateHtml;
-        for (const key in data) {
-            const placeholder = `{{${key}}}`;
-            output = output.replace(new RegExp(placeholder, 'g'), data[key]);
-        }
-        return output;
-    };
+    <!-- Templates for different content types -->
+    <script type="text/template" id="summary-template">
+        <div class="summary-section">
+            <h2>{{titleName}}</h2>
+            <p>{{description}}</p>
+        </div>
+    </script>
 
-    // Function to render summaries (iterate over only tabSummary)
-    const renderSummaries = (jsonData) => {
-        const $content = $('#summary-content');
-        const templateHtml = $('#template-summary').html(); // Get the summary template
-        $content.empty(); // Clear existing content
+    <script type="text/template" id="accordion-template">
+        <div class="accordion-section">
+            <h2>{{titleName}}</h2>
+            <div class="accordion-content">
+                {{accordionItems}}
+            </div>
+        </div>
+    </script>
 
-        // Check if tabSummary exists in JSON data
-        if (jsonData.tabSummary && Array.isArray(jsonData.tabSummary)) {
-            // Iterate over the tabSummary array only
-            jsonData.tabSummary.forEach(item => {
-                const renderedHtml = bindTemplate(templateHtml, item);
-                $content.append(renderedHtml); // Append each rendered template to the content div
+    <script type="text/template" id="dropdown-template">
+        <div class="dropdown-section">
+            <h2>{{titleName}}</h2>
+            <select>
+                {{dropdownItems}}
+            </select>
+        </div>
+    </script>
+
+    <!-- Script to dynamically load content -->
+    <script>
+        // Example JSON data without "sections"
+        const jsonData = {
+            "tabDetails": [
+                {
+                    "tabName": "Overview",
+                    "titleName": "Overview Title",
+                    "description": "This is the overview content."
+                },
+                {
+                    "tabName": "Features",
+                    "titleName": "Features Summary",
+                    "description": "This is the features summary content.",
+                    "tabAccordionList": [
+                        {
+                            "title": "Accordion Item 1",
+                            "description": "Content for accordion item 1."
+                        },
+                        {
+                            "title": "Accordion Item 2",
+                            "description": "Content for accordion item 2."
+                        }
+                    ]
+                },
+                {
+                    "tabName": "Dropdown",
+                    "titleName": "Dropdown Menu",
+                    "dropdownList": [
+                        "Option 1",
+                        "Option 2",
+                        "Option 3"
+                    ]
+                }
+            ]
+        };
+
+        // Function to get the template content and bind data
+        function getTemplate(templateId, data) {
+            let template = $(`#${templateId}`).html(); // Get the template content
+
+            // Replace placeholders in the template with actual data
+            Object.keys(data).forEach(key => {
+                const regex = new RegExp(`{{${key}}}`, 'g'); // Placeholder syntax {{key}}
+                template = template.replace(regex, data[key]);
             });
-        } else {
-            console.log('No tabSummary data found.');
+
+            return template;
         }
-    };
 
-    // Call the render function with your JSON data
-    renderSummaries(jsonData);
-});
+        // Function to create accordion items
+        function createAccordionItems(items) {
+            return items.map(item => {
+                return `<div class="accordion-item">
+                            <h3>${item.title}</h3>
+                            <p>${item.description}</p>
+                        </div>`;
+            }).join('');
+        }
 
-====================================================
+        // Function to create dropdown options
+        function createDropdownItems(items) {
+            return items.map(item => {
+                return `<option value="${item}">${item}</option>`;
+            }).join('');
+        }
 
+        // Function to determine the template and create HTML based on tab data
+        function createContent(tabDetail) {
+            if (tabDetail.tabAccordionList) {
+                // Handle accordion content
+                const accordionItems = createAccordionItems(tabDetail.tabAccordionList);
+                return getTemplate('accordion-template', {
+                    titleName: tabDetail.titleName,
+                    accordionItems: accordionItems
+                });
+            } else if (tabDetail.dropdownList) {
+                // Handle dropdown content
+                const dropdownItems = createDropdownItems(tabDetail.dropdownList);
+                return getTemplate('dropdown-template', {
+                    titleName: tabDetail.titleName,
+                    dropdownItems: dropdownItems
+                });
+            } else if (tabDetail.description) {
+                // Handle summary content
+                return getTemplate('summary-template', {
+                    titleName: tabDetail.titleName,
+                    description: tabDetail.description
+                });
+            } else {
+                // Handle unknown content type or empty section
+                return `<div class="unknown-section">Unknown content type</div>`;
+            }
+        }
+
+        // Function to bind content to the correct tab
+        function bindTabContent() {
+            jsonData.tabDetails.forEach(tabDetail => {
+                const tabName = tabDetail.tabName;
+
+                // Clear existing content
+                $(`#tab-${tabName}`).empty();
+
+                // Process and append the content
+                const htmlContent = createContent(tabDetail);
+                $(`#tab-${tabName}`).append(htmlContent);
+            });
+        }
+
+        // Call the function to bind tab content on page load
+        $(document).ready(function() {
+            bindTabContent(); // Populate the tab content from JSON
+        });
+    </script>
+</body>
+</html>
