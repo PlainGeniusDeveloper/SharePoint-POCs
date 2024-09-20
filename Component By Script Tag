@@ -8,8 +8,8 @@
         }
 
         // Function to bind content to the correct tab
-        function bindTabContent() {
-            jsonData.tabDetails.forEach(tabDetail => {
+        function bindTabContent(tabDetails) {
+            tabDetails.forEach(tabDetail => {
                 const tabName = tabDetail.tabName;
                 const tabContent = tabDetail.tabContent;
 
