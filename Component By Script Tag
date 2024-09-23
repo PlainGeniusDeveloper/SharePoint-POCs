@@ -1,14 +1,19 @@
 "Accordion": (content) => {
-        // Generate HTML for each accordion item using createAccordionItems
+        // Initialize an empty string to hold all accordion items' HTML
         let accordionHTML = '';
-        
-        // Iterate through each accordion in the list and bind its content
+
+        // Loop through each accordion item in the list
         content.tabAccordionList.forEach(accordionItem => {
-            accordionHTML += getTemplate('accordion-item-template', {
-                title: accordionItem.title,       // Assuming your data has 'title' for accordion header
-                description: accordionItem.description // Assuming your data has 'description' for accordion content
+            // Get the accordion item template
+            let accordionItemTemplate = getTemplate('accordion-item-template');
+
+            // Bind the title and description to the accordion item template
+            accordionHTML += bindDataToTemplate(accordionItemTemplate, {
+                title: accordionItem.title,       // Assuming your JSON has 'title'
+                description: accordionItem.description // Assuming your JSON has 'description'
             });
         });
 
-        return accordionHTML; // Return the generated accordion HTML content for all items
+        // Return the complete HTML for all accordion items
+        return accordionHTML;
     },
