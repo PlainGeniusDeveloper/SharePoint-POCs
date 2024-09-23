@@ -1,14 +1,7 @@
-// Function to create accordion items using a script template and data binding
-function createAccordionItems(items) {
-    // Get the accordion item template from HTML
-    const templateId = 'accordion-item-template'; // Define the template ID
-
-    // Use map to bind data to each accordion item template
-    return items.map(item => {
-        // Bind the data to the template for each accordion item
-        return getTemplate(templateId, {
-            title: item.title,       // Assuming your data has a 'title' field
-            description: item.description // Assuming your data has a 'description' field
+"Accordion": (content) => {
+        const accordionItems = createAccordionItems(content.tabAccordionList); // Using the updated accordion method
+        return getTemplate('accordion-template', {
+            titleName: content.titleName,  // Bind title for the accordion
+            accordionItems: accordionItems // Bind the dynamically created accordion items
         });
-    }).join(''); // Join the resulting items into a single HTML string
-}
+    },
