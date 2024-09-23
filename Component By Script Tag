@@ -1,8 +1,99 @@
-function bindDataToTemplate(template, data) {
-    // Loop over each key in the data object
-    for (let key in data) {
-        // Replace {{key}} in the template with the actual value
-        template = template.replace(`{{${key}}}`, data[key]);
+// Example of old JSON structure without sections
+const jsonData = {
+  "tabDetails": [
+    {
+      "tabName": "Overview",
+      "tabContent": {
+        "titleName": "Overview Title",
+        "description": "This is the overview content."
+      }
+    },
+    {
+      "tabName": "Features",
+      "tabContent": {
+        "titleName": "Features Title",
+        "description": "This is the features content."
+      }
     }
-    return template;
+  ]
+};
+
+// Function to get the template content and bind data
+function getTemplate(templateId, data) {
+  let template = $(`#${templateId}`).html(); // Get the template content
+
+  // Replace placeholders in the template with actual data
+  Object.keys(data).forEach(key => {
+    template = template.replace(new RegExp(`{{${key}}}`, 'g'), data[key]);
+  });
+
+  return template;
 }
+
+// Function to create accordion items (if required)
+function createAccordionItems(items) {
+  return items.map(item => {
+    return `<div class="accordion-item">
+              <h3>${item.title}</h3>
+              <p>${item.description}</p>
+            </div>`;
+  }).join('');
+}
+
+// Mapping content types to their templates and processing functions
+const contentTypeHandlers = {
+  "Summary": (content) => {
+    return getTemplate('summary-template', {
+      titleName: content.titleName,
+      description: content.description
+    });
+  },
+  "Accordion": (content) => {
+    const accordionItems = createAccordionItems(content.tabAccordionList);
+    return getTemplate('accordion-template', {
+      titleName: content.titleName,
+      accordionItems: accordionItems
+    });
+  }
+};
+
+// Function to bind content to the correct tab, handling both old and new structures
+function bindTabContent(tabDetails) {
+  tabDetails.forEach(tabDetail => {
+    const tabName = tabDetail.tabName;
+
+    // Clear existing content for the tab
+    $(`#tab-${tabName}`).empty();
+
+    // Check if the 'sections' array exists, if not, use 'tabContent'
+    if (tabDetail.sections && Array.isArray(tabDetail.sections)) {
+      // New structure with multiple sections
+      tabDetail.sections.forEach(section => {
+        let htmlContent = '';
+
+        if (contentTypeHandlers[section.type]) {
+          htmlContent = contentTypeHandlers[section.type](section);
+        }
+
+        // Append the content to the correct tab's container
+        $(`#tab-${tabName}`).append(htmlContent);
+      });
+    } else if (tabDetail.tabContent) {
+      // Old structure with a single 'tabContent'
+      const tabContent = tabDetail.tabContent;
+
+      let htmlContent = getTemplate('summary-template', {
+        titleName: tabContent.titleName,
+        description: tabContent.description
+      });
+
+      // Append the content to the correct tab's container
+      $(`#tab-${tabName}`).append(htmlContent);
+    }
+  });
+}
+
+// Call the function to bind tab content on page load
+$(document).ready(function () {
+  bindTabContent(jsonData.tabDetails); // Populate the tab content from JSON
+});
