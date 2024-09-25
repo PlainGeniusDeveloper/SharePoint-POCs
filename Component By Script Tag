@@ -1,4 +1,22 @@
- const featureContainer = $('<div>', { id: 'featurecontainer' });
-            const accordionHTML = contentTypeHandlers["Accordion"](tabContent);
-            featureContainer.html(accordionHTML);
-            tabContainer.append(featureContainer);
+// Populate the 'Region' dropdown
+function populateRegionDropdown() {
+    const $regionDropdown = $('#region_av_Dropdown');
+    tabDetails.tabContent.tabListView.dropDownOneContents.forEach(region => {
+        $('<option>').text(region.dropDownOneOption).appendTo($regionDropdown);
+    });
+}
+
+// Initially populate 'Country / Dependent Territory' dropdown with `data-region` attribute for each country
+function populateCountryDropdown() {
+    const $countryDropdown = $('#country_av_Dropdown');
+    $countryDropdown.empty(); // Clear previous options
+
+    // Loop through each region and each country in that region
+    tabDetails.tabContent.tabListView.dropDownOneContents.forEach(region => {
+        region.dropDownTwoContents.forEach(country => {
+            $('<option>').text(country.dropDownTwoOption)
+                         .attr('data-region', region.dropDownOneOption)
+                         .appendTo($countryDropdown);
+        });
+    });
+}
