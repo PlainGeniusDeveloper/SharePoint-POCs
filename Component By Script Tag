@@ -1,22 +1,84 @@
-// Populate the 'Region' dropdown
-function populateRegionDropdown() {
-    const $regionDropdown = $('#region_av_Dropdown');
-    tabDetails.tabContent.tabListView.dropDownOneContents.forEach(region => {
-        $('<option>').text(region.dropDownOneOption).appendTo($regionDropdown);
+const contentTypeHandlers = {
+    "Accordion": (content) => {
+        const accordionItemsHTML = createAccordionItems(content.tabAccordionList);
+        return getTemplate('accordion-template', {
+            titleName: content.titleName,
+            accordionItems: accordionItemsHTML
+        });
+    },
+    "Summary": (content) => {
+        return getTemplate('summary-template', {
+            titleName: content.titleName,
+            description: content.description
+        });
+    },
+    "Dropdown": (content) => {
+        populateRegions();
+        populateAllCountries();
+        const dropdownItems = content.dropdownList.map(item => `<option value="${item}">${item}</option>`).join('');
+        return getTemplate('dropdown-template', {
+            titleName: content.titleName,
+            dropdownItems: dropdownItems
+        });
+    }
+};
+
+function getTemplate(templateId, params) {
+    switch (templateId) {
+        case 'accordion-template':
+            return `<div class='accordion'><h3>${params.titleName}</h3><div class='content'>${params.accordionItems}</div></div>`;
+        case 'summary-template':
+            return `<div class='summary'><h3>${params.titleName}</h3><p>${params.description}</p></div>`;
+        case 'dropdown-template':
+            return `<div class='dropdown'><label>${params.titleName}</label><select>${params.dropdownItems}</select></div>`;
+    }
+}
+
+// Fetch and populate regions based on your JSON structure
+function populateRegions() {
+    const regions = getRegionsData(); // Get the regions data from your source
+    const regionSelect = document.getElementById('region_av_Dropdown');
+    regions.forEach(region => {
+        const option = document.createElement('option');
+        option.value = region.dropDownOneOption;
+        option.text = region.dropDownOneOption;
+        regionSelect.appendChild(option);
     });
 }
 
-// Initially populate 'Country / Dependent Territory' dropdown with `data-region` attribute for each country
-function populateCountryDropdown() {
-    const $countryDropdown = $('#country_av_Dropdown');
-    $countryDropdown.empty(); // Clear previous options
-
-    // Loop through each region and each country in that region
-    tabDetails.tabContent.tabListView.dropDownOneContents.forEach(region => {
+// Fetch and populate all countries for each region
+function populateAllCountries() {
+    const regions = getRegionsData(); // Reuse or re-fetch the regions data
+    const countrySelect = document.getElementById('country_av_Dropdown');
+    regions.forEach(region => {
         region.dropDownTwoContents.forEach(country => {
-            $('<option>').text(country.dropDownTwoOption)
-                         .attr('data-region', region.dropDownOneOption)
-                         .appendTo($countryDropdown);
+            const option = document.createElement('option');
+            option.value = country.dropDownTwoOption;
+            option.text = country.dropDownTwoText;
+            option.dataset.region = region.dropDownOneOption; // Link countries to their regions
+            countrySelect.appendChild(option);
         });
     });
+}
+
+// Sample data fetcher (adjust to your actual data source)
+function getRegionsData() {
+    // This function should fetch the data that fits the structure you're using for regions and countries
+    // Assuming the structure is based on your JSON example, it might look like this:
+    return [
+        {
+            "dropDownOneOption": "Asia-Pacific",
+            "dropDownTwoContents": [
+                {"dropDownTwoOption": "JP", "dropDownTwoText": "Japan"},
+                {"dropDownTwoOption": "CN", "dropDownTwoText": "China"}
+            ]
+        },
+        {
+            "dropDownOneOption": "Europe",
+            "dropDownTwoContents": [
+                {"dropDownTwoOption": "UK", "dropDownTwoText": "United Kingdom"},
+                {"dropDownTwoOption": "FR", "dropDownTwoText": "France"}
+            ]
+        }
+    ];
 }
