@@ -1,84 +1,22 @@
-const contentTypeHandlers = {
-    "Accordion": (content) => {
-        const accordionItemsHTML = createAccordionItems(content.tabAccordionList);
-        return getTemplate('accordion-template', {
-            titleName: content.titleName,
-            accordionItems: accordionItemsHTML
-        });
-    },
-    "Summary": (content) => {
-        return getTemplate('summary-template', {
-            titleName: content.titleName,
-            description: content.description
-        });
-    },
-    "Dropdown": (content) => {
-        populateRegions();
-        populateAllCountries();
-        const dropdownItems = content.dropdownList.map(item => `<option value="${item}">${item}</option>`).join('');
-        return getTemplate('dropdown-template', {
-            titleName: content.titleName,
-            dropdownItems: dropdownItems
-        });
-    }
+// Example JSON response containing an <img> tag in the HTML
+const jsonResponse = {
+    htmlContent: "<div><img src='https://example.com/image.jpg' alt='Sample Image'></div>"
 };
 
-function getTemplate(templateId, params) {
-    switch (templateId) {
-        case 'accordion-template':
-            return `<div class='accordion'><h3>${params.titleName}</h3><div class='content'>${params.accordionItems}</div></div>`;
-        case 'summary-template':
-            return `<div class='summary'><h3>${params.titleName}</h3><p>${params.description}</p></div>`;
-        case 'dropdown-template':
-            return `<div class='dropdown'><label>${params.titleName}</label><select>${params.dropdownItems}</select></div>`;
-    }
-}
+// Extract the HTML content from the JSON response
+const htmlContent = jsonResponse.htmlContent;
 
-// Fetch and populate regions based on your JSON structure
-function populateRegions() {
-    const regions = getRegionsData(); // Get the regions data from your source
-    const regionSelect = document.getElementById('region_av_Dropdown');
-    regions.forEach(region => {
-        const option = document.createElement('option');
-        option.value = region.dropDownOneOption;
-        option.text = region.dropDownOneOption;
-        regionSelect.appendChild(option);
-    });
-}
+// Create a temporary DOM element (div) to parse the HTML string
+const tempDiv = document.createElement('div');
+tempDiv.innerHTML = htmlContent;
 
-// Fetch and populate all countries for each region
-function populateAllCountries() {
-    const regions = getRegionsData(); // Reuse or re-fetch the regions data
-    const countrySelect = document.getElementById('country_av_Dropdown');
-    regions.forEach(region => {
-        region.dropDownTwoContents.forEach(country => {
-            const option = document.createElement('option');
-            option.value = country.dropDownTwoOption;
-            option.text = country.dropDownTwoText;
-            option.dataset.region = region.dropDownOneOption; // Link countries to their regions
-            countrySelect.appendChild(option);
-        });
-    });
-}
+// Find the <img> tag inside the HTML content
+const imgTag = tempDiv.querySelector('img');
 
-// Sample data fetcher (adjust to your actual data source)
-function getRegionsData() {
-    // This function should fetch the data that fits the structure you're using for regions and countries
-    // Assuming the structure is based on your JSON example, it might look like this:
-    return [
-        {
-            "dropDownOneOption": "Asia-Pacific",
-            "dropDownTwoContents": [
-                {"dropDownTwoOption": "JP", "dropDownTwoText": "Japan"},
-                {"dropDownTwoOption": "CN", "dropDownTwoText": "China"}
-            ]
-        },
-        {
-            "dropDownOneOption": "Europe",
-            "dropDownTwoContents": [
-                {"dropDownTwoOption": "UK", "dropDownTwoText": "United Kingdom"},
-                {"dropDownTwoOption": "FR", "dropDownTwoText": "France"}
-            ]
-        }
-    ];
+// If an <img> tag is found, get the src attribute
+if (imgTag) {
+    const imgSrc = imgTag.getAttribute('src');
+    console.log('Image Source:', imgSrc);
+} else {
+    console.log('No image found in the HTML.');
 }
