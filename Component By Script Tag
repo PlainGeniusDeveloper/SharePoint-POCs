@@ -1,22 +1,76 @@
-// Example JSON response containing an <img> tag in the HTML
-const jsonResponse = {
-    htmlContent: "<div><img src='https://example.com/image.jpg' alt='Sample Image'></div>"
+// Predefined array of categories (sections)
+const categories = [
+    { titleName: "Support Provided", description: "Default description for Support Provided" },
+    { titleName: "Countries Supported", description: "Default description for Countries Supported" },
+    { titleName: "Service Details", description: "Default description for Service Details" }
+];
+
+// JSON data (similar to your case)
+const jsonData = {
+    "productArea": [
+        {
+            "productAreaText": "Incident Management",
+            "productAreaCard": {
+                "titleName": "Incident Management",
+                "description": "",
+                "slideshowContainer": {
+                    "titleName": "",
+                    "containerContent": [
+                        {
+                            "titleName": "Support Provided",
+                            "description": "<div><ul><li>Actions on auto-generated Production Alerts...</li></ul></div>"
+                        },
+                        {
+                            "titleName": "Countries Supported",
+                            "description": "<div><ul><li>Countries A, B, C are supported...</li></ul></div>"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
 };
 
-// Extract the HTML content from the JSON response
-const htmlContent = jsonResponse.htmlContent;
-
-// Create a temporary DOM element (div) to parse the HTML string
-const tempDiv = document.createElement('div');
-tempDiv.innerHTML = htmlContent;
-
-// Find the <img> tag inside the HTML content
-const imgTag = tempDiv.querySelector('img');
-
-// If an <img> tag is found, get the src attribute
-if (imgTag) {
-    const imgSrc = imgTag.getAttribute('src');
-    console.log('Image Source:', imgSrc);
-} else {
-    console.log('No image found in the HTML.');
+// Function to bind data to template
+function bindDataToTemplate(template, data) {
+    return template.replace(/{{(.*?)}}/g, function(match, token) {
+        return data[token] || ''; // Use empty string if no match
+    });
 }
+
+// Function to create and append slides dynamically with fallback to default data
+function createSlides() {
+    jsonData.productArea.forEach((area) => {
+        // Clone the template
+        let template = $('#template-support-slider').html();
+
+        // Prepare data for binding to template
+        let templateData = {
+            slider_title: area.productAreaCard.titleName,
+            slider_header_id: area.productAreaText.replace(/\s+/g, '-').toLowerCase() + '-slider'
+        };
+
+        // Dynamically map the container content rows
+        let containerContent = area.productAreaCard.slideshowContainer.containerContent;
+
+        categories.forEach((category, index) => {
+            // Find if the JSON contains the matching titleName from the predefined array
+            let contentItem = containerContent.find(item => item.titleName === category.titleName);
+            
+            // If found, bind data from JSON, else bind from the predefined array
+            templateData[`title_${index + 1}`] = contentItem ? contentItem.titleName : category.titleName;
+            templateData[`description_${index + 1}`] = contentItem ? contentItem.description : category.description;
+        });
+
+        // Bind data to the template using bindDataToTemplate method
+        let populatedSlide = bindDataToTemplate(template, templateData);
+
+        // Append the populated slide to the container
+        $('#slideshow-container').append(populatedSlide);
+    });
+}
+
+// Call the function on document ready
+$(document).ready(function() {
+    createSlides();
+});
