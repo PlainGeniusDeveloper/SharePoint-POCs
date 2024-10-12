@@ -1,29 +1,18 @@
-$(document).on('click', '.edit', function() {
-    let parent = $(this).closest('[data-section-type]');  // Selects based on data-section-type
-    let sectionType = parent.data('section-type');  // Fetches the section type
+// Create a script element
+const importMapScript = document.createElement('script');
 
-    if (sectionType === 'accordion') {
-        currentAccordion = parent;
-        $('#accordion-header').val(parent.find('.accordion-header').contents().filter(function() {
-            return this.nodeType === 3; // Node type 3 is text
-        }).text().trim());
-        initCKEditor('#accordion-editor').then(editor => {
-            accordionEditorInstance = editor;
-            editor.setData(parent.find('.accordion-content').html());
-        });
-        $('#accordion-editor-modal').show();
-    } else if (sectionType === 'row') {
-        currentRow = parent;
-        $('#section-title').val(currentRow.find('h3').text());
-        initCKEditor('#rich-editor').then(editor => {
-            editorInstance = editor;
-            editor.setData(currentRow.find('p').html());
-        });
-        $('#editor-modal').show();
+// Set the type to 'importmap'
+importMapScript.type = 'importmap';
+
+// Set the inner content of the script to the import map
+importMapScript.textContent = `
+{
+    "imports": {
+        "ckeditor5": "https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.js",
+        "ckeditor5/": "https://cdn.ckeditor.com/ckeditor5/43.0.0/"
     }
-});
-
-// Function to initialize CKEditor 5 for any editor
-function initCKEditor(selector) {
-    return ClassicEditor.create(document.querySelector(selector));
 }
+`;
+
+// Append the script to the head or body of your document
+document.head.appendChild(importMapScript);
