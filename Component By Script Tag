@@ -1,136 +1,91 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CKEditor in SharePoint</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor.js"></script>
-    <style>
-        /* Add your custom styles here */
-        #editor-modal, #accordion-editor-modal {
-            display: none; /* Hidden by default */
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border: 1px solid #ccc;
-            padding: 20px;
-            z-index: 1000;
+$(document).ready(function() {
+    let editorInstance;
+    let accordionEditorInstance;
+    let currentRow;
+    let currentAccordion;
+
+    // Initialize CKEditor
+    function initCKEditor(selector, instance) {
+        // Check if the editor instance already exists
+        if (instance) {
+            return Promise.resolve(instance);
         }
-        /* Modal background */
-        .modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="modal-backdrop"></div>
 
-    <div id="editor-modal">
-        <h2>Edit Section</h2>
-        <input type="text" id="section-title" placeholder="Section Title">
-        <div id="editor"></div>
-        <button id="save-btn">Save</button>
-    </div>
-
-    <div id="accordion-editor-modal">
-        <h2>Edit Accordion</h2>
-        <input type="text" id="accordion-header" placeholder="Accordion Header">
-        <div id="accordion-editor"></div>
-        <button id="accordion-save-btn">Save</button>
-    </div>
-
-    <div class="row" data-section-type="text">
-        <h3>Section Title 1</h3>
-        <p>Some content for the first section.</p>
-        <button class="edit">Edit</button>
-    </div>
-
-    <div class="accordion-section" data-section-type="accordion">
-        <div class="accordion-header">Accordion Header 1</div>
-        <div class="accordion-content">Accordion content goes here.</div>
-        <button class="edit">Edit</button>
-    </div>
-
-    <script>
-        // Initialize CKEditor instances
-        let editorInstance;
-        let accordionEditorInstance;
-
-        function initCKEditor(selector) {
-            return ClassicEditor.create(document.querySelector(selector), {
+        // Create a new editor instance if not already created
+        return ClassicEditor
+            .create(document.querySelector(selector), {
                 toolbar: ['undo', 'redo', '|', 'bold', 'italic', '|', 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor']
+            })
+            .catch(error => {
+                console.error('There was an error initializing CKEditor:', error);
             });
+    }
+
+    // Show modal function
+    function showModal(modalId) {
+        $('.modal-backdrop').show();
+        $(modalId).show();
+    }
+
+    // Hide modal function
+    function hideModal() {
+        $('.modal-backdrop').hide();
+        $('#editor-modal').hide();
+        $('#accordion-editor-modal').hide();
+    }
+
+    // Handle edit button click
+    $(document).on('click', '.edit', function() {
+        let parent = $(this).closest('[data-section-type]');
+        let sectionType = parent.attr('data-section-type');
+
+        if (sectionType === 'accordion') {
+            currentAccordion = parent;
+            $('#accordion-header').val(parent.find('.accordion-header').text().trim());
+
+            // Initialize or reuse accordion editor
+            initCKEditor('#accordion-editor', accordionEditorInstance).then(editor => {
+                accordionEditorInstance = editor;
+                editor.setData(parent.find('.accordion-content').html());
+            });
+
+            showModal('#accordion-editor-modal');
+        } else {
+            currentRow = parent;
+            $('#section-title').val(currentRow.find('h3').text());
+
+            // Initialize or reuse section editor
+            initCKEditor('#editor', editorInstance).then(editor => {
+                editorInstance = editor;
+                editor.setData(currentRow.find('p').html());
+            });
+
+            showModal('#editor-modal');
         }
+    });
 
-        // Show modal function
-        function showModal(modalId) {
-            $('.modal-backdrop').show();
-            $(modalId).show();
-        }
+    // Save button for regular sections
+    $('#save-btn').on('click', function() {
+        let title = $('#section-title').val();
+        let content = editorInstance.getData();
 
-        // Hide modal function
-        function hideModal() {
-            $('.modal-backdrop').hide();
-            $('#editor-modal, #accordion-editor-modal').hide();
-        }
+        currentRow.find('h3').text(title);
+        currentRow.find('p').html(content);
 
-        // Handle editing sections
-        $(document).on('click', '.edit', function() {
-            let parent = $(this).closest('[data-section-type]');
-            let sectionType = parent.data('section-type');
+        hideModal();
+    });
 
-            if (sectionType === 'accordion') {
-                $('#accordion-header').val(parent.find('.accordion-header').text().trim());
-                initCKEditor('#accordion-editor').then(editor => {
-                    accordionEditorInstance = editor;
-                    editor.setData(parent.find('.accordion-content').html());
-                });
-                showModal('#accordion-editor-modal');
-            } else {
-                $('#section-title').val(parent.find('h3').text());
-                initCKEditor('#editor').then(editor => {
-                    editorInstance = editor;
-                    editor.setData(parent.find('p').html());
-                });
-                showModal('#editor-modal');
-            }
-        });
+    // Save button for accordion sections
+    $('#accordion-save-btn').on('click', function() {
+        let header = $('#accordion-header').val();
+        let content = accordionEditorInstance.getData();
 
-        // Save button click handlers
-        $('#save-btn').on('click', function() {
-            const title = $('#section-title').val();
-            const content = editorInstance.getData();
+        currentAccordion.find('.accordion-header').text(header);
+        currentAccordion.find('.accordion-content').html(content);
 
-            const parent = $('.row:has(.edit)'); // Assuming single section for simplicity
-            parent.find('h3').text(title);
-            parent.find('p').html(content);
-            hideModal();
-        });
+        hideModal();
+    });
 
-        $('#accordion-save-btn').on('click', function() {
-            const header = $('#accordion-header').val();
-            const content = accordionEditorInstance.getData();
-
-            const parent = $('.accordion-section:has(.edit)'); // Assuming single accordion for simplicity
-            parent.find('.accordion-header').text(header);
-            parent.find('.accordion-content').html(content);
-            hideModal();
-        });
-
-        // Hide modal when clicking outside
-        $(document).on('click', '.modal-backdrop', function() {
-            hideModal();
-        });
-    </script>
-</body>
-</html>
+    // Close modal when clicking outside
+    $('.modal-backdrop').on('click', hideModal);
+});
