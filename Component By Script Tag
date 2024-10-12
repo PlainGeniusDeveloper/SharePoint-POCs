@@ -1,5 +1,18 @@
+// Inject the import map for CKEditor 5
+const importMapScript = document.createElement('script');
+importMapScript.type = 'importmap';
+importMapScript.textContent = `
+{
+    "imports": {
+        "ckeditor5": "https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.js",
+        "ckeditor5/": "https://cdn.ckeditor.com/ckeditor5/43.0.0/"
+    }
+}
+`;
+document.head.appendChild(importMapScript);
+
 // Function to dynamically import CKEditor 5 modules and initialize the editor
-async function loadAndInitCKEditor() {
+async function loadAndInitCKEditor(selector, plugins, toolbarOptions) {
     try {
         const {
             ClassicEditor,
@@ -12,15 +25,12 @@ async function loadAndInitCKEditor() {
 
         // Initialize the editor
         ClassicEditor
-            .create(document.querySelector('#editor'), {
-                plugins: [Essentials, Paragraph, Bold, Italic, Font],
-                toolbar: [
-                    'undo', 'redo', '|', 'bold', 'italic', '|',
-                    'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor'
-                ]
+            .create(document.querySelector(selector), {
+                plugins: plugins,
+                toolbar: toolbarOptions
             })
             .then(editor => {
-                window.editor = editor;
+                window.editor = editor; // Save editor instance globally
             })
             .catch(error => {
                 console.error(error);
@@ -30,5 +40,58 @@ async function loadAndInitCKEditor() {
     }
 }
 
-// Call the function to load and initialize the editor
-loadAndInitCKEditor();
+// Initialize CKEditor when required
+function initializeEditor() {
+    const plugins = [Essentials, Paragraph, Bold, Italic, Font];
+    const toolbarOptions = ['undo', 'redo', '|', 'bold', 'italic', '|', 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor'];
+    loadAndInitCKEditor('#editor', plugins, toolbarOptions);
+}
+
+// Create the tools dynamically from script templates for elements with .clsHeader class
+function createToolsForExistingSections() {
+    // Get the template from the script tag
+    const template = document.querySelector('#tools-template').innerHTML;
+
+    // Add tools to all elements with .clsHeader class
+    document.querySelectorAll('.clsHeader').forEach(header => {
+        // Inject the template as the tool
+        if (!header.querySelector('.tools')) {
+            const toolsContainer = document.createElement('div');
+            toolsContainer.classList.add('tools');
+            toolsContainer.innerHTML = template;
+            header.appendChild(toolsContainer);
+        }
+    });
+}
+
+// Call createToolsForExistingSections for existing sections
+createToolsForExistingSections();
+
+// On click of the edit button, check section type and open the relevant editor
+$(document).on('click', '.edit', function () {
+    let parent = $(this).closest('[data-section-type]');
+    const sectionType = parent.data('section-type');
+
+    if (sectionType === 'accordion') {
+        currentAccordion = parent;
+        $('#accordion-header').val(parent.find('.accordion-header').contents().filter(function () {
+            return this.nodeType === 3; // Node type 3 is text
+        }).text().trim());
+        initCKEditor('#accordion-editor').then(editor => {
+            accordionEditorInstance = editor;
+            editor.setData(parent.find('.accordion-content').html());
+        });
+        $('#accordion-editor-modal').show();
+    } else if (sectionType === 'row') {
+        currentRow = parent;
+        $('#section-title').val(currentRow.find('h3').text());
+        initCKEditor('#rich-editor').then(editor => {
+            editorInstance = editor;
+            editor.setData(currentRow.find('p').html());
+        });
+        $('#editor-modal').show();
+    }
+});
+
+// Initialize the CKEditor instance
+initializeEditor();
