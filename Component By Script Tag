@@ -1,18 +1,34 @@
-// Create a script element
-const importMapScript = document.createElement('script');
+// Function to dynamically import CKEditor 5 modules and initialize the editor
+async function loadAndInitCKEditor() {
+    try {
+        const {
+            ClassicEditor,
+            Essentials,
+            Paragraph,
+            Bold,
+            Italic,
+            Font
+        } = await import('ckeditor5');
 
-// Set the type to 'importmap'
-importMapScript.type = 'importmap';
-
-// Set the inner content of the script to the import map
-importMapScript.textContent = `
-{
-    "imports": {
-        "ckeditor5": "https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.js",
-        "ckeditor5/": "https://cdn.ckeditor.com/ckeditor5/43.0.0/"
+        // Initialize the editor
+        ClassicEditor
+            .create(document.querySelector('#editor'), {
+                plugins: [Essentials, Paragraph, Bold, Italic, Font],
+                toolbar: [
+                    'undo', 'redo', '|', 'bold', 'italic', '|',
+                    'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor'
+                ]
+            })
+            .then(editor => {
+                window.editor = editor;
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    } catch (error) {
+        console.error("Failed to load CKEditor 5 modules:", error);
     }
 }
-`;
 
-// Append the script to the head or body of your document
-document.head.appendChild(importMapScript);
+// Call the function to load and initialize the editor
+loadAndInitCKEditor();
