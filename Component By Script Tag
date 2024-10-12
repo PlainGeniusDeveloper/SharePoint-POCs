@@ -1,101 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Section Editor</title>
-    <!-- Include jQuery and CKEditor from CDN -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
-    <style>
-        .row {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-            position: relative;
-        }
-        .tools {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
-    </style>
-</head>
-<body>
+$(document).on('click', '.edit', function() {
+    let parent = $(this).closest('[data-section-type]');  // Selects based on data-section-type
+    let sectionType = parent.data('section-type');  // Fetches the section type
 
-<div id="content-area">
-    <!-- Example Section -->
-    <div class="row">
-        <div class="column">
-            <h3>Section Title</h3>
-            <p>Section Description</p>
-        </div>
-        <!-- Tools will be inserted here -->
-    </div>
-</div>
-
-<!-- Add New Section Button -->
-<button id="add-section">Add New Section</button>
-
-<!-- Script template for the tools section -->
-<script type="text/template" id="tools-template">
-    <div class="tools">
-        <button class="edit">Edit</button>
-        <button class="delete">Delete</button>
-        <button class="swap-up">↑</button>
-        <button class="swap-down">↓</button>
-    </div>
-</script>
-
-<script>
-$(document).ready(function() {
-    // Function to add a new section
-    $('#add-section').click(function() {
-        let row = createRow();
-        $('#content-area').append(row);
-    });
-
-    // Function to create a new row
-    function createRow() {
-        let row = $('<div class="row"></div>');
-        let column = $('<div class="column"></div>');
-        column.append('<h3>Title</h3><p>Description</p>');
-
-        let tools = createTools();
-        row.append(column);
-        row.append(tools);
-
-        return row;
+    if (sectionType === 'accordion') {
+        currentAccordion = parent;
+        $('#accordion-header').val(parent.find('.accordion-header').contents().filter(function() {
+            return this.nodeType === 3; // Node type 3 is text
+        }).text().trim());
+        initCKEditor('#accordion-editor').then(editor => {
+            accordionEditorInstance = editor;
+            editor.setData(parent.find('.accordion-content').html());
+        });
+        $('#accordion-editor-modal').show();
+    } else if (sectionType === 'row') {
+        currentRow = parent;
+        $('#section-title').val(currentRow.find('h3').text());
+        initCKEditor('#rich-editor').then(editor => {
+            editorInstance = editor;
+            editor.setData(currentRow.find('p').html());
+        });
+        $('#editor-modal').show();
     }
-
-    // Function to create tools using the script template
-    function createTools() {
-        // Fetch the template from the script tag
-        let template = $('#tools-template').html();
-        // Return the jQuery object created from the template string
-        return $(template);
-    }
-
-    // Event delegation for dynamically added buttons
-    $(document).on('click', '.edit', function() {
-        alert('Edit clicked');
-    });
-
-    $(document).on('click', '.delete', function() {
-        $(this).closest('.row').remove();
-    });
-
-    $(document).on('click', '.swap-up', function() {
-        let row = $(this).closest('.row');
-        row.prev().before(row);
-    });
-
-    $(document).on('click', '.swap-down', function() {
-        let row = $(this).closest('.row');
-        row.next().after(row);
-    });
 });
-</script>
 
-</body>
-</html>
+// Function to initialize CKEditor 5 for any editor
+function initCKEditor(selector) {
+    return ClassicEditor.create(document.querySelector(selector));
+}
