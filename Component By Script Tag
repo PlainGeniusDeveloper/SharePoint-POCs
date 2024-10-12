@@ -1,97 +1,136 @@
-// Inject the import map for CKEditor 5
-const importMapScript = document.createElement('script');
-importMapScript.type = 'importmap';
-importMapScript.textContent = `
-{
-    "imports": {
-        "ckeditor5": "https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor5.js",
-        "ckeditor5/": "https://cdn.ckeditor.com/ckeditor5/43.0.0/"
-    }
-}
-`;
-document.head.appendChild(importMapScript);
-
-// Function to dynamically import CKEditor 5 modules and initialize the editor
-async function loadAndInitCKEditor(selector, plugins, toolbarOptions) {
-    try {
-        const {
-            ClassicEditor,
-            Essentials,
-            Paragraph,
-            Bold,
-            Italic,
-            Font
-        } = await import('ckeditor5');
-
-        // Initialize the editor
-        ClassicEditor
-            .create(document.querySelector(selector), {
-                plugins: plugins,
-                toolbar: toolbarOptions
-            })
-            .then(editor => {
-                window.editor = editor; // Save editor instance globally
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    } catch (error) {
-        console.error("Failed to load CKEditor 5 modules:", error);
-    }
-}
-
-// Initialize CKEditor when required
-function initializeEditor() {
-    const plugins = [Essentials, Paragraph, Bold, Italic, Font];
-    const toolbarOptions = ['undo', 'redo', '|', 'bold', 'italic', '|', 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor'];
-    loadAndInitCKEditor('#editor', plugins, toolbarOptions);
-}
-
-// Create the tools dynamically from script templates for elements with .clsHeader class
-function createToolsForExistingSections() {
-    // Get the template from the script tag
-    const template = document.querySelector('#tools-template').innerHTML;
-
-    // Add tools to all elements with .clsHeader class
-    document.querySelectorAll('.clsHeader').forEach(header => {
-        // Inject the template as the tool
-        if (!header.querySelector('.tools')) {
-            const toolsContainer = document.createElement('div');
-            toolsContainer.classList.add('tools');
-            toolsContainer.innerHTML = template;
-            header.appendChild(toolsContainer);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CKEditor in SharePoint</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/43.0.0/ckeditor.js"></script>
+    <style>
+        /* Add your custom styles here */
+        #editor-modal, #accordion-editor-modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            z-index: 1000;
         }
-    });
-}
+        /* Modal background */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="modal-backdrop"></div>
 
-// Call createToolsForExistingSections for existing sections
-createToolsForExistingSections();
+    <div id="editor-modal">
+        <h2>Edit Section</h2>
+        <input type="text" id="section-title" placeholder="Section Title">
+        <div id="editor"></div>
+        <button id="save-btn">Save</button>
+    </div>
 
-// On click of the edit button, check section type and open the relevant editor
-$(document).on('click', '.edit', function () {
-    let parent = $(this).closest('[data-section-type]');
-    const sectionType = parent.data('section-type');
+    <div id="accordion-editor-modal">
+        <h2>Edit Accordion</h2>
+        <input type="text" id="accordion-header" placeholder="Accordion Header">
+        <div id="accordion-editor"></div>
+        <button id="accordion-save-btn">Save</button>
+    </div>
 
-    if (sectionType === 'accordion') {
-        currentAccordion = parent;
-        $('#accordion-header').val(parent.find('.accordion-header').contents().filter(function () {
-            return this.nodeType === 3; // Node type 3 is text
-        }).text().trim());
-        initCKEditor('#accordion-editor').then(editor => {
-            accordionEditorInstance = editor;
-            editor.setData(parent.find('.accordion-content').html());
+    <div class="row" data-section-type="text">
+        <h3>Section Title 1</h3>
+        <p>Some content for the first section.</p>
+        <button class="edit">Edit</button>
+    </div>
+
+    <div class="accordion-section" data-section-type="accordion">
+        <div class="accordion-header">Accordion Header 1</div>
+        <div class="accordion-content">Accordion content goes here.</div>
+        <button class="edit">Edit</button>
+    </div>
+
+    <script>
+        // Initialize CKEditor instances
+        let editorInstance;
+        let accordionEditorInstance;
+
+        function initCKEditor(selector) {
+            return ClassicEditor.create(document.querySelector(selector), {
+                toolbar: ['undo', 'redo', '|', 'bold', 'italic', '|', 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor']
+            });
+        }
+
+        // Show modal function
+        function showModal(modalId) {
+            $('.modal-backdrop').show();
+            $(modalId).show();
+        }
+
+        // Hide modal function
+        function hideModal() {
+            $('.modal-backdrop').hide();
+            $('#editor-modal, #accordion-editor-modal').hide();
+        }
+
+        // Handle editing sections
+        $(document).on('click', '.edit', function() {
+            let parent = $(this).closest('[data-section-type]');
+            let sectionType = parent.data('section-type');
+
+            if (sectionType === 'accordion') {
+                $('#accordion-header').val(parent.find('.accordion-header').text().trim());
+                initCKEditor('#accordion-editor').then(editor => {
+                    accordionEditorInstance = editor;
+                    editor.setData(parent.find('.accordion-content').html());
+                });
+                showModal('#accordion-editor-modal');
+            } else {
+                $('#section-title').val(parent.find('h3').text());
+                initCKEditor('#editor').then(editor => {
+                    editorInstance = editor;
+                    editor.setData(parent.find('p').html());
+                });
+                showModal('#editor-modal');
+            }
         });
-        $('#accordion-editor-modal').show();
-    } else if (sectionType === 'row') {
-        currentRow = parent;
-        $('#section-title').val(currentRow.find('h3').text());
-        initCKEditor('#rich-editor').then(editor => {
-            editorInstance = editor;
-            editor.setData(currentRow.find('p').html());
-        });
-        $('#editor-modal').show();
-    }
-});
 
-// Initialize the CKEditor instance
-initializeEditor();
+        // Save button click handlers
+        $('#save-btn').on('click', function() {
+            const title = $('#section-title').val();
+            const content = editorInstance.getData();
+
+            const parent = $('.row:has(.edit)'); // Assuming single section for simplicity
+            parent.find('h3').text(title);
+            parent.find('p').html(content);
+            hideModal();
+        });
+
+        $('#accordion-save-btn').on('click', function() {
+            const header = $('#accordion-header').val();
+            const content = accordionEditorInstance.getData();
+
+            const parent = $('.accordion-section:has(.edit)'); // Assuming single accordion for simplicity
+            parent.find('.accordion-header').text(header);
+            parent.find('.accordion-content').html(content);
+            hideModal();
+        });
+
+        // Hide modal when clicking outside
+        $(document).on('click', '.modal-backdrop', function() {
+            hideModal();
+        });
+    </script>
+</body>
+</html>
