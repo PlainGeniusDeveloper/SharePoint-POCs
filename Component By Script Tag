@@ -1,10 +1,9 @@
 function removeEditorFromControl() {
-    // Check if the CKEditor instance exists
+    // Check if the CKEditor instance exists before trying to destroy
     if (editorInstance) {
-        // Destroy the CKEditor instance
         editorInstance.destroy()
             .then(() => {
-                console.log("Editor instance successfully destroyed.");
+                console.log("Editor instance destroyed.");
                 editorInstance = null;  // Reset the editor instance reference
             })
             .catch(error => {
