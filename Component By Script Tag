@@ -1,15 +1,38 @@
-function removeEditorFromControl() {
-    // Check if the CKEditor instance exists before trying to destroy
-    if (editorInstance) {
-        editorInstance.destroy()
-            .then(() => {
-                console.log("Editor instance destroyed.");
-                editorInstance = null;  // Reset the editor instance reference
-            })
-            .catch(error => {
-                console.error("Error while destroying CKEditor instance:", error);
-            });
-    } else {
-        console.log("No CKEditor instance found to destroy.");
-    }
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CKEditor with Scrollbar</title>
+    <style>
+        /* Apply to the editor container */
+        .ck-editor__editable {
+            max-height: 300px;  /* Set height for scrollbar */
+            max-width: 500px;   /* Set width */
+            overflow: auto;     /* Show scrollbar when content exceeds */
+        }
+    </style>
+    <script src="https://cdn.ckeditor.com/ckeditor5/43.0.0/classic/ckeditor.js"></script>
+</head>
+<body>
+    <!-- CKEditor Text Area -->
+    <textarea id="editor"></textarea>
+
+    <script>
+        // Initialize CKEditor
+        ClassicEditor
+            .create( document.querySelector( '#editor' ), {
+                // You can adjust the height and width here as well
+                height: '300px', 
+                width: '500px', 
+                toolbar: [ 'bold', 'italic', 'undo', 'redo', 'bulletedList', 'numberedList' ]
+            } )
+            .then( editor => {
+                window.editor = editor;
+            } )
+            .catch( error => {
+                console.error( error );
+            } );
+    </script>
+</body>
+</html>
