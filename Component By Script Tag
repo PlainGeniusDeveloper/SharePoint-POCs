@@ -1,38 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CKEditor with Scrollbar</title>
-    <style>
-        /* Apply to the editor container */
-        .ck-editor__editable {
-            max-height: 300px;  /* Set height for scrollbar */
-            max-width: 500px;   /* Set width */
-            overflow: auto;     /* Show scrollbar when content exceeds */
+// Sample JSON Data
+const jsonData = {
+    "tabsDetails": [
+        {
+            "tabName": "Overview",
+            "tabContent": [
+                { "titleName": "Overview 1", "description": "Description 1" },
+                { "titleName": "Overview 2", "description": "Description 2" }
+            ]
+        },
+        {
+            "tabName": "Features",
+            "tabContent": { "titleName": "Feature 1", "description": "Description for Feature 1" }
+        },
+        {
+            "tabName": "Incident Management",
+            "tabContent": []
         }
-    </style>
-    <script src="https://cdn.ckeditor.com/ckeditor5/43.0.0/classic/ckeditor.js"></script>
-</head>
-<body>
-    <!-- CKEditor Text Area -->
-    <textarea id="editor"></textarea>
+    ]
+};
 
-    <script>
-        // Initialize CKEditor
-        ClassicEditor
-            .create( document.querySelector( '#editor' ), {
-                // You can adjust the height and width here as well
-                height: '300px', 
-                width: '500px', 
-                toolbar: [ 'bold', 'italic', 'undo', 'redo', 'bulletedList', 'numberedList' ]
-            } )
-            .then( editor => {
-                window.editor = editor;
-            } )
-            .catch( error => {
-                console.error( error );
-            } );
-    </script>
-</body>
-</html>
+// Function to generate divs
+function generateDivsForTabs() {
+    jsonData.tabsDetails.forEach(tab => {
+        // Create a container div for each tab
+        let tabDiv = document.createElement('div');
+        tabDiv.className = 'tab-section';
+        tabDiv.innerHTML = `<h3>${tab.tabName}</h3>`;
+
+        // Check if tabContent is an array, a single object, or empty
+        if (Array.isArray(tab.tabContent) && tab.tabContent.length > 0) {
+            // Handle case where tabContent is an array
+            tab.tabContent.forEach(content => {
+                let contentDiv = createContentDiv(content.titleName, content.description);
+                tabDiv.appendChild(contentDiv);
+            });
+        } else if (typeof tab.tabContent === 'object' && Object.keys(tab.tabContent).length > 0) {
+            // Handle case where tabContent is a single object
+            let contentDiv = createContentDiv(tab.tabContent.titleName, tab.tabContent.description);
+            tabDiv.appendChild(contentDiv);
+        } else {
+            // Handle empty tabContent
+            let contentDiv = document.createElement('div');
+            contentDiv.className = 'empty-content';
+            contentDiv.innerHTML = `<p>No content available for this tab.</p>`;
+            tabDiv.appendChild(contentDiv);
+        }
+
+        // Append the entire tab div to the main container
+        document.getElementById('mainContainer').appendChild(tabDiv);
+    });
+}
+
+// Helper function to create content divs
+function createContentDiv(titleName, description) {
+    let contentDiv = document.createElement('div');
+    contentDiv.className = 'content-section';
+    contentDiv.innerHTML = `
+        <h4>${titleName}</h4>
+        <p>${description}</p>
+    `;
+    return contentDiv;
+}
+
+// Call the function to generate the divs when the page loads
+document.addEventListener('DOMContentLoaded', generateDivsForTabs);
