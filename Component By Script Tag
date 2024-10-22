@@ -1,8 +1,10 @@
+// Store editor instances in an object manually
+let editorInstances = {};
+
 // Global function to initialize CKEditor with dynamic toolbar settings
 function initializeEditor(selector, sectionType) {
     let editorConfig = {
-        // Define some default configuration (like height, etc.)
-        height: 300,
+        height: 300 // Example default height
     };
 
     // Customize toolbar based on section type
@@ -20,29 +22,47 @@ function initializeEditor(selector, sectionType) {
             editorConfig.toolbar = ['bold', 'italic']; // Default toolbar for other sections
     }
 
-    // Check if an editor already exists, and destroy it if necessary
-    if (ClassicEditor.instances && ClassicEditor.instances[selector]) {
-        ClassicEditor.instances[selector].destroy().then(() => {
-            delete ClassicEditor.instances[selector];
-            // Re-initialize the editor after destroying the old one
-            ClassicEditor
-                .create(document.querySelector(selector), editorConfig)
-                .then(editor => {
-                    ClassicEditor.instances[selector] = editor; // Store the instance
-                })
-                .catch(error => {
-                    console.error(error);
-                });
+    // Check if an editor already exists for the selector, and destroy it if necessary
+    if (editorInstances[selector]) {
+        editorInstances[selector].destroy().then(() => {
+            // After destroying the editor, remove its reference and create a new instance
+            delete editorInstances[selector];
+            createEditorInstance(selector, editorConfig);
+        }).catch(error => {
+            console.error('Error destroying the editor:', error);
         });
     } else {
-        // Initialize CKEditor with the selected configuration
-        ClassicEditor
-            .create(document.querySelector(selector), editorConfig)
-            .then(editor => {
-                ClassicEditor.instances[selector] = editor; // Store the instance
-            })
-            .catch(error => {
-                console.error(error);
-            });
+        // Create a new editor instance if no previous one exists
+        createEditorInstance(selector, editorConfig);
+    }
+}
+
+// Helper function to create the editor instance
+function createEditorInstance(selector, config) {
+    ClassicEditor
+        .create(document.querySelector(selector), config)
+        .then(editor => {
+            // Store the instance in the object for future reference
+            editorInstances[selector] = editor;
+        })
+        .catch(error => {
+            console.error('Error creating the editor:', error);
+        });
+}
+
+// Example usage of the function when the edit button is clicked
+function onEditButtonClick(sectionType) {
+    initializeEditor('#rich-editor', sectionType);
+}
+
+// Call this function to destroy the editor when closing or saving
+function closeEditor(selector) {
+    if (editorInstances[selector]) {
+        editorInstances[selector].destroy().then(() => {
+            delete editorInstances[selector]; // Remove the reference after destroying
+            $(selector).empty(); // Optionally clear the editor container
+        }).catch(error => {
+            console.error('Error destroying the editor:', error);
+        });
     }
 }
