@@ -1,30 +1,48 @@
-<!-- Modal for Header Section Editing -->
-<div id="editor-modal" style="display: none;">
-    <div class="input-group">
-        <label for="section-title">Title:</label>
-        <input type="text" id="section-title" class="form-control" placeholder="Enter Title">
-    </div>
+// Global function to initialize CKEditor with dynamic toolbar settings
+function initializeEditor(selector, sectionType) {
+    let editorConfig = {
+        // Define some default configuration (like height, etc.)
+        height: 300,
+    };
 
-    <div class="input-group">
-        <label for="section-description">Short Description:</label>
-        <textarea id="section-description" class="form-control" placeholder="Enter Short Description"></textarea>
-    </div>
+    // Customize toolbar based on section type
+    switch (sectionType) {
+        case 'banner':
+            editorConfig.toolbar = ['bold', 'italic', 'link']; // Toolbar for banner section
+            break;
+        case 'content':
+            editorConfig.toolbar = ['heading', 'bold', 'italic', 'bulletedList', 'numberedList']; // Toolbar for content section
+            break;
+        case 'summary':
+            editorConfig.toolbar = ['bold', 'italic', 'blockQuote']; // Toolbar for summary section
+            break;
+        default:
+            editorConfig.toolbar = ['bold', 'italic']; // Default toolbar for other sections
+    }
 
-    <div class="input-group">
-        <label for="learn-more-link">Learn More Link:</label>
-        <input type="text" id="learn-more-link" class="form-control" placeholder="Enter URL">
-    </div>
-
-    <div class="input-group">
-        <label for="banner-image">Banner Image URL:</label>
-        <input type="text" id="banner-image" class="form-control" placeholder="Enter Banner Image URL">
-    </div>
-
-    <div class="input-group">
-        <label>Banner Image Preview:</label>
-        <img id="banner-preview" src="" alt="Banner Preview" style="width: 100%; height: auto; border: 1px solid #ccc;">
-    </div>
-
-    <button id="save-content" class="btn btn-primary">Save</button>
-    <button id="cancel-edit" class="btn btn-secondary">Cancel</button>
-</div>
+    // Check if an editor already exists, and destroy it if necessary
+    if (ClassicEditor.instances && ClassicEditor.instances[selector]) {
+        ClassicEditor.instances[selector].destroy().then(() => {
+            delete ClassicEditor.instances[selector];
+            // Re-initialize the editor after destroying the old one
+            ClassicEditor
+                .create(document.querySelector(selector), editorConfig)
+                .then(editor => {
+                    ClassicEditor.instances[selector] = editor; // Store the instance
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        });
+    } else {
+        // Initialize CKEditor with the selected configuration
+        ClassicEditor
+            .create(document.querySelector(selector), editorConfig)
+            .then(editor => {
+                ClassicEditor.instances[selector] = editor; // Store the instance
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+}
