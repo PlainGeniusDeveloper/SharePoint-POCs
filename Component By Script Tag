@@ -1,6 +1,6 @@
-/* Apply minimum height to CKEditor editable area */
 .ck-editor__editable_inline {
-    min-height: 300px; /* Set your desired minimum height */
-    height: auto; /* Allow height to grow as needed */
-    overflow-y: auto; /* Add a scrollbar if content overflows */
+    width: 600px; /* Fixed width */
+    height: 300px; /* Fixed height */
+    overflow-y: auto; /* Adds vertical scroll if content exceeds height */
+    overflow-x: hidden; /* Prevents horizontal scroll */
 }
