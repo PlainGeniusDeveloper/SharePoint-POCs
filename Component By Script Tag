@@ -1,64 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Features Supported</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        .features-container {
-            font-family: Arial, sans-serif;
-        }
-        .feature-item {
-            display: flex;
-            align-items: center;
-        }
-        .feature-item .remove-button {
-            margin-left: 10px;
-            cursor: pointer;
-            color: red;
-        }
-    </style>
-</head>
-<body>
+// Object to keep track of CKEditor instances
+const editorInstances = {};
 
-<div class="features-container">
-    <h2>Features Supported</h2>
-    <p><strong>Demo Description</strong></p>
-    <div id="features-list">
-        <!-- Start with no default features here -->
-    </div>
+// Default editor configuration
+const defaultConfig = {
+    toolbar: {
+        items: [
+            'heading', '|', 'bold', 'italic', 'underline', '|',
+            'link', 'imageUpload', 'mediaEmbed', 'blockQuote', '|',
+            'bulletedList', 'numberedList', 'outdent', 'indent', '|',
+            'undo', 'redo'
+        ],
+        shouldNotGroupWhenFull: false
+    },
+    height: 300 // Set default height
+};
 
-    <input type="text" id="feature-input" placeholder="Enter new feature">
-    <button id="add-feature">Add Feature</button>
-</div>
-
-<script>
-    $(document).ready(function() {
-        // Add feature on button click
-        $('#add-feature').click(function() {
-            const featureText = $('#feature-input').val().trim();
-
-            if (featureText !== "") {
-                // Create new feature item with remove button
-                const featureItem = $('<div class="feature-item">✔️ ' + featureText + ' <span class="remove-button">Remove</span></div>');
-                
-                // Append to the features list
-                $('#features-list').append(featureItem);
-                
-                // Clear the input field
-                $('#feature-input').val('');
-            } else {
-                alert("Please enter a feature");
-            }
+// Function to initialize CKEditor on a given selector with optional config
+function initCKEditor(selector, config = {}) {
+    // Merge the provided config with the default config
+    const editorConfig = { ...defaultConfig, ...config };
+    
+    // Check if an editor instance already exists on this selector
+    if (editorInstances[selector]) {
+        // Destroy existing editor instance before reinitializing
+        editorInstances[selector].destroy().then(() => {
+            createEditorInstance(selector, editorConfig);
         });
+    } else {
+        // No existing instance, so create one directly
+        createEditorInstance(selector, editorConfig);
+    }
+}
 
-        // Delegate event to handle remove button click for dynamically added elements
-        $('#features-list').on('click', '.remove-button', function() {
-            $(this).parent().remove();
+// Function to create and store an editor instance for a selector
+function createEditorInstance(selector, config) {
+    ClassicEditor
+        .create(document.querySelector(selector), config)
+        .then(editor => {
+            // Store the editor instance in the object for future reference
+            editorInstances[selector] = editor;
+        })
+        .catch(error => {
+            console.error('Error creating the editor:', error);
         });
-    });
-</script>
+}
 
-</body>
-</html>
+// Event listener to initialize editors when the button is clicked
+document.querySelector('#initializeEditorsButton').addEventListener('click', () => {
+    // Initialize CKEditor on each element with specific configurations
+    initCKEditor('#new-editor'); // Default toolbar and settings
+    initCKEditor('#title-editor', { toolbar: ['heading', 'bold', 'italic'] }); // Custom toolbar for title editor
+});
