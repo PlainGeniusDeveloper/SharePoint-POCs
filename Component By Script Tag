@@ -9,7 +9,6 @@
         .editable-container {
             display: flex;
             align-items: center;
-            border: 1px solid #ccc;
             padding: 5px;
             border-radius: 5px;
             width: fit-content;
@@ -55,13 +54,13 @@
 <body>
 
 <div class="editable-container">
-    <div contenteditable="false" class="content-editable placeholder" data-placeholder="Click edit to start typing...">Click edit to start typing...</div>
+    <div contenteditable="false" class="content-editable" data-placeholder="Click edit to start typing..."></div>
     <button class="icon-button editBtn" title="Edit"><i class="fas fa-edit"></i></button>
     <button class="icon-button clearBtn" title="Clear"><i class="fas fa-times"></i></button>
 </div>
 
 <div class="editable-container">
-    <div contenteditable="false" class="content-editable placeholder" data-placeholder="Enter your notes here...">Enter your notes here...</div>
+    <div contenteditable="false" class="content-editable" data-placeholder="Enter your notes here..."></div>
     <button class="icon-button editBtn" title="Edit"><i class="fas fa-edit"></i></button>
     <button class="icon-button clearBtn" title="Clear"><i class="fas fa-times"></i></button>
 </div>
@@ -69,12 +68,16 @@
 <script>
     $(document).ready(function() {
         function setPlaceholder(element) {
-            const placeholderText = $(element).data('placeholder');
-            $(element).text(placeholderText).addClass('placeholder');
+            if (!$.trim($(element).text())) {  // Only set placeholder if the content is empty
+                const placeholderText = $(element).data('placeholder');
+                $(element).text(placeholderText).addClass('placeholder');
+            }
         }
 
         function clearPlaceholder(element) {
-            $(element).text('').removeClass('placeholder');
+            if ($(element).hasClass('placeholder')) {
+                $(element).text('').removeClass('placeholder');
+            }
         }
 
         // Move cursor to the end of contenteditable element
@@ -105,9 +108,7 @@
                 }
             } else {
                 // Enter edit mode
-                if (editableText.hasClass('placeholder')) {
-                    clearPlaceholder(editableText); // Clear placeholder text
-                }
+                clearPlaceholder(editableText); // Clear placeholder if it's currently displayed
                 editableText.attr('contenteditable', 'true').addClass('editing').focus();
                 moveCursorToEnd(editableText[0]); // Move cursor to the end
                 editIcon.removeClass('fa-edit').addClass('fa-check'); // Change icon to indicate save mode
