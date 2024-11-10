@@ -97,21 +97,9 @@
             const editIcon = $(this).find('i');
 
             if (editableText.attr('contenteditable') === "true") {
-                // Exit edit mode and trim whitespace
-                const trimmedText = $.trim(editableText.text()); // Trim whitespace
-                editableText.attr('contenteditable', 'false').text(trimmedText).removeClass('editing'); // Remove editing styles
-                editIcon.removeClass('fa-check').addClass('fa-edit'); // Change icon back to edit
-
-                // If empty, show placeholder text
-                if (trimmedText === "") {
-                    setPlaceholder(editableText);
-                }
+                exitEditMode(editableText, editIcon);
             } else {
-                // Enter edit mode
-                clearPlaceholder(editableText); // Clear placeholder if it's currently displayed
-                editableText.attr('contenteditable', 'true').addClass('editing').focus();
-                moveCursorToEnd(editableText[0]); // Move cursor to the end
-                editIcon.removeClass('fa-edit').addClass('fa-check'); // Change icon to indicate save mode
+                enterEditMode(editableText, editIcon);
             }
         });
 
@@ -129,6 +117,36 @@
                 e.preventDefault(); // Prevent new line
             }
         });
+
+        // Exit edit mode on focusout
+        $('.content-editable').on('focusout', function() {
+            const container = $(this).closest('.editable-container');
+            const editBtn = container.find('.editBtn');
+            const editIcon = editBtn.find('i');
+            if ($(this).attr('contenteditable') === "true") {
+                exitEditMode($(this), editIcon);
+            }
+        });
+
+        // Function to enter edit mode
+        function enterEditMode(editableText, editIcon) {
+            clearPlaceholder(editableText);
+            editableText.attr('contenteditable', 'true').addClass('editing').focus();
+            moveCursorToEnd(editableText[0]); // Move cursor to the end
+            editIcon.removeClass('fa-edit').addClass('fa-check'); // Change icon to indicate save mode
+        }
+
+        // Function to exit edit mode
+        function exitEditMode(editableText, editIcon) {
+            const trimmedText = $.trim(editableText.text()); // Trim whitespace
+            editableText.attr('contenteditable', 'false').text(trimmedText).removeClass('editing'); // Remove editing styles
+            editIcon.removeClass('fa-check').addClass('fa-edit'); // Change icon back to edit
+
+            // If empty, show placeholder text
+            if (trimmedText === "") {
+                setPlaceholder(editableText);
+            }
+        }
 
         // Initialize placeholder for each editable content on page load
         $('.content-editable').each(function() {
