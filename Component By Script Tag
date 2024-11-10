@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editable Content Input with jQuery and Font Awesome</title>
+    <title>Editable Content Input with jQuery</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         .editable-container {
@@ -22,6 +22,7 @@
             outline: none;
             min-width: 200px;
             color: #555;
+            white-space: nowrap; /* Prevent line breaks */
         }
 
         .content-editable.placeholder {
@@ -68,6 +69,16 @@
             $(element).text('').removeClass('placeholder');
         }
 
+        // Move cursor to the end of contenteditable element
+        function moveCursorToEnd(element) {
+            const range = document.createRange();
+            const selection = window.getSelection();
+            range.selectNodeContents(element);
+            range.collapse(false); // Collapse to the end
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+
         // Toggle edit mode for the specific editable content
         $('.editBtn').on('click', function() {
             const container = $(this).closest('.editable-container');
@@ -75,12 +86,13 @@
             const editIcon = $(this).find('i');
 
             if (editableText.attr('contenteditable') === "true") {
-                // Exit edit mode
-                editableText.attr('contenteditable', 'false');
+                // Exit edit mode and trim whitespace
+                const trimmedText = $.trim(editableText.text()); // Trim whitespace
+                editableText.attr('contenteditable', 'false').text(trimmedText); // Set trimmed text
                 editIcon.removeClass('fa-check').addClass('fa-edit'); // Change icon back to edit
 
                 // If empty, show placeholder text
-                if ($.trim(editableText.text()) === "") {
+                if (trimmedText === "") {
                     setPlaceholder(editableText);
                 }
             } else {
@@ -89,6 +101,7 @@
                     clearPlaceholder(editableText); // Clear placeholder text
                 }
                 editableText.attr('contenteditable', 'true').focus();
+                moveCursorToEnd(editableText[0]); // Move cursor to the end
                 editIcon.removeClass('fa-edit').addClass('fa-check'); // Change icon to indicate save mode
             }
         });
@@ -99,6 +112,13 @@
             const editableText = container.find('.content-editable');
             editableText.text('');
             setPlaceholder(editableText);
+        });
+
+        // Prevent line breaks in contenteditable
+        $('.content-editable').on('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent new line
+            }
         });
 
         // Initialize placeholder for each editable content on page load
