@@ -29,6 +29,14 @@
             color: #aaa;
         }
 
+        /* Add border and padding only when in edit mode */
+        .content-editable.editing {
+            border: 1px solid #007bff;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #f0f8ff;
+        }
+
         .icon-button {
             background: none;
             border: none;
@@ -88,7 +96,7 @@
             if (editableText.attr('contenteditable') === "true") {
                 // Exit edit mode and trim whitespace
                 const trimmedText = $.trim(editableText.text()); // Trim whitespace
-                editableText.attr('contenteditable', 'false').text(trimmedText); // Set trimmed text
+                editableText.attr('contenteditable', 'false').text(trimmedText).removeClass('editing'); // Remove editing styles
                 editIcon.removeClass('fa-check').addClass('fa-edit'); // Change icon back to edit
 
                 // If empty, show placeholder text
@@ -100,7 +108,7 @@
                 if (editableText.hasClass('placeholder')) {
                     clearPlaceholder(editableText); // Clear placeholder text
                 }
-                editableText.attr('contenteditable', 'true').focus();
+                editableText.attr('contenteditable', 'true').addClass('editing').focus();
                 moveCursorToEnd(editableText[0]); // Move cursor to the end
                 editIcon.removeClass('fa-edit').addClass('fa-check'); // Change icon to indicate save mode
             }
