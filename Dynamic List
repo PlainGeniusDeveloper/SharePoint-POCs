@@ -1,0 +1,87 @@
+<div class="container">
+    <div class="column">
+        <h3>Column 1</h3>
+        <ul id="list1" class="droppable-list"></ul>
+        <button onclick="addItem('list1')">Add Item</button>
+    </div>
+    <div class="column">
+        <h3>Column 2</h3>
+        <ul id="list2" class="droppable-list"></ul>
+        <button onclick="addItem('list2')">Add Item</button>
+    </div>
+</div>
+
+<!-- Template for list items -->
+<script type="text/template" id="list-item-template">
+    <li draggable="true">
+        <span class="item-text"></span>
+        <div class="actions">
+            <button onclick="editItem(this)">Edit</button>
+            <button onclick="deleteItem(this)">Delete</button>
+        </div>
+    </li>
+</script>
+
+
+
+const jsonData = [
+    "Item 1", "Item 2", "Item 3", "Item 4", "Item 5", "Item 6"
+];
+
+function getListItemTemplate() {
+    return $('#list-item-template').html();
+}
+
+function loadColumns() {
+    let toggle = true; // This variable will help toggle between left and right columns
+
+    jsonData.forEach(itemText => {
+        const listId = toggle ? "list1" : "list2"; // Alternates between list1 and list2
+        const list = $(`#${listId}`);
+        const listItem = $(getListItemTemplate());
+        
+        listItem.find('.item-text').text(itemText);
+        list.append(listItem);
+        
+        listItem.on('dragstart', dragStart);
+        toggle = !toggle; // Switch between true and false for alternating
+    });
+
+    $('.droppable-list').on('dragover', dragOver).on('drop', drop);
+}
+
+function dragStart(event) {
+    draggedItem = this;
+    event.originalEvent.dataTransfer.effectAllowed = "move";
+    event.originalEvent.dataTransfer.setData("text/plain", "");  // Required for Firefox compatibility
+}
+
+function dragOver(event) {
+    event.preventDefault();
+    const target = $(this);
+
+    if (target[0] !== draggedItem && target.is("li")) {
+        const rect = target[0].getBoundingClientRect();
+        const next = (event.originalEvent.clientY - rect.top) > (rect.height / 2);
+        if (next) {
+            target.after(draggedItem);
+        } else {
+            target.before(draggedItem);
+        }
+    }
+}
+
+function drop(event) {
+    event.preventDefault();
+    const target = $(this);
+
+    if (target.is("ul") && draggedItem) {
+        $(draggedItem).appendTo(target);
+    }
+
+    draggedItem = null;
+}
+
+$(document).ready(function () {
+    loadColumns();
+});
