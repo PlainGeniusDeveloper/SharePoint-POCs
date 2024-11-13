@@ -1,42 +1,152 @@
-.container {
-    display: flex;
-    gap: 20px;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two Column List with Toggle</title>
+    <style>
+        .container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .column {
+            width: 50%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .column h3 {
+            text-align: center;
+        }
+        .droppable-list {
+            list-style-type: none;
+            padding: 0;
+            min-height: 100px;
+            margin-bottom: 10px;
+        }
+        li {
+            margin: 10px 0;
+            padding: 5px;
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+        .add-button {
+            display: block;
+            margin-top: 10px;
+            width: 100%;
+            text-align: center;
+            padding: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+        }
+        .add-button span {
+            font-size: 24px;
+        }
+        .add-button hr {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
 
-.column {
-    width: 50%;
-    border: 1px solid #ccc;
-    padding: 10px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 300px; /* Set a fixed height for demonstration, adjust as needed */
-}
+<div id="column-container"></div>
 
-ul {
-    list-style-type: none;
-    padding: 0;
-    min-height: 100px;
-    flex-grow: 1; /* Allow the list to expand and fill space between the header and button */
-    margin: 0; /* Remove margin for better layout control */
-}
+<!-- Column Template -->
+<template id="column-template">
+    <div class="column">
+        <h3>Column 1</h3>
+        <ul class="droppable-list list1"></ul>
+        <button class="add-button"><hr><span>+</span><hr></button>
+        <h3>Column 2</h3>
+        <ul class="droppable-list list2"></ul>
+        <button class="add-button"><hr><span>+</span><hr></button>
+    </div>
+</template>
 
-li {
-    margin: 10px 0;
-    padding: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #f9f9f9;
-    cursor: move;
-}
+<!-- List Item Template -->
+<template id="list-item-template">
+    <li>
+        <span class="item-text"></span>
+        <button onclick="editItem(this)">Edit</button>
+        <button onclick="deleteItem(this)">Delete</button>
+    </li>
+</template>
 
-.actions button {
-    margin-left: 5px;
-}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    const jsonDataSets = [
+        { items: ["Item 1", "Item 2", "Item 3", "Item 4", "Item 5"] },
+        { items: ["Item A", "Item B", "Item C", "Item D"] }
+    ];
 
-button {
-    align-self: flex-end; /* Ensure button stays at the bottom of the column */
-    margin-top: 10px; /* Optional spacing above the button */
-}
+    // Load a new component for each data set
+    jsonDataSets.forEach((dataSet, index) => {
+        // Append a new component instance with unique list IDs
+        const $component = createComponent(index);
+        $("#column-container").append($component);
+
+        // Populate the lists within this specific component
+        let toggle = true; // Start with left column (list1)
+        dataSet.items.forEach(itemText => {
+            const targetList = toggle ? `.list1-${index}` : `.list2-${index}`;
+            addItemToList(targetList, itemText);
+            toggle = !toggle; // Switch to the other column
+        });
+    });
+
+    function createComponent(index) {
+        // Clone the container template and assign unique classes to lists
+        const $component = $($("#column-template").html());
+
+        // Add unique class for the list and button for each component instance
+        $component.find(".list1").addClass(`list1-${index}`).removeClass("list1");
+        $component.find(".list2").addClass(`list2-${index}`).removeClass("list2");
+
+        // Attach unique add buttons for each column
+        $component.find(".add-button").eq(0).attr("data-list-id", `list1-${index}`);
+        $component.find(".add-button").eq(1).attr("data-list-id", `list2-${index}`);
+
+        // Attach click event to "Add" buttons for each column
+        $component.find(".add-button").click(function() {
+            const listId = $(this).data("list-id");
+            addNewItem(listId);
+        });
+
+        return $component;
+    }
+
+    function addItemToList(listSelector, itemText) {
+        const $list = $(listSelector);
+        const $listItem = $($("#list-item-template").html());
+        $listItem.find('.item-text').text(itemText);
+        $list.append($listItem);
+    }
+
+    function addNewItem(listId) {
+        const itemText = prompt("Enter item text:");
+        if (itemText) {
+            addItemToList(`.${listId}`, itemText);
+        }
+    }
+
+    // Define edit and delete functions globally
+    window.editItem = function(button) {
+        const $itemText = $(button).closest('li').find('.item-text');
+        const newText = prompt("Edit item text:", $itemText.text());
+        if (newText) {
+            $itemText.text(newText);
+        }
+    };
+
+    window.deleteItem = function(button) {
+        $(button).closest('li').remove();
+    };
+});
+</script>
+
+</body>
+</html>
