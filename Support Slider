@@ -72,3 +72,46 @@ $('#closeEditorModal').on('click', function () {
     $('#editorModal').hide();
     destroyEditors();
 });
+
+
+
+
+
+
+<div class="slider">
+    <!-- Slider Card 1 -->
+    <div class="slider-card" data-id="1">
+        <h3 class="card-title">Slider 1 Title</h3>
+        <p class="editable automation-details">Automation Details for Slide 1</p>
+        <p class="editable contact-details">Contact Details for Slide 1</p>
+        <p class="editable membership-details">Membership Details for Slide 1</p>
+        <p class="editable kinetic-details">Kinetic Details for Slide 1</p>
+        <button class="edit-slider-btn">Edit</button>
+    </div>
+
+    <!-- Slider Card 2 -->
+    <div class="slider-card" data-id="2">
+        <h3 class="card-title">Slider 2 Title</h3>
+        <p class="editable automation-details">Automation Details for Slide 2</p>
+        <p class="editable contact-details">Contact Details for Slide 2</p>
+        <p class="editable membership-details">Membership Details for Slide 2</p>
+        <p class="editable kinetic-details">Kinetic Details for Slide 2</p>
+        <button class="edit-slider-btn">Edit</button>
+    </div>
+</div>
+
+<!-- Modal for Editing -->
+<div id="editorModal" class="modal">
+    <div class="modal-content">
+        <h4>Edit Slider Content</h4>
+        <textarea class="ckeditor-field" data-field="automation-details"></textarea>
+        <textarea class="ckeditor-field" data-field="contact-details"></textarea>
+        <textarea class="ckeditor-field" data-field="membership-details"></textarea>
+        <textarea class="ckeditor-field" data-field="kinetic-details"></textarea>
+    </div>
+    <div class="modal-footer">
+        <button id="saveEditorContent" class="btn">Save</button>
+        <button id="closeEditorModal" class="btn">Close</button>
+    </div>
+</div>
+
