@@ -1,0 +1,74 @@
+let editorInstances = {};
+
+// Function to initialize CKEditor on all elements with a specific class
+function initCKEditors() {
+    $('.ckeditor-field').each(function () {
+        const field = $(this);
+        const fieldId = field.attr('data-field');
+        
+        // Initialize CKEditor for this field
+        ClassicEditor
+            .create(this)
+            .then(editor => {
+                editorInstances[fieldId] = editor;
+            })
+            .catch(error => {
+                console.error('Error initializing CKEditor:', error);
+            });
+    });
+}
+
+// Function to destroy CKEditor instances
+function destroyEditors() {
+    $.each(editorInstances, function (fieldId, editor) {
+        editor.destroy().then(() => {
+            delete editorInstances[fieldId];
+        });
+    });
+}
+
+// Handle the click event for "Edit" buttons
+$('.edit-slider-btn').on('click', function () {
+    const card = $(this).closest('.slider-card');
+
+    // Populate the modal fields with content from the card
+    $('.ckeditor-field').each(function () {
+        const field = $(this);
+        const fieldClass = field.attr('data-field');
+        const content = card.find(`.${fieldClass}`).text();
+        field.val(content);
+    });
+
+    // Show the modal
+    $('#editorModal').show();
+
+    // Initialize CKEditor for all fields
+    initCKEditors();
+});
+
+// Handle the save action
+$('#saveEditorContent').on('click', function () {
+    const activeCard = $('.slider-card.active'); // Replace with appropriate logic
+
+    // Update card content with CKEditor data
+    $('.ckeditor-field').each(function () {
+        const field = $(this);
+        const fieldClass = field.attr('data-field');
+        const editor = editorInstances[fieldClass];
+
+        if (editor) {
+            const updatedContent = editor.getData();
+            activeCard.find(`.${fieldClass}`).text(updatedContent);
+        }
+    });
+
+    // Close the modal and clean up editors
+    $('#editorModal').hide();
+    destroyEditors();
+});
+
+// Handle modal close
+$('#closeEditorModal').on('click', function () {
+    $('#editorModal').hide();
+    destroyEditors();
+});
