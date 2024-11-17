@@ -1,19 +1,194 @@
-$('#save-modal-button').on('click', function () {
-    const parent = $('.slider-card.active'); // Get the active slider
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Slides with CKEditor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js">
+    <style>
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
 
-    // Iterate through each CKEditor field in the modal
-    $('.support-description').each(function () {
-        const modalField = $(this); // Current modal field
-        const fieldClass = modalField.attr('data-field'); // Get the data-field attribute
+        .tab {
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
 
-        // Retrieve the CKEditor instance content
-        const editorInstance = CKEDITOR.instances[modalField.attr('id')]; // Use the modal field's ID
-        const content = editorInstance ? editorInstance.getData() : modalField.val();
+        .slides {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
 
-        // Update the slider field with the content
-        parent.find(`.slider-description[data-field="${fieldClass}"]`).html(content);
-    });
+        .slider-card {
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            width: 300px;
+        }
 
-    // Close the modal
-    $('#myModal').modal('hide');
-});
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="tabs"></div>
+    <div class="slides"></div>
+    <button id="add-new-tab">Add New Tab</button>
+
+    <!-- Modal for Editing -->
+    <div id="edit-modal" class="modal">
+        <h3>Edit Slide</h3>
+        <div>
+            <label>Automation Details</label>
+            <textarea class="editable-field" id="automation-details"></textarea>
+        </div>
+        <div>
+            <label>Contact Details</label>
+            <textarea class="editable-field" id="contact-details"></textarea>
+        </div>
+        <div>
+            <label>Membership Details</label>
+            <textarea class="editable-field" id="membership-details"></textarea>
+        </div>
+        <div>
+            <label>Kinetic Details</label>
+            <textarea class="editable-field" id="kinetic-details"></textarea>
+        </div>
+        <button id="save-slide">Save</button>
+        <button id="close-modal">Close</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/37.1.0/classic/ckeditor.js"></script>
+    <script>
+        // JSON Data for Slides
+        const slidesData = [
+            { id: 1, tab: "Tab 1", automationDetails: "Automation for Tab 1", contactDetails: "Contact for Tab 1", membershipDetails: "Membership Tab 1", kineticDetails: "Kinetic Tab 1" },
+            { id: 2, tab: "Tab 2", automationDetails: "Automation for Tab 2", contactDetails: "Contact for Tab 2", membershipDetails: "Membership Tab 2", kineticDetails: "Kinetic Tab 2" }
+        ];
+
+        // Function to Initialize CKEditor
+        function initCKEditor(selector) {
+            $(selector).each(function () {
+                const field = $(this)[0];
+                if (!field.ckeditorInstance) {
+                    ClassicEditor.create(field).then(editor => {
+                        field.ckeditorInstance = editor;
+                    });
+                }
+            });
+        }
+
+        // Render Tabs and Slides
+        function renderSlides(slidesData) {
+            const tabsContainer = $('.tabs');
+            const slidesContainer = $('.slides');
+            tabsContainer.empty();
+            slidesContainer.empty();
+
+            slidesData.forEach(slide => {
+                // Tabs
+                const tab = $(`<button class="tab" data-id="${slide.id}">${slide.tab}</button>`);
+                tabsContainer.append(tab);
+
+                // Slides
+                const slideHtml = `
+                    <div class="slider-card" data-id="${slide.id}">
+                        <h3>${slide.tab}</h3>
+                        <p class="slider-description automation-details">${slide.automationDetails}</p>
+                        <p class="slider-description contact-details">${slide.contactDetails}</p>
+                        <p class="slider-description membership-details">${slide.membershipDetails}</p>
+                        <p class="slider-description kinetic-details">${slide.kineticDetails}</p>
+                        <button class="edit-slider-btn">Edit</button>
+                    </div>
+                `;
+                slidesContainer.append(slideHtml);
+            });
+        }
+
+        // Open Modal with Slide Data
+        function openEditModal(slide) {
+            $('#automation-details').val(slide.automationDetails);
+            $('#contact-details').val(slide.contactDetails);
+            $('#membership-details').val(slide.membershipDetails);
+            $('#kinetic-details').val(slide.kineticDetails);
+            $('#edit-modal').addClass('active');
+            initCKEditor('.editable-field'); // Initialize CKEditor in Modal
+        }
+
+        // Save Edited Slide Data
+        function saveSlideData(slideId) {
+            const updatedSlide = {
+                id: slideId,
+                automationDetails: $('#automation-details')[0].ckeditorInstance.getData(),
+                contactDetails: $('#contact-details')[0].ckeditorInstance.getData(),
+                membershipDetails: $('#membership-details')[0].ckeditorInstance.getData(),
+                kineticDetails: $('#kinetic-details')[0].ckeditorInstance.getData()
+            };
+
+            const slideIndex = slidesData.findIndex(slide => slide.id === slideId);
+            slidesData[slideIndex] = { ...slidesData[slideIndex], ...updatedSlide };
+
+            renderSlides(slidesData);
+            $('#edit-modal').removeClass('active');
+        }
+
+        // Add Default Slide
+        function addDefaultSlide(tabName) {
+            const newSlide = {
+                id: slidesData.length + 1,
+                tab: tabName,
+                automationDetails: "Default Automation Details",
+                contactDetails: "Default Contact Details",
+                membershipDetails: "Default Membership Details",
+                kineticDetails: "Default Kinetic Details"
+            };
+
+            slidesData.push(newSlide);
+            renderSlides(slidesData);
+        }
+
+        // Event Listeners
+        $(document).on('click', '.edit-slider-btn', function () {
+            const slideId = $(this).closest('.slider-card').data('id');
+            const slide = slidesData.find(s => s.id === slideId);
+            openEditModal(slide);
+        });
+
+        $('#save-slide').on('click', function () {
+            const slideId = $('.slider-card[data-id]').data('id');
+            saveSlideData(slideId);
+        });
+
+        $('#close-modal').on('click', function () {
+            $('#edit-modal').removeClass('active');
+        });
+
+        $('#add-new-tab').on('click', function () {
+            const newTabName = `Tab ${slidesData.length + 1}`;
+            addDefaultSlide(newTabName);
+        });
+
+        // Initial Render
+        renderSlides(slidesData);
+    </script>
+</body>
+</html>
