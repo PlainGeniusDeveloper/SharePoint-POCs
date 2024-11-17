@@ -1,117 +1,19 @@
-let editorInstances = {};
+$('#save-modal-button').on('click', function () {
+    const parent = $('.slider-card.active'); // Get the active slider
 
-// Function to initialize CKEditor on all elements with a specific class
-function initCKEditors() {
-    $('.ckeditor-field').each(function () {
-        const field = $(this);
-        const fieldId = field.attr('data-field');
-        
-        // Initialize CKEditor for this field
-        ClassicEditor
-            .create(this)
-            .then(editor => {
-                editorInstances[fieldId] = editor;
-            })
-            .catch(error => {
-                console.error('Error initializing CKEditor:', error);
-            });
-    });
-}
+    // Iterate through each CKEditor field in the modal
+    $('.support-description').each(function () {
+        const modalField = $(this); // Current modal field
+        const fieldClass = modalField.attr('data-field'); // Get the data-field attribute
 
-// Function to destroy CKEditor instances
-function destroyEditors() {
-    $.each(editorInstances, function (fieldId, editor) {
-        editor.destroy().then(() => {
-            delete editorInstances[fieldId];
-        });
-    });
-}
+        // Retrieve the CKEditor instance content
+        const editorInstance = CKEDITOR.instances[modalField.attr('id')]; // Use the modal field's ID
+        const content = editorInstance ? editorInstance.getData() : modalField.val();
 
-// Handle the click event for "Edit" buttons
-$('.edit-slider-btn').on('click', function () {
-    const card = $(this).closest('.slider-card');
-
-    // Populate the modal fields with content from the card
-    $('.ckeditor-field').each(function () {
-        const field = $(this);
-        const fieldClass = field.attr('data-field');
-        const content = card.find(`.${fieldClass}`).text();
-        field.val(content);
+        // Update the slider field with the content
+        parent.find(`.slider-description[data-field="${fieldClass}"]`).html(content);
     });
 
-    // Show the modal
-    $('#editorModal').show();
-
-    // Initialize CKEditor for all fields
-    initCKEditors();
+    // Close the modal
+    $('#myModal').modal('hide');
 });
-
-// Handle the save action
-$('#saveEditorContent').on('click', function () {
-    const activeCard = $('.slider-card.active'); // Replace with appropriate logic
-
-    // Update card content with CKEditor data
-    $('.ckeditor-field').each(function () {
-        const field = $(this);
-        const fieldClass = field.attr('data-field');
-        const editor = editorInstances[fieldClass];
-
-        if (editor) {
-            const updatedContent = editor.getData();
-            activeCard.find(`.${fieldClass}`).text(updatedContent);
-        }
-    });
-
-    // Close the modal and clean up editors
-    $('#editorModal').hide();
-    destroyEditors();
-});
-
-// Handle modal close
-$('#closeEditorModal').on('click', function () {
-    $('#editorModal').hide();
-    destroyEditors();
-});
-
-
-
-
-
-
-<div class="slider">
-    <!-- Slider Card 1 -->
-    <div class="slider-card" data-id="1">
-        <h3 class="card-title">Slider 1 Title</h3>
-        <p class="editable automation-details">Automation Details for Slide 1</p>
-        <p class="editable contact-details">Contact Details for Slide 1</p>
-        <p class="editable membership-details">Membership Details for Slide 1</p>
-        <p class="editable kinetic-details">Kinetic Details for Slide 1</p>
-        <button class="edit-slider-btn">Edit</button>
-    </div>
-
-    <!-- Slider Card 2 -->
-    <div class="slider-card" data-id="2">
-        <h3 class="card-title">Slider 2 Title</h3>
-        <p class="editable automation-details">Automation Details for Slide 2</p>
-        <p class="editable contact-details">Contact Details for Slide 2</p>
-        <p class="editable membership-details">Membership Details for Slide 2</p>
-        <p class="editable kinetic-details">Kinetic Details for Slide 2</p>
-        <button class="edit-slider-btn">Edit</button>
-    </div>
-</div>
-
-<!-- Modal for Editing -->
-<div id="editorModal" class="modal">
-    <div class="modal-content">
-        <h4>Edit Slider Content</h4>
-        <textarea class="ckeditor-field" data-field="automation-details"></textarea>
-        <textarea class="ckeditor-field" data-field="contact-details"></textarea>
-        <textarea class="ckeditor-field" data-field="membership-details"></textarea>
-        <textarea class="ckeditor-field" data-field="kinetic-details"></textarea>
-    </div>
-    <div class="modal-footer">
-        <button id="saveEditorContent" class="btn">Save</button>
-        <button id="closeEditorModal" class="btn">Close</button>
-    </div>
-</div>
-
