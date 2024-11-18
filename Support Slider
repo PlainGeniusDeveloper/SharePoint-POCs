@@ -3,192 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Slides with CKEditor</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js">
+    <title>Toggle List</title>
     <style>
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .tab {
-            padding: 10px 20px;
-            background-color: #f0f0f0;
-            border: 1px solid #ccc;
-            cursor: pointer;
-        }
-
-        .slides {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .slider-card {
-            padding: 20px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            width: 300px;
-        }
-
+        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            width: 300px;
             background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .modal-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .toggle-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .toggle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
 
-        .modal.active {
-            display: block;
+        /* Switch styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        .switch input {
+            display: none;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #007bff;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Not Available Switch Styling */
+        .not-available .slider {
+            background-color: #e0e0e0;
+            opacity: 0.6;
+        }
+        .not-available span {
+            color: #999;
+        }
+
+        .close-btn {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="tabs"></div>
-    <div class="slides"></div>
-    <button id="add-new-tab">Add New Tab</button>
 
-    <!-- Modal for Editing -->
-    <div id="edit-modal" class="modal">
-        <h3>Edit Slide</h3>
-        <div>
-            <label>Automation Details</label>
-            <textarea class="editable-field" id="automation-details"></textarea>
-        </div>
-        <div>
-            <label>Contact Details</label>
-            <textarea class="editable-field" id="contact-details"></textarea>
-        </div>
-        <div>
-            <label>Membership Details</label>
-            <textarea class="editable-field" id="membership-details"></textarea>
-        </div>
-        <div>
-            <label>Kinetic Details</label>
-            <textarea class="editable-field" id="kinetic-details"></textarea>
-        </div>
-        <button id="save-slide">Save</button>
-        <button id="close-modal">Close</button>
+    <!-- Tabs with anchor tags -->
+    <div class="tabs">
+        <a href="#" class="tab">Option 1</a>
+        <a href="#" class="tab not_available">Option 2</a>
+        <a href="#" class="tab">Option 3</a>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.ckeditor.com/ckeditor5/37.1.0/classic/ckeditor.js"></script>
-    <script>
-        // JSON Data for Slides
-        const slidesData = [
-            { id: 1, tab: "Tab 1", automationDetails: "Automation for Tab 1", contactDetails: "Contact for Tab 1", membershipDetails: "Membership Tab 1", kineticDetails: "Kinetic Tab 1" },
-            { id: 2, tab: "Tab 2", automationDetails: "Automation for Tab 2", contactDetails: "Contact for Tab 2", membershipDetails: "Membership Tab 2", kineticDetails: "Kinetic Tab 2" }
-        ];
+    <!-- Button to trigger pop-up -->
+    <button id="show-popup-btn">Show Pop-up</button>
 
-        // Function to Initialize CKEditor
-        function initCKEditor(selector) {
-            $(selector).each(function () {
-                const field = $(this)[0];
-                if (!field.ckeditorInstance) {
-                    ClassicEditor.create(field).then(editor => {
-                        field.ckeditorInstance = editor;
-                    });
+    <!-- Modal Overlay -->
+    <div class="modal-overlay"></div>
+
+    <!-- Modal -->
+    <div class="modal" id="toggle-popup">
+        <div class="modal-header">Toggle List</div>
+        <ul class="toggle-list"></ul>
+        <button class="close-btn" id="close-popup-btn">Close</button>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Script -->
+    <script>
+        $(document).ready(function () {
+            const $popup = $('#toggle-popup');
+            const $overlay = $('.modal-overlay');
+            const $toggleList = $('.toggle-list');
+
+            // Function to populate toggle list dynamically
+            function populateToggleList() {
+                $toggleList.empty(); // Clear existing items
+                $('.tabs .tab').each(function () {
+                    const optionName = $(this).text();
+                    const isNotAvailable = $(this).hasClass('not_available');
+                    const listItem = `
+                        <li class="toggle-item ${isNotAvailable ? 'not-available' : ''}">
+                            <span>${optionName}</span>
+                            <label class="switch">
+                                <input type="checkbox" class="toggle-switch" data-option="${optionName}" ${isNotAvailable ? '' : 'checked'}>
+                                <span class="slider"></span>
+                            </label>
+                        </li>`;
+                    $toggleList.append(listItem);
+                });
+            }
+
+            // Show pop-up
+            $('#show-popup-btn').on('click', function () {
+                populateToggleList(); // Populate options dynamically
+                $popup.show();
+                $overlay.show();
+            });
+
+            // Hide pop-up
+            $('#close-popup-btn, .modal-overlay').on('click', function () {
+                $popup.hide();
+                $overlay.hide();
+            });
+
+            // Handle toggle switch actions
+            $toggleList.on('change', '.toggle-switch', function () {
+                const optionName = $(this).data('option');
+                const $parentItem = $(this).closest('.toggle-item');
+
+                // If not available and toggled on, remove not_available
+                if ($parentItem.hasClass('not-available') && $(this).is(':checked')) {
+                    $parentItem.removeClass('not-available');
+                    $('.tabs .tab').filter(function () {
+                        return $(this).text() === optionName;
+                    }).removeClass('not_available');
+                    alert(`${optionName} is now available.`);
+                } else {
+                    const toggleState = $(this).is(':checked') ? 'ON' : 'OFF';
+                    alert(`${optionName} is turned ${toggleState}`);
                 }
             });
-        }
-
-        // Render Tabs and Slides
-        function renderSlides(slidesData) {
-            const tabsContainer = $('.tabs');
-            const slidesContainer = $('.slides');
-            tabsContainer.empty();
-            slidesContainer.empty();
-
-            slidesData.forEach(slide => {
-                // Tabs
-                const tab = $(`<button class="tab" data-id="${slide.id}">${slide.tab}</button>`);
-                tabsContainer.append(tab);
-
-                // Slides
-                const slideHtml = `
-                    <div class="slider-card" data-id="${slide.id}">
-                        <h3>${slide.tab}</h3>
-                        <p class="slider-description automation-details">${slide.automationDetails}</p>
-                        <p class="slider-description contact-details">${slide.contactDetails}</p>
-                        <p class="slider-description membership-details">${slide.membershipDetails}</p>
-                        <p class="slider-description kinetic-details">${slide.kineticDetails}</p>
-                        <button class="edit-slider-btn">Edit</button>
-                    </div>
-                `;
-                slidesContainer.append(slideHtml);
-            });
-        }
-
-        // Open Modal with Slide Data
-        function openEditModal(slide) {
-            $('#automation-details').val(slide.automationDetails);
-            $('#contact-details').val(slide.contactDetails);
-            $('#membership-details').val(slide.membershipDetails);
-            $('#kinetic-details').val(slide.kineticDetails);
-            $('#edit-modal').addClass('active');
-            initCKEditor('.editable-field'); // Initialize CKEditor in Modal
-        }
-
-        // Save Edited Slide Data
-        function saveSlideData(slideId) {
-            const updatedSlide = {
-                id: slideId,
-                automationDetails: $('#automation-details')[0].ckeditorInstance.getData(),
-                contactDetails: $('#contact-details')[0].ckeditorInstance.getData(),
-                membershipDetails: $('#membership-details')[0].ckeditorInstance.getData(),
-                kineticDetails: $('#kinetic-details')[0].ckeditorInstance.getData()
-            };
-
-            const slideIndex = slidesData.findIndex(slide => slide.id === slideId);
-            slidesData[slideIndex] = { ...slidesData[slideIndex], ...updatedSlide };
-
-            renderSlides(slidesData);
-            $('#edit-modal').removeClass('active');
-        }
-
-        // Add Default Slide
-        function addDefaultSlide(tabName) {
-            const newSlide = {
-                id: slidesData.length + 1,
-                tab: tabName,
-                automationDetails: "Default Automation Details",
-                contactDetails: "Default Contact Details",
-                membershipDetails: "Default Membership Details",
-                kineticDetails: "Default Kinetic Details"
-            };
-
-            slidesData.push(newSlide);
-            renderSlides(slidesData);
-        }
-
-        // Event Listeners
-        $(document).on('click', '.edit-slider-btn', function () {
-            const slideId = $(this).closest('.slider-card').data('id');
-            const slide = slidesData.find(s => s.id === slideId);
-            openEditModal(slide);
         });
-
-        $('#save-slide').on('click', function () {
-            const slideId = $('.slider-card[data-id]').data('id');
-            saveSlideData(slideId);
-        });
-
-        $('#close-modal').on('click', function () {
-            $('#edit-modal').removeClass('active');
-        });
-
-        $('#add-new-tab').on('click', function () {
-            const newTabName = `Tab ${slidesData.length + 1}`;
-            addDefaultSlide(newTabName);
-        });
-
-        // Initial Render
-        renderSlides(slidesData);
     </script>
+
 </body>
 </html>
