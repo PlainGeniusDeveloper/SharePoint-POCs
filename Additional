@@ -1,13 +1,36 @@
-let cleanHtml = htmlContent
-        .replace(/\n/g, '')                     // Remove newline characters
-        .replace(/<p>\s*<\/p>/g, '')            // Remove empty <p> tags
-        .replace(/\s\s+/g, ' ')                 // Replace multiple spaces with a single space
-        .trim();                                // Trim leading/trailing spaces
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gear Icon with H2</title>
+    <style>
+        .header-with-icon {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Adjust spacing between h2 and the icon */
+        }
 
-    // Create a JSON object with the cleaned HTML
-    let jsonData = {
-        content: cleanHtml
-    };
+        .header-with-icon h2 {
+            margin: 0;
+        }
 
-    // Convert the JSON object to a JSON string
-    let jsonString = JSON.stringify(jsonData, null, 2);
+        .gear-icon {
+            font-size: 1.5rem; /* Adjust size of the icon */
+            cursor: pointer;
+            color: gray;
+            transition: color 0.3s;
+        }
+
+        .gear-icon:hover {
+            color: black; /* Change color on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="header-with-icon">
+        <h2>Section Title</h2>
+        <span class="gear-icon" title="Settings">&#9881;</span>
+    </div>
+</body>
+</html>
