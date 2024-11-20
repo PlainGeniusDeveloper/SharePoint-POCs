@@ -1,191 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Toggle List</title>
-    <style>
-        /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 300px;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            z-index: 1000;
+$(document).ready(function () {
+  $("#ok-button").click(function () {
+    // Loop through each checkbox
+    $("input[type='checkbox']").each(function () {
+      const isChecked = $(this).is(":checked");
+      const sliderId = $(this).attr("id"); // Use checkbox ID as slider ID
+
+      if (isChecked) {
+        // Check if slider already exists
+        if (!$(`#${sliderId}-slider`).length) {
+          // Get the default slider template and customize it
+          const sliderTemplate = $("#default-slider-template").html();
+          const slider = $(sliderTemplate).attr("id", `${sliderId}-slider`);
+          slider.find(".slider-title").text(`Slider for ${sliderId}`);
+          
+          // Append the slider to the container
+          $("#slider-container").append(slider);
         }
-        .modal-header {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-        .toggle-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .toggle-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        /* Switch styles */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 20px;
-        }
-        .switch input {
-            display: none;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: 0.4s;
-            border-radius: 20px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 14px;
-            width: 14px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: 0.4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: #007bff;
-        }
-        input:checked + .slider:before {
-            transform: translateX(20px);
-        }
-
-        /* Not Available Switch Styling */
-        .not-available .slider {
-            background-color: #e0e0e0;
-            opacity: 0.6;
-        }
-        .not-available span {
-            color: #999;
-        }
-
-        .close-btn {
-            margin-top: 10px;
-            padding: 5px 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Tabs with anchor tags -->
-    <div class="tabs">
-        <a href="#" class="tab">Option 1</a>
-        <a href="#" class="tab not_available">Option 2</a>
-        <a href="#" class="tab">Option 3</a>
-    </div>
-
-    <!-- Button to trigger pop-up -->
-    <button id="show-popup-btn">Show Pop-up</button>
-
-    <!-- Modal Overlay -->
-    <div class="modal-overlay"></div>
-
-    <!-- Modal -->
-    <div class="modal" id="toggle-popup">
-        <div class="modal-header">Toggle List</div>
-        <ul class="toggle-list"></ul>
-        <button class="close-btn" id="close-popup-btn">Close</button>
-    </div>
-
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- Script -->
-    <script>
-        $(document).ready(function () {
-            const $popup = $('#toggle-popup');
-            const $overlay = $('.modal-overlay');
-            const $toggleList = $('.toggle-list');
-
-            // Function to populate toggle list dynamically
-            function populateToggleList() {
-                $toggleList.empty(); // Clear existing items
-                $('.tabs .tab').each(function () {
-                    const optionName = $(this).text();
-                    const isNotAvailable = $(this).hasClass('not_available');
-                    const listItem = `
-                        <li class="toggle-item ${isNotAvailable ? 'not-available' : ''}">
-                            <span>${optionName}</span>
-                            <label class="switch">
-                                <input type="checkbox" class="toggle-switch" data-option="${optionName}" ${isNotAvailable ? '' : 'checked'}>
-                                <span class="slider"></span>
-                            </label>
-                        </li>`;
-                    $toggleList.append(listItem);
-                });
-            }
-
-            // Show pop-up
-            $('#show-popup-btn').on('click', function () {
-                populateToggleList(); // Populate options dynamically
-                $popup.show();
-                $overlay.show();
-            });
-
-            // Hide pop-up
-            $('#close-popup-btn, .modal-overlay').on('click', function () {
-                $popup.hide();
-                $overlay.hide();
-            });
-
-            // Handle toggle switch actions
-            $toggleList.on('change', '.toggle-switch', function () {
-                const optionName = $(this).data('option');
-                const $parentItem = $(this).closest('.toggle-item');
-
-                // If not available and toggled on, remove not_available
-                if ($parentItem.hasClass('not-available') && $(this).is(':checked')) {
-                    $parentItem.removeClass('not-available');
-                    $('.tabs .tab').filter(function () {
-                        return $(this).text() === optionName;
-                    }).removeClass('not_available');
-                    alert(`${optionName} is now available.`);
-                } else {
-                    const toggleState = $(this).is(':checked') ? 'ON' : 'OFF';
-                    alert(`${optionName} is turned ${toggleState}`);
-                }
-            });
-        });
-    </script>
-
-</body>
-</html>
+      } else {
+        // If unchecked, remove the slider
+        $(`#${sliderId}-slider`).remove();
+      }
+    });
+  });
+});
