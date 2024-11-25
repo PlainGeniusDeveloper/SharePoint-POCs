@@ -1,36 +1,282 @@
-ClassicEditor
-    .create(document.querySelector('#editor'), {
-        link: {
-            decorators: {
-                isExternal: {
-                    mode: 'automatic',
-                    callback: url => /^(https?:)?\/\//.test(url),
-                    attributes: {
-                        target: '_blank',
-                        rel: 'noopener noreferrer'
-                    }
-                }
-            }
+To implement the "Save" and "Edit" functionality for selected dropdown items and notes, we can enhance the code as follows:
+
+Key Features:
+
+1. Save Functionality:
+
+Save the selected regions, countries, and their notes to a local data structure.
+
+Update the dropdown buttons to show the saved selections.
+
+
+
+2. Edit Functionality:
+
+Reload all regions and countries into the dropdowns.
+
+Preselect the previously saved items and display their associated notes for editing.
+
+
+
+
+
+---
+
+Updated Code Example:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cascading Dropdown with Save and Edit</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .dropdown-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
         }
-    })
-    .then(editor => {
-        const MAX_CHAR_LIMIT = 50; // Set your character limit here
 
-        editor.model.document.on('change:data', () => {
-            editor.model.change(writer => {
-                const selection = editor.model.document.selection;
-                const selectedLinkElement = selection.getSelectedElement();
+        .dropdown-list {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 250px;
+            border: 1px solid #ccc;
+            z-index: 1;
+            padding: 10px;
+        }
 
-                if (selectedLinkElement && selectedLinkElement.is('element', 'link')) {
-                    const currentText = selectedLinkElement.getChild(0)?.data || '';
-                    if (currentText.length > MAX_CHAR_LIMIT) {
-                        const truncatedText = currentText.substring(0, MAX_CHAR_LIMIT);
-                        writer.setAttribute('linkHref', truncatedText, selectedLinkElement);
-                    }
+        .dropdown-list label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .dropdown-list label:hover {
+            background-color: #f1f1f1;
+        }
+
+        .note-input {
+            margin-left: 10px;
+            display: none;
+        }
+
+        .selected-items {
+            margin: 10px 0;
+        }
+
+        .note-input input {
+            width: 150px;
+            padding: 5px;
+        }
+
+        .save-edit-buttons {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Cascading Dropdown with Save and Edit</h2>
+    <form id="cascadingForm">
+        <!-- Region Dropdown -->
+        <div class="dropdown-container" id="regionDropdown">
+            <button type="button">Select Regions</button>
+            <div class="dropdown-list"></div>
+        </div>
+
+        <!-- Country Dropdown -->
+        <div class="dropdown-container" id="countryDropdown">
+            <button type="button">Select Countries</button>
+            <div class="dropdown-list"></div>
+        </div>
+
+        <!-- Save and Edit Buttons -->
+        <div class="save-edit-buttons">
+            <button type="button" id="saveButton">Save</button>
+            <button type="button" id="editButton" style="display: none;">Edit</button>
+        </div>
+    </form>
+
+    <script>
+        $(document).ready(function () {
+            const siteUrl = "<Your_SharePoint_Site_URL>";
+            const regionListName = "<Region_List_Name>";
+            const countryListName = "<Country_List_Name>";
+            const lookupField = "<Lookup_Field_Internal_Name>";
+
+            const regionDropdown = $('#regionDropdown .dropdown-list');
+            const countryDropdown = $('#countryDropdown .dropdown-list');
+
+            let allRegions = [];
+            let allCountries = [];
+            let savedData = {
+                regions: [], // Array of selected region IDs
+                countries: [], // Array of selected country objects { id, note }
+            };
+
+            // Load all data on page load
+            function loadData() {
+                const regionsRequest = $.ajax({
+                    url: `${siteUrl}/_api/web/lists/getbytitle('${regionListName}')/items`,
+                    method: "GET",
+                    headers: { "Accept": "application/json;odata=verbose" }
+                });
+
+                const countriesRequest = $.ajax({
+                    url: `${siteUrl}/_api/web/lists/getbytitle('${countryListName}')/items`,
+                    method: "GET",
+                    headers: { "Accept": "application/json;odata=verbose" }
+                });
+
+                $.when(regionsRequest, countriesRequest).done(function (regionsResponse, countriesResponse) {
+                    allRegions = regionsResponse[0].d.results;
+                    allCountries = countriesResponse[0].d.results;
+
+                    populateDropdowns();
+                }).fail(function (error) {
+                    console.error("Error loading data:", error);
+                });
+            }
+
+            // Populate dropdowns with data
+            function populateDropdowns() {
+                populateRegionDropdown();
+                populateCountryDropdown(savedData.regions);
+            }
+
+            // Populate Region Dropdown
+            function populateRegionDropdown() {
+                regionDropdown.empty();
+                allRegions.forEach(region => {
+                    const isChecked = savedData.regions.includes(region.Id) ? 'checked' : '';
+                    regionDropdown.append(
+                        `<label>
+                            <input type="checkbox" value="${region.Id}" data-title="${region.Title}" ${isChecked}> ${region.Title}
+                        </label>`
+                    );
+                });
+            }
+
+            // Populate Country Dropdown
+            function populateCountryDropdown(regionIds) {
+                countryDropdown.empty();
+
+                const filteredCountries = regionIds.length
+                    ? allCountries.filter(country => regionIds.includes(country[lookupField].Id))
+                    : allCountries;
+
+                filteredCountries.forEach(country => {
+                    const savedCountry = savedData.countries.find(c => c.id === country.Id);
+                    const isChecked = savedCountry ? 'checked' : '';
+                    const note = savedCountry ? savedCountry.note : '';
+
+                    countryDropdown.append(
+                        `<label>
+                            <input type="checkbox" value="${country.Id}" data-title="${country.Title}" class="country-checkbox" ${isChecked}> 
+                            ${country.Title}
+                            <span class="note-input">
+                                <input type="text" placeholder="Enter note" value="${note}" data-country-id="${country.Id}">
+                            </span>
+                        </label>`
+                    );
+                });
+            }
+
+            // Toggle Dropdown Visibility
+            $('.dropdown-container button').on('click', function () {
+                $(this).parent().toggleClass('active');
+            });
+
+            // Handle Region Selection
+            regionDropdown.on('change', 'input[type="checkbox"]', function () {
+                const regionId = parseInt($(this).val());
+
+                if ($(this).is(':checked')) {
+                    savedData.regions.push(regionId);
+                } else {
+                    savedData.regions = savedData.regions.filter(id => id !== regionId);
+                }
+
+                populateCountryDropdown(savedData.regions);
+            });
+
+            // Show/Hide Note Input for Countries
+            countryDropdown.on('change', '.country-checkbox', function () {
+                const noteInput = $(this).closest('label').find('.note-input');
+                if ($(this).is(':checked')) {
+                    noteInput.show();
+                } else {
+                    noteInput.hide();
+                    noteInput.find('input').val('');
                 }
             });
+
+            // Save Button Click
+            $('#saveButton').on('click', function () {
+                savedData.countries = [];
+                countryDropdown.find('.country-checkbox:checked').each(function () {
+                    const countryId = parseInt($(this).val());
+                    const note = $(this).closest('label').find('input[type="text"]').val();
+                    savedData.countries.push({ id: countryId, note });
+                });
+
+                alert("Data saved successfully!");
+                $('#saveButton').hide();
+                $('#editButton').show();
+            });
+
+            // Edit Button Click
+            $('#editButton').on('click', function () {
+                populateDropdowns();
+                $('#saveButton').show();
+                $('#editButton').hide();
+            });
+
+            // Initial Data Load
+            loadData();
         });
-    })
-    .catch(error => {
-        console.error('There was a problem initializing the editor:', error);
-    });
+    </script>
+</body>
+</html>
+
+
+---
+
+Key Features Added:
+
+1. Save Selected Items:
+
+On clicking the "Save" button, selected regions, countries, and their notes are saved to the savedData object.
+
+
+
+2. Edit Existing Selections:
+
+On clicking the "Edit" button, the dropdowns are repopulated with all items, and previously saved selections are prefilled.
+
+
+
+3. Dynamic Notes Management:
+
+The notes input box for countries works seamlessly with both "Save" and "Edit" functionalities.
+
+
+
+
+
+---
+
+Replace Placeholders:
+
+<Your_SharePoint_Site_URL>, <Region_List_Name>, <Country_List_Name>, <Lookup_Field_Internal_Name>.
+
+
+
+---
+
+This implementation ensures smooth saving and editing of dropdown selections and notes.
+
