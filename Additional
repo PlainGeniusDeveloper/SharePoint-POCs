@@ -1,36 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gear Icon with H2</title>
-    <style>
-        .header-with-icon {
-            display: flex;
-            align-items: center;
-            gap: 8px; /* Adjust spacing between h2 and the icon */
+ClassicEditor
+    .create(document.querySelector('#editor'), {
+        link: {
+            decorators: {
+                isExternal: {
+                    mode: 'automatic',
+                    callback: url => /^(https?:)?\/\//.test(url),
+                    attributes: {
+                        target: '_blank',
+                        rel: 'noopener noreferrer'
+                    }
+                }
+            }
         }
+    })
+    .then(editor => {
+        const MAX_CHAR_LIMIT = 50; // Set your character limit here
 
-        .header-with-icon h2 {
-            margin: 0;
-        }
+        editor.model.document.on('change:data', () => {
+            editor.model.change(writer => {
+                const selection = editor.model.document.selection;
+                const selectedLinkElement = selection.getSelectedElement();
 
-        .gear-icon {
-            font-size: 1.5rem; /* Adjust size of the icon */
-            cursor: pointer;
-            color: gray;
-            transition: color 0.3s;
-        }
-
-        .gear-icon:hover {
-            color: black; /* Change color on hover */
-        }
-    </style>
-</head>
-<body>
-    <div class="header-with-icon">
-        <h2>Section Title</h2>
-        <span class="gear-icon" title="Settings">&#9881;</span>
-    </div>
-</body>
-</html>
+                if (selectedLinkElement && selectedLinkElement.is('element', 'link')) {
+                    const currentText = selectedLinkElement.getChild(0)?.data || '';
+                    if (currentText.length > MAX_CHAR_LIMIT) {
+                        const truncatedText = currentText.substring(0, MAX_CHAR_LIMIT);
+                        writer.setAttribute('linkHref', truncatedText, selectedLinkElement);
+                    }
+                }
+            });
+        });
+    })
+    .catch(error => {
+        console.error('There was a problem initializing the editor:', error);
+    });
