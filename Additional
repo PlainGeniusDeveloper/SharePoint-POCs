@@ -1,232 +1,82 @@
-To include a search box for filtering countries dynamically within the dropdown, you can use jQuery to filter the displayed list of countries as the user types into the search box.
+To hide the region group heading if none of its countries match the search term, you can add logic to check whether any of the countries under a region are visible. If no country is visible, the heading will be hidden.
 
-Here’s how you can integrate a search box into the dropdown:
-
-
----
-
-Updated Code with Search Box:
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Select with Search and Notes</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-
-        .dropdown-container {
-            margin-bottom: 20px;
-        }
-
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-
-        .dropdown-item input[type="text"] {
-            margin-left: 10px;
-            display: none; /* Hidden until checkbox is checked */
-        }
-
-        .save-edit-buttons button {
-            margin-right: 10px;
-        }
-
-        #countrySearch {
-            margin-bottom: 10px;
-            padding: 5px;
-            width: 100%;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-    </style>
-</head>
-<body>
-    <h2>Multi-Select with Search, Checkboxes, and Notes</h2>
-    <form id="cascadingForm">
-        <!-- Search box for filtering countries -->
-        <input type="text" id="countrySearch" placeholder="Search for a country...">
-
-        <div class="dropdown-container" id="dropdownContainer">
-            <!-- Dynamic checkboxes and notes will be added here -->
-        </div>
-
-        <!-- Save and Edit Buttons -->
-        <div class="save-edit-buttons">
-            <button type="button" id="saveButton">Save</button>
-            <button type="button" id="editButton" style="display: none;">Edit</button>
-        </div>
-    </form>
-
-    <script>
-        $(document).ready(function () {
-            // Mock data for Regions and Countries
-            const data = {
-                regions: [
-                    { id: 1, name: "North America" },
-                    { id: 2, name: "Europe" },
-                    { id: 3, name: "Asia" }
-                ],
-                countries: [
-                    { id: 101, name: "USA", regionId: 1 },
-                    { id: 102, name: "Canada", regionId: 1 },
-                    { id: 201, name: "Germany", regionId: 2 },
-                    { id: 202, name: "France", regionId: 2 },
-                    { id: 301, name: "India", regionId: 3 },
-                    { id: 302, name: "China", regionId: 3 }
-                ]
-            };
-
-            const $dropdownContainer = $("#dropdownContainer");
-            const $countrySearch = $("#countrySearch");
-            let savedSelections = { selectedItems: [], notes: {} };
-
-            // Populate checkboxes with regions and countries
-            function populateDropdown() {
-                $dropdownContainer.empty();
-
-                data.regions.forEach(region => {
-                    // Add region label
-                    const $regionLabel = $("<strong>")
-                        .text(region.name)
-                        .css("display", "block")
-                        .css("margin-top", "10px");
-                    $dropdownContainer.append($regionLabel);
-
-                    // Add countries under the region
-                    data.countries
-                        .filter(country => country.regionId === region.id)
-                        .forEach(country => {
-                            const $dropdownItem = $("<div>")
-                                .addClass("dropdown-item")
-                                .attr("data-country-name", country.name.toLowerCase());
-
-                            const $checkbox = $("<input>")
-                                .attr("type", "checkbox")
-                                .attr("id", `country-${country.id}`)
-                                .attr("data-country-id", country.id)
-                                .attr("data-country-name", country.name);
-
-                            const $label = $("<label>")
-                                .attr("for", `country-${country.id}`)
-                                .text(country.name);
-
-                            const $input = $("<input>")
-                                .attr("type", "text")
-                                .attr("placeholder", `Note for ${country.name}`)
-                                .attr("data-country-id", country.id);
-
-                            // Append checkbox, label, and input to the dropdown item
-                            $dropdownItem.append($checkbox, $label, $input);
-                            $dropdownContainer.append($dropdownItem);
-
-                            // Show/hide input on checkbox toggle
-                            $checkbox.change(function () {
-                                $input.toggle(this.checked);
-                            });
-                        });
-                });
-            }
-
-            // Search functionality
-            $countrySearch.on("input", function () {
-                const searchTerm = $(this).val().toLowerCase();
-
-                $dropdownContainer.find(".dropdown-item").each(function () {
-                    const countryName = $(this).data("country-name");
-                    if (countryName.includes(searchTerm)) {
-                        $(this).show(); // Show matching item
-                    } else {
-                        $(this).hide(); // Hide non-matching item
-                    }
-                });
-            });
-
-            // Save selections and notes
-            $("#saveButton").click(function () {
-                savedSelections.selectedItems = [];
-                savedSelections.notes = {};
-
-                // Loop through all checkboxes and collect selections
-                $dropdownContainer.find("input[type='checkbox']").each(function () {
-                    const isChecked = $(this).is(":checked");
-                    const countryId = $(this).data("country-id");
-
-                    if (isChecked) {
-                        savedSelections.selectedItems.push(countryId);
-                        const note = $(`input[type="text"][data-country-id="${countryId}"]`).val();
-                        savedSelections.notes[countryId] = note || "";
-                    }
-                });
-
-                alert("Selections and notes saved!");
-                console.log(savedSelections);
-
-                // Hide save and show edit
-                $("#saveButton").hide();
-                $("#editButton").show();
-
-                // Disable checkboxes and inputs
-                $dropdownContainer.find("input").prop("disabled", true);
-            });
-
-            // Edit selections and notes
-            $("#editButton").click(function () {
-                // Enable checkboxes and inputs
-                $dropdownContainer.find("input").prop("disabled", false);
-
-                // Show save button again
-                $("#saveButton").show();
-                $("#editButton").hide();
-            });
-
-            // Initial load
-            populateDropdown();
-
-            // If saved selections exist, populate them
-            if (savedSelections.selectedItems.length > 0) {
-                savedSelections.selectedItems.forEach(countryId => {
-                    $(`#country-${countryId}`).prop("checked", true).trigger("change");
-                    $(`input[type="text"][data-country-id="${countryId}"]`).val(
-                        savedSelections.notes[countryId] || ""
-                    );
-                });
-            }
-        });
-    </script>
-</body>
-</html>
+Here's the updated script with this functionality:
 
 
 ---
 
-How It Works:
+Updated Script for Hiding Group Headings:
 
-1. Search Box:
+// Search functionality
+$countrySearch.on("input", function () {
+    const searchTerm = $(this).val().toLowerCase();
 
-A <input> field with id="countrySearch" allows users to type search terms.
+    // Filter dropdown items based on search term
+    $dropdownContainer.find(".dropdown-item").each(function () {
+        const countryName = $(this).data("country-name");
+        if (countryName.includes(searchTerm)) {
+            $(this).show(); // Show matching item
+        } else {
+            $(this).hide(); // Hide non-matching item
+        }
+    });
 
-The search input filters country options using the data-country-name attribute.
+    // Check if any items in a group are visible and toggle the group heading
+    $dropdownContainer.find("strong").each(function () {
+        const $groupHeading = $(this);
+        const $groupItems = $groupHeading.nextUntil("strong", ".dropdown-item");
+        const anyVisible = $groupItems.filter(":visible").length > 0;
+
+        if (anyVisible) {
+            $groupHeading.show(); // Show the heading if any item in the group is visible
+        } else {
+            $groupHeading.hide(); // Hide the heading if no items in the group are visible
+        }
+    });
+});
+
+
+---
+
+Key Changes:
+
+1. Filter Each Group:
+
+For each region heading (<strong>), it checks all items (.dropdown-item) under that heading.
+
+If no items are visible, the heading is hidden.
 
 
 
-2. Dynamic Filtering:
+2. Show/Hide Items Dynamically:
 
-As the user types, each .dropdown-item is checked against the search term.
-
-Matching items are shown, and others are hidden.
+Each .dropdown-item and its respective group heading are dynamically shown or hidden based on the search term.
 
 
 
-3. Save and Edit:
 
-Save and edit functionality is preserved and works seamlessly with the search feature.
+
+---
+
+Example in Context:
+
+Here’s the part of the script that processes the search for visibility:
+
+1. Country Matching:
+
+Each country is filtered using its data-country-name.
+
+
+
+2. Group Matching:
+
+Each region heading checks if any of its associated countries are visible.
+
+
+
+3. Toggle Visibility:
+
+If no countries match, the region heading is hidden; otherwise, it's shown.
 
 
 
@@ -234,14 +84,14 @@ Save and edit functionality is preserved and works seamlessly with the search fe
 
 ---
 
-Key Features:
+How It Works:
 
-User-Friendly Search: Quickly find a country in the dropdown using partial or full names.
+When typing in the search box, the dropdown dynamically filters country options.
 
-Dynamic Notes: Attach notes to selected countries.
+Region headings (<strong>) are shown or hidden based on the visibility of their respective countries.
 
-Persistent State: Save and restore user selections and notes.
+This ensures a clean and intuitive interface, only displaying relevant information.
 
 
-This implementation offers an intuitive multi-select dropdown with advanced filtering and note management.
+Let me know if you need further clarification or additional modifications!
 
