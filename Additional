@@ -1,17 +1,17 @@
-Here's an implementation using jQuery for a multi-select dropdown with <optgroup>, including save and edit functionality.
+Below is the updated implementation where each dropdown option has a checkbox and, when checked, an input field for a note appears next to the option.
 
 
 ---
 
 Features:
 
-1. Multi-select dropdown with <optgroup> to group regions and their countries.
+1. Checkbox for each option: Allows users to select multiple options with checkboxes.
 
 
-2. Textbox for entering notes for selected countries.
+2. Note Input Field: A textbox appears next to each selected option for entering notes.
 
 
-3. Save and Edit functionality to persist and modify the selections and notes.
+3. Save and Edit Functionality: Saves selected options and their notes, and allows editing later.
 
 
 
@@ -25,26 +25,26 @@ Example Code:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Select Dropdown with Optgroup</title>
+    <title>Multi-Select with Checkboxes and Notes</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
         }
 
-        select {
-            width: 300px;
-            height: 150px;
+        .dropdown-container {
             margin-bottom: 20px;
         }
 
-        .note-container {
-            margin-bottom: 20px;
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
         }
 
-        .note-container label {
-            display: block;
-            margin-top: 10px;
+        .dropdown-item input[type="text"] {
+            margin-left: 10px;
+            display: none; /* Hidden until checkbox is checked */
         }
 
         .save-edit-buttons button {
@@ -53,17 +53,10 @@ Example Code:
     </style>
 </head>
 <body>
-    <h2>Multi-Select Dropdown with Optgroup</h2>
+    <h2>Multi-Select with Checkboxes and Notes</h2>
     <form id="cascadingForm">
-        <!-- Region and Country Dropdown -->
-        <label for="regionDropdown">Select Regions and Countries</label>
-        <select id="regionDropdown" multiple>
-            <!-- Options with optgroup will be populated dynamically -->
-        </select>
-
-        <!-- Notes Section -->
-        <div class="note-container" id="noteContainer">
-            <!-- Notes for selected countries will appear here -->
+        <div class="dropdown-container" id="dropdownContainer">
+            <!-- Dynamic checkboxes and notes will be added here -->
         </div>
 
         <!-- Save and Edit Buttons -->
@@ -92,71 +85,69 @@ Example Code:
                 ]
             };
 
-            const $regionDropdown = $("#regionDropdown");
-            const $noteContainer = $("#noteContainer");
+            const $dropdownContainer = $("#dropdownContainer");
             let savedSelections = { selectedItems: [], notes: {} };
 
-            // Populate the dropdown with optgroup
+            // Populate checkboxes with regions and countries
             function populateDropdown() {
-                $regionDropdown.empty(); // Clear previous options
+                $dropdownContainer.empty();
 
                 data.regions.forEach(region => {
-                    const $optgroup = $("<optgroup>")
-                        .attr("label", region.name)
-                        .attr("data-region-id", region.id);
+                    // Add region label
+                    const $regionLabel = $("<strong>")
+                        .text(region.name)
+                        .css("display", "block")
+                        .css("margin-top", "10px");
+                    $dropdownContainer.append($regionLabel);
 
                     // Add countries under the region
                     data.countries
                         .filter(country => country.regionId === region.id)
                         .forEach(country => {
-                            const $option = $("<option>")
-                                .val(country.id)
+                            const $dropdownItem = $("<div>").addClass("dropdown-item");
+
+                            const $checkbox = $("<input>")
+                                .attr("type", "checkbox")
+                                .attr("id", `country-${country.id}`)
+                                .attr("data-country-id", country.id)
+                                .attr("data-country-name", country.name);
+
+                            const $label = $("<label>")
+                                .attr("for", `country-${country.id}`)
                                 .text(country.name);
-                            $optgroup.append($option);
+
+                            const $input = $("<input>")
+                                .attr("type", "text")
+                                .attr("placeholder", `Note for ${country.name}`)
+                                .attr("data-country-id", country.id);
+
+                            // Append checkbox, label, and input to the dropdown item
+                            $dropdownItem.append($checkbox, $label, $input);
+                            $dropdownContainer.append($dropdownItem);
+
+                            // Show/hide input on checkbox toggle
+                            $checkbox.change(function () {
+                                $input.toggle(this.checked);
+                            });
                         });
-
-                    $regionDropdown.append($optgroup);
                 });
-            }
-
-            // Display notes section for selected countries
-            function displayNotes() {
-                $noteContainer.empty();
-
-                $regionDropdown
-                    .find("option:selected")
-                    .each(function () {
-                        const countryId = $(this).val();
-                        const countryName = $(this).text();
-
-                        const $noteRow = $("<div>").addClass("note-row");
-                        $noteRow.append(
-                            $("<label>")
-                                .text(`Note for ${countryName}`)
-                                .attr("for", `note-${countryId}`)
-                        );
-                        $noteRow.append(
-                            $("<input>")
-                                .attr({
-                                    type: "text",
-                                    id: `note-${countryId}`,
-                                    "data-country-id": countryId
-                                })
-                                .val(savedSelections.notes[countryId] || "")
-                        );
-                        $noteContainer.append($noteRow);
-                    });
             }
 
             // Save selections and notes
             $("#saveButton").click(function () {
-                savedSelections.selectedItems = $regionDropdown
-                    .val() || [];
+                savedSelections.selectedItems = [];
                 savedSelections.notes = {};
 
-                $noteContainer.find("input").each(function () {
+                // Loop through all checkboxes and collect selections
+                $dropdownContainer.find("input[type='checkbox']").each(function () {
+                    const isChecked = $(this).is(":checked");
                     const countryId = $(this).data("country-id");
-                    savedSelections.notes[countryId] = $(this).val();
+
+                    if (isChecked) {
+                        savedSelections.selectedItems.push(countryId);
+                        const note = $(`input[type="text"][data-country-id="${countryId}"]`).val();
+                        savedSelections.notes[countryId] = note || "";
+                    }
                 });
 
                 alert("Selections and notes saved!");
@@ -166,16 +157,14 @@ Example Code:
                 $("#saveButton").hide();
                 $("#editButton").show();
 
-                // Disable dropdown and notes
-                $regionDropdown.prop("disabled", true);
-                $noteContainer.find("input").prop("disabled", true);
+                // Disable checkboxes and inputs
+                $dropdownContainer.find("input").prop("disabled", true);
             });
 
             // Edit selections and notes
             $("#editButton").click(function () {
-                // Enable dropdown and notes
-                $regionDropdown.prop("disabled", false);
-                $noteContainer.find("input").prop("disabled", false);
+                // Enable checkboxes and inputs
+                $dropdownContainer.find("input").prop("disabled", false);
 
                 // Show save button again
                 $("#saveButton").show();
@@ -185,18 +174,13 @@ Example Code:
             // Initial load
             populateDropdown();
 
-            // Bind change event to dropdown for notes display
-            $regionDropdown.change(function () {
-                displayNotes();
-            });
-
             // If saved selections exist, populate them
             if (savedSelections.selectedItems.length > 0) {
-                $regionDropdown.val(savedSelections.selectedItems);
-                displayNotes();
-                $noteContainer.find("input").each(function () {
-                    const countryId = $(this).data("country-id");
-                    $(this).val(savedSelections.notes[countryId] || "");
+                savedSelections.selectedItems.forEach(countryId => {
+                    $(`#country-${countryId}`).prop("checked", true).trigger("change");
+                    $(`input[type="text"][data-country-id="${countryId}"]`).val(
+                        savedSelections.notes[countryId] || ""
+                    );
                 });
             }
         });
@@ -209,41 +193,5 @@ Example Code:
 
 How It Works:
 
-1. Dropdown Population:
-
-Uses <optgroup> for grouping countries under their respective regions.
-
-Populates on page load.
-
-
-
-2. Note Entry:
-
-Displays a textbox for each selected country.
-
-Textboxes are dynamically added as options are selected.
-
-
-
-3. Save Functionality:
-
-Saves selected items and their associated notes in a JavaScript object (savedSelections).
-
-Disables the dropdown and notes fields.
-
-
-
-4. Edit Functionality:
-
-Re-enables the dropdown and notes fields for editing.
-
-Restores previously saved selections and notes.
-
-
-
-
-
----
-
-This approach ensures full functionality using jQuery while providing a user-friendly interface for multi-select with grouped options and editable notes.
+1
 
