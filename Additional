@@ -1,97 +1,69 @@
-To implement the "Save" and "Edit" functionality for selected dropdown items and notes, we can enhance the code as follows:
-
-Key Features:
-
-1. Save Functionality:
-
-Save the selected regions, countries, and their notes to a local data structure.
-
-Update the dropdown buttons to show the saved selections.
+Here's an implementation using jQuery for a multi-select dropdown with <optgroup>, including save and edit functionality.
 
 
+---
 
-2. Edit Functionality:
+Features:
 
-Reload all regions and countries into the dropdowns.
+1. Multi-select dropdown with <optgroup> to group regions and their countries.
 
-Preselect the previously saved items and display their associated notes for editing.
 
+2. Textbox for entering notes for selected countries.
+
+
+3. Save and Edit functionality to persist and modify the selections and notes.
 
 
 
 
 ---
 
-Updated Code Example:
+Example Code:
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cascading Dropdown with Save and Edit</title>
+    <title>Multi-Select Dropdown with Optgroup</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        .dropdown-container {
-            position: relative;
-            display: inline-block;
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        select {
+            width: 300px;
+            height: 150px;
             margin-bottom: 20px;
         }
 
-        .dropdown-list {
-            display: none;
-            position: absolute;
-            background-color: #f9f9f9;
-            min-width: 250px;
-            border: 1px solid #ccc;
-            z-index: 1;
-            padding: 10px;
+        .note-container {
+            margin-bottom: 20px;
         }
 
-        .dropdown-list label {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 5px;
-            cursor: pointer;
+        .note-container label {
+            display: block;
+            margin-top: 10px;
         }
 
-        .dropdown-list label:hover {
-            background-color: #f1f1f1;
-        }
-
-        .note-input {
-            margin-left: 10px;
-            display: none;
-        }
-
-        .selected-items {
-            margin: 10px 0;
-        }
-
-        .note-input input {
-            width: 150px;
-            padding: 5px;
-        }
-
-        .save-edit-buttons {
-            margin-top: 20px;
+        .save-edit-buttons button {
+            margin-right: 10px;
         }
     </style>
 </head>
 <body>
-    <h2>Cascading Dropdown with Save and Edit</h2>
+    <h2>Multi-Select Dropdown with Optgroup</h2>
     <form id="cascadingForm">
-        <!-- Region Dropdown -->
-        <div class="dropdown-container" id="regionDropdown">
-            <button type="button">Select Regions</button>
-            <div class="dropdown-list"></div>
-        </div>
+        <!-- Region and Country Dropdown -->
+        <label for="regionDropdown">Select Regions and Countries</label>
+        <select id="regionDropdown" multiple>
+            <!-- Options with optgroup will be populated dynamically -->
+        </select>
 
-        <!-- Country Dropdown -->
-        <div class="dropdown-container" id="countryDropdown">
-            <button type="button">Select Countries</button>
-            <div class="dropdown-list"></div>
+        <!-- Notes Section -->
+        <div class="note-container" id="noteContainer">
+            <!-- Notes for selected countries will appear here -->
         </div>
 
         <!-- Save and Edit Buttons -->
@@ -103,141 +75,130 @@ Updated Code Example:
 
     <script>
         $(document).ready(function () {
-            const siteUrl = "<Your_SharePoint_Site_URL>";
-            const regionListName = "<Region_List_Name>";
-            const countryListName = "<Country_List_Name>";
-            const lookupField = "<Lookup_Field_Internal_Name>";
-
-            const regionDropdown = $('#regionDropdown .dropdown-list');
-            const countryDropdown = $('#countryDropdown .dropdown-list');
-
-            let allRegions = [];
-            let allCountries = [];
-            let savedData = {
-                regions: [], // Array of selected region IDs
-                countries: [], // Array of selected country objects { id, note }
+            // Mock data for Regions and Countries
+            const data = {
+                regions: [
+                    { id: 1, name: "North America" },
+                    { id: 2, name: "Europe" },
+                    { id: 3, name: "Asia" }
+                ],
+                countries: [
+                    { id: 101, name: "USA", regionId: 1 },
+                    { id: 102, name: "Canada", regionId: 1 },
+                    { id: 201, name: "Germany", regionId: 2 },
+                    { id: 202, name: "France", regionId: 2 },
+                    { id: 301, name: "India", regionId: 3 },
+                    { id: 302, name: "China", regionId: 3 }
+                ]
             };
 
-            // Load all data on page load
-            function loadData() {
-                const regionsRequest = $.ajax({
-                    url: `${siteUrl}/_api/web/lists/getbytitle('${regionListName}')/items`,
-                    method: "GET",
-                    headers: { "Accept": "application/json;odata=verbose" }
-                });
+            const $regionDropdown = $("#regionDropdown");
+            const $noteContainer = $("#noteContainer");
+            let savedSelections = { selectedItems: [], notes: {} };
 
-                const countriesRequest = $.ajax({
-                    url: `${siteUrl}/_api/web/lists/getbytitle('${countryListName}')/items`,
-                    method: "GET",
-                    headers: { "Accept": "application/json;odata=verbose" }
-                });
+            // Populate the dropdown with optgroup
+            function populateDropdown() {
+                $regionDropdown.empty(); // Clear previous options
 
-                $.when(regionsRequest, countriesRequest).done(function (regionsResponse, countriesResponse) {
-                    allRegions = regionsResponse[0].d.results;
-                    allCountries = countriesResponse[0].d.results;
+                data.regions.forEach(region => {
+                    const $optgroup = $("<optgroup>")
+                        .attr("label", region.name)
+                        .attr("data-region-id", region.id);
 
-                    populateDropdowns();
-                }).fail(function (error) {
-                    console.error("Error loading data:", error);
-                });
-            }
+                    // Add countries under the region
+                    data.countries
+                        .filter(country => country.regionId === region.id)
+                        .forEach(country => {
+                            const $option = $("<option>")
+                                .val(country.id)
+                                .text(country.name);
+                            $optgroup.append($option);
+                        });
 
-            // Populate dropdowns with data
-            function populateDropdowns() {
-                populateRegionDropdown();
-                populateCountryDropdown(savedData.regions);
-            }
-
-            // Populate Region Dropdown
-            function populateRegionDropdown() {
-                regionDropdown.empty();
-                allRegions.forEach(region => {
-                    const isChecked = savedData.regions.includes(region.Id) ? 'checked' : '';
-                    regionDropdown.append(
-                        `<label>
-                            <input type="checkbox" value="${region.Id}" data-title="${region.Title}" ${isChecked}> ${region.Title}
-                        </label>`
-                    );
+                    $regionDropdown.append($optgroup);
                 });
             }
 
-            // Populate Country Dropdown
-            function populateCountryDropdown(regionIds) {
-                countryDropdown.empty();
+            // Display notes section for selected countries
+            function displayNotes() {
+                $noteContainer.empty();
 
-                const filteredCountries = regionIds.length
-                    ? allCountries.filter(country => regionIds.includes(country[lookupField].Id))
-                    : allCountries;
+                $regionDropdown
+                    .find("option:selected")
+                    .each(function () {
+                        const countryId = $(this).val();
+                        const countryName = $(this).text();
 
-                filteredCountries.forEach(country => {
-                    const savedCountry = savedData.countries.find(c => c.id === country.Id);
-                    const isChecked = savedCountry ? 'checked' : '';
-                    const note = savedCountry ? savedCountry.note : '';
-
-                    countryDropdown.append(
-                        `<label>
-                            <input type="checkbox" value="${country.Id}" data-title="${country.Title}" class="country-checkbox" ${isChecked}> 
-                            ${country.Title}
-                            <span class="note-input">
-                                <input type="text" placeholder="Enter note" value="${note}" data-country-id="${country.Id}">
-                            </span>
-                        </label>`
-                    );
-                });
+                        const $noteRow = $("<div>").addClass("note-row");
+                        $noteRow.append(
+                            $("<label>")
+                                .text(`Note for ${countryName}`)
+                                .attr("for", `note-${countryId}`)
+                        );
+                        $noteRow.append(
+                            $("<input>")
+                                .attr({
+                                    type: "text",
+                                    id: `note-${countryId}`,
+                                    "data-country-id": countryId
+                                })
+                                .val(savedSelections.notes[countryId] || "")
+                        );
+                        $noteContainer.append($noteRow);
+                    });
             }
 
-            // Toggle Dropdown Visibility
-            $('.dropdown-container button').on('click', function () {
-                $(this).parent().toggleClass('active');
-            });
+            // Save selections and notes
+            $("#saveButton").click(function () {
+                savedSelections.selectedItems = $regionDropdown
+                    .val() || [];
+                savedSelections.notes = {};
 
-            // Handle Region Selection
-            regionDropdown.on('change', 'input[type="checkbox"]', function () {
-                const regionId = parseInt($(this).val());
-
-                if ($(this).is(':checked')) {
-                    savedData.regions.push(regionId);
-                } else {
-                    savedData.regions = savedData.regions.filter(id => id !== regionId);
-                }
-
-                populateCountryDropdown(savedData.regions);
-            });
-
-            // Show/Hide Note Input for Countries
-            countryDropdown.on('change', '.country-checkbox', function () {
-                const noteInput = $(this).closest('label').find('.note-input');
-                if ($(this).is(':checked')) {
-                    noteInput.show();
-                } else {
-                    noteInput.hide();
-                    noteInput.find('input').val('');
-                }
-            });
-
-            // Save Button Click
-            $('#saveButton').on('click', function () {
-                savedData.countries = [];
-                countryDropdown.find('.country-checkbox:checked').each(function () {
-                    const countryId = parseInt($(this).val());
-                    const note = $(this).closest('label').find('input[type="text"]').val();
-                    savedData.countries.push({ id: countryId, note });
+                $noteContainer.find("input").each(function () {
+                    const countryId = $(this).data("country-id");
+                    savedSelections.notes[countryId] = $(this).val();
                 });
 
-                alert("Data saved successfully!");
-                $('#saveButton').hide();
-                $('#editButton').show();
+                alert("Selections and notes saved!");
+                console.log(savedSelections);
+
+                // Hide save and show edit
+                $("#saveButton").hide();
+                $("#editButton").show();
+
+                // Disable dropdown and notes
+                $regionDropdown.prop("disabled", true);
+                $noteContainer.find("input").prop("disabled", true);
             });
 
-            // Edit Button Click
-            $('#editButton').on('click', function () {
-                populateDropdowns();
-                $('#saveButton').show();
-                $('#editButton').hide();
+            // Edit selections and notes
+            $("#editButton").click(function () {
+                // Enable dropdown and notes
+                $regionDropdown.prop("disabled", false);
+                $noteContainer.find("input").prop("disabled", false);
+
+                // Show save button again
+                $("#saveButton").show();
+                $("#editButton").hide();
             });
 
-            // Initial Data Load
-            loadData();
+            // Initial load
+            populateDropdown();
+
+            // Bind change event to dropdown for notes display
+            $regionDropdown.change(function () {
+                displayNotes();
+            });
+
+            // If saved selections exist, populate them
+            if (savedSelections.selectedItems.length > 0) {
+                $regionDropdown.val(savedSelections.selectedItems);
+                displayNotes();
+                $noteContainer.find("input").each(function () {
+                    const countryId = $(this).data("country-id");
+                    $(this).val(savedSelections.notes[countryId] || "");
+                });
+            }
         });
     </script>
 </body>
@@ -246,23 +207,37 @@ Updated Code Example:
 
 ---
 
-Key Features Added:
+How It Works:
 
-1. Save Selected Items:
+1. Dropdown Population:
 
-On clicking the "Save" button, selected regions, countries, and their notes are saved to the savedData object.
+Uses <optgroup> for grouping countries under their respective regions.
 
-
-
-2. Edit Existing Selections:
-
-On clicking the "Edit" button, the dropdowns are repopulated with all items, and previously saved selections are prefilled.
+Populates on page load.
 
 
 
-3. Dynamic Notes Management:
+2. Note Entry:
 
-The notes input box for countries works seamlessly with both "Save" and "Edit" functionalities.
+Displays a textbox for each selected country.
+
+Textboxes are dynamically added as options are selected.
+
+
+
+3. Save Functionality:
+
+Saves selected items and their associated notes in a JavaScript object (savedSelections).
+
+Disables the dropdown and notes fields.
+
+
+
+4. Edit Functionality:
+
+Re-enables the dropdown and notes fields for editing.
+
+Restores previously saved selections and notes.
 
 
 
@@ -270,13 +245,5 @@ The notes input box for countries works seamlessly with both "Save" and "Edit" f
 
 ---
 
-Replace Placeholders:
-
-<Your_SharePoint_Site_URL>, <Region_List_Name>, <Country_List_Name>, <Lookup_Field_Internal_Name>.
-
-
-
----
-
-This implementation ensures smooth saving and editing of dropdown selections and notes.
+This approach ensures full functionality using jQuery while providing a user-friendly interface for multi-select with grouped options and editable notes.
 
