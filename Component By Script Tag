@@ -1,159 +1,154 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editable Content Input with jQuery</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        .editable-container {
-            display: flex;
-            align-items: center;
-            padding: 5px;
-            border-radius: 5px;
-            width: fit-content;
-            margin-bottom: 10px;
-        }
+$(document).ready(function () {
+    const $regionDropdown = $("#regionDropdown");
+    const $countryDropdown = $("#countryDropdown");
+    const $notesContainer = $("#notesContainer");
+    const $editModal = $("#editModal");
+    const $modalBackdrop = $("#modalBackdrop");
+    const $modalDropdownContainer = $("#modalDropdownContainer");
 
-        .content-editable {
-            padding: 5px;
-            border: none;
-            outline: none;
-            min-width: 200px;
-            color: #555;
-            white-space: nowrap; /* Prevent line breaks */
-        }
+    // Store selected countries and their notes
+    let pageDropdownData = [];
 
-        .content-editable.placeholder {
-            color: #aaa;
-        }
+    // Populate country dropdown based on region selection
+    $regionDropdown.change(function () {
+        const selectedRegionId = $(this).val();
+        $countryDropdown.empty();
 
-        /* Add border and padding only when in edit mode */
-        .content-editable.editing {
-            border: 1px solid #007bff;
-            padding: 8px;
-            border-radius: 4px;
-            background-color: #f0f8ff;
-        }
-
-        .icon-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2em;
-            color: #333;
-            margin-left: 5px;
-        }
-
-        .icon-button:hover {
-            color: #007bff;
-        }
-    </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</head>
-<body>
-
-<div class="editable-container">
-    <div contenteditable="false" class="content-editable" data-placeholder="Click edit to start typing..."></div>
-    <button class="icon-button editBtn" title="Edit"><i class="fas fa-edit"></i></button>
-    <button class="icon-button clearBtn" title="Clear"><i class="fas fa-times"></i></button>
-</div>
-
-<div class="editable-container">
-    <div contenteditable="false" class="content-editable" data-placeholder="Enter your notes here..."></div>
-    <button class="icon-button editBtn" title="Edit"><i class="fas fa-edit"></i></button>
-    <button class="icon-button clearBtn" title="Clear"><i class="fas fa-times"></i></button>
-</div>
-
-<script>
-    $(document).ready(function() {
-        function setPlaceholder(element) {
-            if (!$.trim($(element).text())) {  // Only set placeholder if the content is empty
-                const placeholderText = $(element).data('placeholder');
-                $(element).text(placeholderText).addClass('placeholder');
-            }
-        }
-
-        function clearPlaceholder(element) {
-            if ($(element).hasClass('placeholder')) {
-                $(element).text('').removeClass('placeholder');
-            }
-        }
-
-        // Move cursor to the end of contenteditable element
-        function moveCursorToEnd(element) {
-            const range = document.createRange();
-            const selection = window.getSelection();
-            range.selectNodeContents(element);
-            range.collapse(false); // Collapse to the end
-            selection.removeAllRanges();
-            selection.addRange(range);
-        }
-
-        // Toggle edit mode for the specific editable content
-        $('.editBtn').on('click', function() {
-            const container = $(this).closest('.editable-container');
-            const editableText = container.find('.content-editable');
-            const editIcon = $(this).find('i');
-
-            if (editableText.attr('contenteditable') === "true") {
-                exitEditMode(editableText, editIcon);
-            } else {
-                enterEditMode(editableText, editIcon);
-            }
-        });
-
-        // Clear content and set placeholder for the specific editable content
-        $('.clearBtn').on('click', function() {
-            const container = $(this).closest('.editable-container');
-            const editableText = container.find('.content-editable');
-            editableText.text('');
-            setPlaceholder(editableText);
-        });
-
-        // Prevent line breaks in contenteditable
-        $('.content-editable').on('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault(); // Prevent new line
-            }
-        });
-
-        // Exit edit mode on focusout
-        $('.content-editable').on('focusout', function() {
-            const container = $(this).closest('.editable-container');
-            const editBtn = container.find('.editBtn');
-            const editIcon = editBtn.find('i');
-            if ($(this).attr('contenteditable') === "true") {
-                exitEditMode($(this), editIcon);
-            }
-        });
-
-        // Function to enter edit mode
-        function enterEditMode(editableText, editIcon) {
-            clearPlaceholder(editableText);
-            editableText.attr('contenteditable', 'true').addClass('editing').focus();
-            moveCursorToEnd(editableText[0]); // Move cursor to the end
-            editIcon.removeClass('fa-edit').addClass('fa-check'); // Change icon to indicate save mode
-        }
-
-        // Function to exit edit mode
-        function exitEditMode(editableText, editIcon) {
-            const trimmedText = $.trim(editableText.text()); // Trim whitespace
-            editableText.attr('contenteditable', 'false').text(trimmedText).removeClass('editing'); // Remove editing styles
-            editIcon.removeClass('fa-check').addClass('fa-edit'); // Change icon back to edit
-
-            // If empty, show placeholder text
-            if (trimmedText === "") {
-                setPlaceholder(editableText);
-            }
-        }
-
-        // Initialize placeholder for each editable content on page load
-        $('.content-editable').each(function() {
-            setPlaceholder(this);
-        });
+        data.countries
+            .filter(country => country.regionId === selectedRegionId)
+            .forEach(country => {
+                const $option = $("<option>")
+                    .val(country.id)
+                    .text(country.name)
+                    .attr("data-note", ""); // Add a placeholder note
+                $countryDropdown.append($option);
+            });
     });
-</script>
 
-</body>
-</html>
+    // Display note input for selected country
+    $countryDropdown.change(function () {
+        const selectedCountryId = $(this).val();
+        const selectedOption = $countryDropdown.find(`option[value="${selectedCountryId}"]`);
+        const note = selectedOption.data("note") || "";
+
+        $notesContainer.empty();
+        const $noteInput = $("<input>")
+            .attr("type", "text")
+            .attr("placeholder", "Enter note for the selected country")
+            .val(note)
+            .data("country-id", selectedCountryId)
+            .on("input", function () {
+                const countryId = $(this).data("country-id");
+                $countryDropdown
+                    .find(`option[value="${countryId}"]`)
+                    .attr("data-note", $(this).val());
+            });
+
+        $notesContainer.append($noteInput);
+    });
+
+    // Collect dropdown data from the page
+    function collectDropdownData() {
+        pageDropdownData = [];
+        $countryDropdown.find("option").each(function () {
+            const $option = $(this);
+            pageDropdownData.push({
+                id: $option.val(),
+                name: $option.text(),
+                note: $option.data("note") || "",
+            });
+        });
+    }
+
+    // Populate modal with regions and countries, and bind selected data
+    function populateModalDropdown() {
+        $modalDropdownContainer.empty();
+
+        data.regions.forEach(region => {
+            // Add region label
+            const $regionLabel = $("<strong>")
+                .text(region.name)
+                .css("display", "block")
+                .css("margin-top", "10px");
+            $modalDropdownContainer.append($regionLabel);
+
+            // Add countries under the region
+            data.countries
+                .filter(country => country.regionId === region.id)
+                .forEach(country => {
+                    const $modalItem = $("<div>")
+                        .addClass("modal-dropdown-item");
+
+                    const $checkbox = $("<input>")
+                        .attr("type", "checkbox")
+                        .attr("id", `modal-country-${country.id}`)
+                        .attr("data-country-id", country.id)
+                        .attr("data-country-name", country.name);
+
+                    const $label = $("<label>")
+                        .attr("for", `modal-country-${country.id}`)
+                        .text(country.name);
+
+                    const $noteInput = $("<input>")
+                        .attr("type", "text")
+                        .attr("placeholder", `Note for ${country.name}`)
+                        .attr("data-country-id", country.id)
+                        .css("margin-left", "10px")
+                        .hide();
+
+                    // Append checkbox, label, and input to modal item
+                    $modalItem.append($checkbox, $label, $noteInput);
+                    $modalDropdownContainer.append($modalItem);
+
+                    // Show/hide note input on checkbox toggle
+                    $checkbox.change(function () {
+                        $noteInput.toggle(this.checked);
+                    });
+
+                    // Check and bind data from the collected dropdown data
+                    const matchingData = pageDropdownData.find(item => item.id === country.id);
+                    if (matchingData) {
+                        $checkbox.prop("checked", true);
+                        $noteInput.val(matchingData.note).show();
+                    }
+                });
+        });
+    }
+
+    // Show modal on edit button click
+    $("#editButton").click(function () {
+        collectDropdownData(); // Collect current page dropdown data
+        populateModalDropdown(); // Populate modal with the collected data
+        $editModal.show();
+        $modalBackdrop.show();
+    });
+
+    // Save modal data back to dropdown
+    $("#modalSaveButton").click(function () {
+        $modalDropdownContainer.find("input[type='checkbox']").each(function () {
+            const isChecked = $(this).is(":checked");
+            const countryId = $(this).data("country-id");
+
+            if (isChecked) {
+                const note = $(`input[type="text"][data-country-id="${countryId}"]`).val();
+                const $option = $countryDropdown.find(`option[value="${countryId}"]`);
+                $option.attr("data-note", note || "").prop("selected", true);
+            } else {
+                $countryDropdown.find(`option[value="${countryId}"]`).prop("selected", false);
+            }
+        });
+
+        alert("Selections saved!");
+        $editModal.hide();
+        $modalBackdrop.hide();
+    });
+
+    // Close modal
+    $("#modalCloseButton").click(function () {
+        $editModal.hide();
+        $modalBackdrop.hide();
+    });
+
+    // Initial load
+    $regionDropdown.trigger("change");
+});
