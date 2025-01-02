@@ -3,36 +3,43 @@ $("#modalSaveButton").click(function () {
     $regionDropdown.empty();
     $countryDropdown.empty();
 
-    // Collect checked checkboxes
+    // Collect checked checkboxes from the modal
     const checkedCheckboxes = $modalDropdownContainer.find("input[type='checkbox']:checked");
 
-    // Set for storing unique region titles
+    // Set to store unique region titles
     const uniqueRegions = new Set();
 
-    // Create options for the country dropdown
+    // Create country dropdown options
     checkedCheckboxes.each(function () {
         const $checkbox = $(this);
         const countryId = $checkbox.data("country-id");
         const countryName = $checkbox.data("country-name");
         const regionTitle = $checkbox.data("region-title");
+        const note = $checkbox.data("note") || ""; // Assuming note is stored in a `data-note` attribute
 
-        // Add to unique regions set
+        // Add region to the unique set
         if (regionTitle) {
             uniqueRegions.add(regionTitle);
         }
 
-        // Create and append option to country dropdown
+        // Create country option with the required attributes
         const $countryOption = $("<option>")
+            .addClass("map-item-box clsCountry")
             .val(countryId)
+            .attr("data-note", note)
+            .attr("data-region", regionTitle)
             .text(countryName);
+
         $countryDropdown.append($countryOption);
     });
 
-    // Create options for the region dropdown
+    // Create region dropdown options
     uniqueRegions.forEach(regionTitle => {
         const $regionOption = $("<option>")
+            .addClass("map-item-box")
             .val(regionTitle)
             .text(regionTitle);
+
         $regionDropdown.append($regionOption);
     });
 
