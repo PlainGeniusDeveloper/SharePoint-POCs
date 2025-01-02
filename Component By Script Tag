@@ -1,21 +1,12 @@
-$("#modalSaveButton").click(function () {
-    // Clear existing options in both dropdowns
-    $regionDropdown.empty();
-    $countryDropdown.empty();
-
-    // Collect checked checkboxes from the modal
-    const checkedCheckboxes = $modalDropdownContainer.find("input[type='checkbox']:checked");
-
-    // Set to store unique region titles
-    const uniqueRegions = new Set();
-
-    // Create country dropdown options
+ // Create country dropdown options
     checkedCheckboxes.each(function () {
         const $checkbox = $(this);
         const countryId = $checkbox.data("country-id");
         const countryName = $checkbox.data("country-name");
         const regionTitle = $checkbox.data("region-title");
-        const note = $checkbox.data("note") || ""; // Assuming note is stored in a `data-note` attribute
+
+        // Get the associated note from the sibling input box
+        const note = $checkbox.closest(".dropdown-item").find("input[type='text']").val() || "";
 
         // Add region to the unique set
         if (regionTitle) {
@@ -42,9 +33,3 @@ $("#modalSaveButton").click(function () {
 
         $regionDropdown.append($regionOption);
     });
-
-    // Close modal and alert success
-    alert("Selections saved and dropdowns updated!");
-    $editModal.hide();
-    $modalBackdrop.hide();
-});
