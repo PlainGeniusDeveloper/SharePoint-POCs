@@ -1,47 +1,42 @@
-// Save modal data back to dropdown
 $("#modalSaveButton").click(function () {
-    // Clear the existing options in the dropdowns
+    // Clear existing options in both dropdowns
     $regionDropdown.empty();
     $countryDropdown.empty();
 
-    // Get all checked regions and their countries
-    const selectedRegions = new Set();
-    const selectedCountries = [];
+    // Collect checked checkboxes
+    const checkedCheckboxes = $modalDropdownContainer.find("input[type='checkbox']:checked");
 
-    $modalDropdownContainer.find("input[type='checkbox']:checked").each(function () {
-        const countryId = $(this).data("country-id");
-        const countryName = $(this).data("country-name");
-        const regionId = data.countries.find(country => country.id === countryId).regionId;
-        const regionName = data.regions.find(region => region.id === regionId).name;
+    // Set for storing unique region titles
+    const uniqueRegions = new Set();
 
-        selectedRegions.add(regionId); // Add region
-        selectedCountries.push({
-            id: countryId,
-            name: countryName,
-            regionId: regionId,
-        });
-    });
+    // Create options for the country dropdown
+    checkedCheckboxes.each(function () {
+        const $checkbox = $(this);
+        const countryId = $checkbox.data("country-id");
+        const countryName = $checkbox.data("country-name");
+        const regionTitle = $checkbox.data("region-title");
 
-    // Add regions to the region dropdown
-    selectedRegions.forEach(regionId => {
-        const region = data.regions.find(r => r.id === regionId);
-        const $regionOption = $("<option>")
-            .val(region.id)
-            .text(region.name);
-        $regionDropdown.append($regionOption);
-    });
+        // Add to unique regions set
+        if (regionTitle) {
+            uniqueRegions.add(regionTitle);
+        }
 
-    // Add countries to the country dropdown
-    selectedCountries.forEach(country => {
+        // Create and append option to country dropdown
         const $countryOption = $("<option>")
-            .val(country.id)
-            .text(country.name);
+            .val(countryId)
+            .text(countryName);
         $countryDropdown.append($countryOption);
     });
 
-    // Trigger change to update notes or related behavior
-    $regionDropdown.trigger("change");
+    // Create options for the region dropdown
+    uniqueRegions.forEach(regionTitle => {
+        const $regionOption = $("<option>")
+            .val(regionTitle)
+            .text(regionTitle);
+        $regionDropdown.append($regionOption);
+    });
 
+    // Close modal and alert success
     alert("Selections saved and dropdowns updated!");
     $editModal.hide();
     $modalBackdrop.hide();
