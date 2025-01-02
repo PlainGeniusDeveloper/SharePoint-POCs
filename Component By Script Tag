@@ -1,154 +1,48 @@
-$(document).ready(function () {
-    const $regionDropdown = $("#regionDropdown");
-    const $countryDropdown = $("#countryDropdown");
-    const $notesContainer = $("#notesContainer");
-    const $editModal = $("#editModal");
-    const $modalBackdrop = $("#modalBackdrop");
-    const $modalDropdownContainer = $("#modalDropdownContainer");
+// Save modal data back to dropdown
+$("#modalSaveButton").click(function () {
+    // Clear the existing options in the dropdowns
+    $regionDropdown.empty();
+    $countryDropdown.empty();
 
-    // Store selected countries and their notes
-    let pageDropdownData = [];
+    // Get all checked regions and their countries
+    const selectedRegions = new Set();
+    const selectedCountries = [];
 
-    // Populate country dropdown based on region selection
-    $regionDropdown.change(function () {
-        const selectedRegionId = $(this).val();
-        $countryDropdown.empty();
+    $modalDropdownContainer.find("input[type='checkbox']:checked").each(function () {
+        const countryId = $(this).data("country-id");
+        const countryName = $(this).data("country-name");
+        const regionId = data.countries.find(country => country.id === countryId).regionId;
+        const regionName = data.regions.find(region => region.id === regionId).name;
 
-        data.countries
-            .filter(country => country.regionId === selectedRegionId)
-            .forEach(country => {
-                const $option = $("<option>")
-                    .val(country.id)
-                    .text(country.name)
-                    .attr("data-note", ""); // Add a placeholder note
-                $countryDropdown.append($option);
-            });
-    });
-
-    // Display note input for selected country
-    $countryDropdown.change(function () {
-        const selectedCountryId = $(this).val();
-        const selectedOption = $countryDropdown.find(`option[value="${selectedCountryId}"]`);
-        const note = selectedOption.data("note") || "";
-
-        $notesContainer.empty();
-        const $noteInput = $("<input>")
-            .attr("type", "text")
-            .attr("placeholder", "Enter note for the selected country")
-            .val(note)
-            .data("country-id", selectedCountryId)
-            .on("input", function () {
-                const countryId = $(this).data("country-id");
-                $countryDropdown
-                    .find(`option[value="${countryId}"]`)
-                    .attr("data-note", $(this).val());
-            });
-
-        $notesContainer.append($noteInput);
-    });
-
-    // Collect dropdown data from the page
-    function collectDropdownData() {
-        pageDropdownData = [];
-        $countryDropdown.find("option").each(function () {
-            const $option = $(this);
-            pageDropdownData.push({
-                id: $option.val(),
-                name: $option.text(),
-                note: $option.data("note") || "",
-            });
+        selectedRegions.add(regionId); // Add region
+        selectedCountries.push({
+            id: countryId,
+            name: countryName,
+            regionId: regionId,
         });
-    }
-
-    // Populate modal with regions and countries, and bind selected data
-    function populateModalDropdown() {
-        $modalDropdownContainer.empty();
-
-        data.regions.forEach(region => {
-            // Add region label
-            const $regionLabel = $("<strong>")
-                .text(region.name)
-                .css("display", "block")
-                .css("margin-top", "10px");
-            $modalDropdownContainer.append($regionLabel);
-
-            // Add countries under the region
-            data.countries
-                .filter(country => country.regionId === region.id)
-                .forEach(country => {
-                    const $modalItem = $("<div>")
-                        .addClass("modal-dropdown-item");
-
-                    const $checkbox = $("<input>")
-                        .attr("type", "checkbox")
-                        .attr("id", `modal-country-${country.id}`)
-                        .attr("data-country-id", country.id)
-                        .attr("data-country-name", country.name);
-
-                    const $label = $("<label>")
-                        .attr("for", `modal-country-${country.id}`)
-                        .text(country.name);
-
-                    const $noteInput = $("<input>")
-                        .attr("type", "text")
-                        .attr("placeholder", `Note for ${country.name}`)
-                        .attr("data-country-id", country.id)
-                        .css("margin-left", "10px")
-                        .hide();
-
-                    // Append checkbox, label, and input to modal item
-                    $modalItem.append($checkbox, $label, $noteInput);
-                    $modalDropdownContainer.append($modalItem);
-
-                    // Show/hide note input on checkbox toggle
-                    $checkbox.change(function () {
-                        $noteInput.toggle(this.checked);
-                    });
-
-                    // Check and bind data from the collected dropdown data
-                    const matchingData = pageDropdownData.find(item => item.id === country.id);
-                    if (matchingData) {
-                        $checkbox.prop("checked", true);
-                        $noteInput.val(matchingData.note).show();
-                    }
-                });
-        });
-    }
-
-    // Show modal on edit button click
-    $("#editButton").click(function () {
-        collectDropdownData(); // Collect current page dropdown data
-        populateModalDropdown(); // Populate modal with the collected data
-        $editModal.show();
-        $modalBackdrop.show();
     });
 
-    // Save modal data back to dropdown
-    $("#modalSaveButton").click(function () {
-        $modalDropdownContainer.find("input[type='checkbox']").each(function () {
-            const isChecked = $(this).is(":checked");
-            const countryId = $(this).data("country-id");
-
-            if (isChecked) {
-                const note = $(`input[type="text"][data-country-id="${countryId}"]`).val();
-                const $option = $countryDropdown.find(`option[value="${countryId}"]`);
-                $option.attr("data-note", note || "").prop("selected", true);
-            } else {
-                $countryDropdown.find(`option[value="${countryId}"]`).prop("selected", false);
-            }
-        });
-
-        alert("Selections saved!");
-        $editModal.hide();
-        $modalBackdrop.hide();
+    // Add regions to the region dropdown
+    selectedRegions.forEach(regionId => {
+        const region = data.regions.find(r => r.id === regionId);
+        const $regionOption = $("<option>")
+            .val(region.id)
+            .text(region.name);
+        $regionDropdown.append($regionOption);
     });
 
-    // Close modal
-    $("#modalCloseButton").click(function () {
-        $editModal.hide();
-        $modalBackdrop.hide();
+    // Add countries to the country dropdown
+    selectedCountries.forEach(country => {
+        const $countryOption = $("<option>")
+            .val(country.id)
+            .text(country.name);
+        $countryDropdown.append($countryOption);
     });
 
-    // Initial load
+    // Trigger change to update notes or related behavior
     $regionDropdown.trigger("change");
+
+    alert("Selections saved and dropdowns updated!");
+    $editModal.hide();
+    $modalBackdrop.hide();
 });
