@@ -1,97 +1,24 @@
-To hide the region group heading if none of its countries match the search term, you can add logic to check whether any of the countries under a region are visible. If no country is visible, the heading will be hidden.
+const img_src = $(parent).find('.imgHeader').attr("src");
 
-Here's the updated script with this functionality:
+const learn_more = $(parent).find('#divLearnMore a').attr("href");
+$('.learn-more-link').val(learn_more);
 
+const imageHtml = `<img src="${img_src}" alt="Banner Image" />`;
 
----
+initCKEditor(
+    '.editor-modal-header-section',
+    imageHtml,
+    [
+        'undo', 'redo', '|', 
+        'bold', 'italic', '|', 
+        'fontSize', 'heading', 
+        'insertTable', 
+        'insertImage', 'link', 
+        'bulletedList', 'numberedList',
+        '|', 'imageStyle:alignLeft', 
+        'imageStyle:alignCenter', 
+        'imageStyle:alignRight'
+    ]
+);
 
-Updated Script for Hiding Group Headings:
-
-// Search functionality
-$countrySearch.on("input", function () {
-    const searchTerm = $(this).val().toLowerCase();
-
-    // Filter dropdown items based on search term
-    $dropdownContainer.find(".dropdown-item").each(function () {
-        const countryName = $(this).data("country-name");
-        if (countryName.includes(searchTerm)) {
-            $(this).show(); // Show matching item
-        } else {
-            $(this).hide(); // Hide non-matching item
-        }
-    });
-
-    // Check if any items in a group are visible and toggle the group heading
-    $dropdownContainer.find("strong").each(function () {
-        const $groupHeading = $(this);
-        const $groupItems = $groupHeading.nextUntil("strong", ".dropdown-item");
-        const anyVisible = $groupItems.filter(":visible").length > 0;
-
-        if (anyVisible) {
-            $groupHeading.show(); // Show the heading if any item in the group is visible
-        } else {
-            $groupHeading.hide(); // Hide the heading if no items in the group are visible
-        }
-    });
-});
-
-
----
-
-Key Changes:
-
-1. Filter Each Group:
-
-For each region heading (<strong>), it checks all items (.dropdown-item) under that heading.
-
-If no items are visible, the heading is hidden.
-
-
-
-2. Show/Hide Items Dynamically:
-
-Each .dropdown-item and its respective group heading are dynamically shown or hidden based on the search term.
-
-
-
-
-
----
-
-Example in Context:
-
-Here’s the part of the script that processes the search for visibility:
-
-1. Country Matching:
-
-Each country is filtered using its data-country-name.
-
-
-
-2. Group Matching:
-
-Each region heading checks if any of its associated countries are visible.
-
-
-
-3. Toggle Visibility:
-
-If no countries match, the region heading is hidden; otherwise, it's shown.
-
-
-
-
-
----
-
-How It Works:
-
-When typing in the search box, the dropdown dynamically filters country options.
-
-Region headings (<strong>) are shown or hidden based on the visibility of their respective countries.
-
-This ensures a clean and intuitive interface, only displaying relevant information.
-
-
-Let me know if you need further clarification or additional modifications!
-
+$('#editor-modal-header-section').show();
