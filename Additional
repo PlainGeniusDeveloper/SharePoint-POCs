@@ -1,90 +1,71 @@
-If the <div> is initially disabled or hidden (e.g., using display: none or visibility: hidden), the provided code will work to toggle its visibility and show it again. However, if you're referring to a "disabled" attribute (which is not valid for a <div> but valid for form elements like <input> or <button>), you would need to handle that separately.
+Yes, data.isSoft is a property provided by CKEditor to differentiate between a "soft enter" (Shift+Enter, which inserts <br>) and a "hard enter" (Enter, which inserts <p> by default). You can leverage this property to detect and override the Enter key's behavior to mimic a soft enter.
 
-Here’s an updated example that checks for both visibility and "disabled-like" logic:
+Here’s how you can use data.isSoft in CKEditor:
 
-HTML Example (Handling Disabled State)
+Implementation
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Toggle Div Visibility and State</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    #content {
-      width: 300px;
-      height: 100px;
-      background-color: lightblue;
-      text-align: center;
-      line-height: 100px;
-      margin-top: 20px;
-      display: none; /* Initially hidden */
-      opacity: 0.5;  /* Disabled-like appearance */
-      pointer-events: none; /* Disable interactions */
-    }
-    #content.enabled {
-      display: block;
-      opacity: 1;       /* Normal appearance */
-      pointer-events: all; /* Enable interactions */
-    }
-  </style>
+  <title>CKEditor Custom Enter Key</title>
+  <script src="https://cdn.ckeditor.com/4.20.0/standard/ckeditor.js"></script>
 </head>
 <body>
-  <div>
-    <!-- Eye icon to toggle visibility and enable -->
-    <i class="fas fa-eye" id="toggleEye" style="cursor: pointer; font-size: 24px;"></i>
-  </div>
+  <textarea id="editor1"></textarea>
 
-  <!-- Content to toggle -->
-  <div id="content">
-    This is the content to show or hide.
-  </div>
-
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    $(document).ready(function () {
-      $('#toggleEye').click(function () {
-        const content = $('#content');
+    CKEDITOR.replace('editor1', {
+      on: {
+        instanceReady: function (evt) {
+          const editor = evt.editor;
 
-        // Toggle between hidden/disabled and visible/enabled states
-        if (content.hasClass('enabled')) {
-          content.removeClass('enabled');
-          $(this).removeClass('fa-eye-slash').addClass('fa-eye');
-        } else {
-          content.addClass('enabled');
-          $(this).removeClass('fa-eye').addClass('fa-eye-slash');
+          // Override key handling
+          editor.on('key', function (event) {
+            if (event.data.keyCode === 13 && !event.data.isSoft) {
+              // Simulate Shift+Enter (soft enter behavior)
+              editor.insertHtml('<br>'); // Insert a <br>
+              event.cancel(); // Prevent the default behavior
+            }
+          });
         }
-      });
+      }
     });
   </script>
 </body>
 </html>
 
-Key Points
+Explanation
 
-1. Initial State:
+1. event.data.isSoft:
 
-The #content div is initially hidden using display: none.
+This property is true when the user presses Shift+Enter.
 
-It is styled with opacity: 0.5 and pointer-events: none to simulate a disabled state.
-
-
-
-2. Toggling Logic:
-
-If the #content div has the enabled class, it becomes visible (display: block), fully opaque, and interactive.
-
-If it does not have the enabled class, it becomes hidden and "disabled."
+It is false when the user presses Enter without the Shift key.
 
 
 
-3. Icon Switching:
+2. Key Override:
 
-The icon toggles between fa-eye (for disabled/hidden) and fa-eye-slash (for enabled/visible).
+When Enter is pressed (keyCode === 13) and data.isSoft is false, the Enter key behavior is overridden to insert a <br> (soft enter behavior).
+
+The event.cancel() method prevents the default Enter behavior (which inserts a <p>).
+
+
+
+3. Simulating Shift+Enter:
+
+The editor.insertHtml('<br>') line mimics the behavior of Shift+Enter by directly inserting a line break.
 
 
 
 
-This code ensures that you can enable and show the content even if it starts in a disabled or hidden state.
+Final Behavior
 
+Enter Key: Acts like Shift+Enter, inserting a <br>.
+
+Shift+Enter Key: Retains its default behavior, also inserting a <br>.
+
+
+This approach is clean and utilizes CKEditor’s built-in isSoft property, ensuring that the editor behaves consistently.
