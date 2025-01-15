@@ -1,24 +1,90 @@
-const img_src = $(parent).find('.imgHeader').attr("src");
+If the <div> is initially disabled or hidden (e.g., using display: none or visibility: hidden), the provided code will work to toggle its visibility and show it again. However, if you're referring to a "disabled" attribute (which is not valid for a <div> but valid for form elements like <input> or <button>), you would need to handle that separately.
 
-const learn_more = $(parent).find('#divLearnMore a').attr("href");
-$('.learn-more-link').val(learn_more);
+Here’s an updated example that checks for both visibility and "disabled-like" logic:
 
-const imageHtml = `<img src="${img_src}" alt="Banner Image" />`;
+HTML Example (Handling Disabled State)
 
-initCKEditor(
-    '.editor-modal-header-section',
-    imageHtml,
-    [
-        'undo', 'redo', '|', 
-        'bold', 'italic', '|', 
-        'fontSize', 'heading', 
-        'insertTable', 
-        'insertImage', 'link', 
-        'bulletedList', 'numberedList',
-        '|', 'imageStyle:alignLeft', 
-        'imageStyle:alignCenter', 
-        'imageStyle:alignRight'
-    ]
-);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toggle Div Visibility and State</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    #content {
+      width: 300px;
+      height: 100px;
+      background-color: lightblue;
+      text-align: center;
+      line-height: 100px;
+      margin-top: 20px;
+      display: none; /* Initially hidden */
+      opacity: 0.5;  /* Disabled-like appearance */
+      pointer-events: none; /* Disable interactions */
+    }
+    #content.enabled {
+      display: block;
+      opacity: 1;       /* Normal appearance */
+      pointer-events: all; /* Enable interactions */
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <!-- Eye icon to toggle visibility and enable -->
+    <i class="fas fa-eye" id="toggleEye" style="cursor: pointer; font-size: 24px;"></i>
+  </div>
 
-$('#editor-modal-header-section').show();
+  <!-- Content to toggle -->
+  <div id="content">
+    This is the content to show or hide.
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('#toggleEye').click(function () {
+        const content = $('#content');
+
+        // Toggle between hidden/disabled and visible/enabled states
+        if (content.hasClass('enabled')) {
+          content.removeClass('enabled');
+          $(this).removeClass('fa-eye-slash').addClass('fa-eye');
+        } else {
+          content.addClass('enabled');
+          $(this).removeClass('fa-eye').addClass('fa-eye-slash');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
+Key Points
+
+1. Initial State:
+
+The #content div is initially hidden using display: none.
+
+It is styled with opacity: 0.5 and pointer-events: none to simulate a disabled state.
+
+
+
+2. Toggling Logic:
+
+If the #content div has the enabled class, it becomes visible (display: block), fully opaque, and interactive.
+
+If it does not have the enabled class, it becomes hidden and "disabled."
+
+
+
+3. Icon Switching:
+
+The icon toggles between fa-eye (for disabled/hidden) and fa-eye-slash (for enabled/visible).
+
+
+
+
+This code ensures that you can enable and show the content even if it starts in a disabled or hidden state.
+
