@@ -1,79 +1,105 @@
-Ah, I see! You want to trigger the functionality after the content is pasted into the editor, rather than at the beginning when the paste event is initiated. CKEditor fires the afterPaste event, which occurs after the content has been inserted into the editor.
-
-Here's how you can achieve this:
+If you're using a newer version of CKEditor (e.g., CKEditor 5) and want to handle clipboardInput using the editor.editing.view.document.on method, here’s how to set it up:
 
 
 ---
 
-Use afterPaste Event to Sanitize Content After It Is Pasted
+Handling clipboardInput in CKEditor 5
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CKEditor Remove Inline Styles After Paste</title>
-  <script src="https://cdn.ckeditor.com/4.20.0/standard/ckeditor.js"></script>
-</head>
-<body>
-  <textarea id="editor1"></textarea>
+The clipboardInput event is triggered when content is pasted or dropped into the editor. This event allows you to intercept the clipboard data before it is inserted into the editor.
 
-  <script>
-    // Initialize CKEditor
-    CKEDITOR.replace('editor1', {
-      on: {
-        instanceReady: function (evt) {
-          const editor = evt.editor;
+Here’s how to implement it:
 
-          // Listen to the afterPaste event
-          editor.on('afterPaste', function () {
-            console.log('Content pasted. Cleaning up...');
-            
-            // Get the editor content
-            let editorData = editor.getData();
+// Assuming you have already initialized CKEditor 5
+ClassicEditor
+    .create(document.querySelector('#editor'))
+    .then(editor => {
+        // Add a listener for the clipboardInput event
+        editor.editing.view.document.on('clipboardInput', (evt, data) => {
+            console.log('Clipboard input detected!');
 
-            // Use a temporary DOM element to parse the content
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = editorData;
+            // Access the pasted content
+            const htmlContent = data.dataTransfer.getData('text/html');
+            if (htmlContent) {
+                // Create a temporary DOM element to parse the content
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = htmlContent;
 
-            // Remove inline styles and other unwanted attributes
-            const elements = tempDiv.querySelectorAll('*');
-            elements.forEach(element => {
-              element.removeAttribute('style'); // Remove inline styles
-              element.removeAttribute('class'); // Remove classes
-              element.removeAttribute('id');    // Remove IDs
-              element.removeAttribute('onclick'); // Remove event handlers
-            });
+                // Remove inline styles and other unwanted attributes
+                const elements = tempDiv.querySelectorAll('*');
+                elements.forEach(element => {
+                    element.removeAttribute('style'); // Remove inline styles
+                    element.removeAttribute('class'); // Remove classes
+                    element.removeAttribute('id');    // Remove IDs
+                    element.removeAttribute('onclick'); // Remove event handlers
+                });
 
-            // Update the editor content with sanitized HTML
-            editor.setData(tempDiv.innerHTML);
-          });
-        }
-      }
+                // Update the data before it is inserted
+                data.content = editor.data.processor.toView(tempDiv.innerHTML);
+            }
+        });
+
+        console.log('Editor is ready.');
+    })
+    .catch(error => {
+        console.error('Error initializing editor:', error);
     });
-  </script>
-</body>
-</html>
 
 
 ---
 
-Explanation
+Explanation of the Code
 
-1. Event afterPaste:
+1. Initialization:
 
-This event is fired after the pasted content has been inserted into the editor.
+Replace the #editor selector with the element containing your editor instance.
 
-At this point, you can safely access and modify the editor's content.
-
-
-
-2. Access and Sanitize Editor Content:
-
-Use editor.getData() to retrieve the content in the editor after the paste.
-
-Parse the HTML using a temporary div element and remove unwanted attributes like style, class,
+Ensure you are using CKEditor 5.
 
 
 
+2. Listening to clipboardInput:
 
+clipboardInput is triggered before the clipboard data is inserted into the editor.
+
+You can access the clipboard data using data.dataTransfer.getData().
+
+
+
+3. Sanitize Clipboard Content:
+
+Use a temporary div to parse the HTML content.
+
+Remove unwanted attributes like style, class, and id.
+
+
+
+4. Update the Pasted Content:
+
+Convert the sanitized HTML back to CKEditor’s view-compatible content using editor.data.processor.toView().
+
+Replace the data.content property with the sanitized content.
+
+
+
+5. Testing:
+
+Paste content with inline styles or unwanted formatting into the editor.
+
+Confirm in the browser console that the event is triggered, and the sanitized content is inserted.
+
+
+
+
+
+---
+
+Benefits of Using clipboardInput
+
+Allows fine-grained control over pasted or dropped content.
+
+Prevents unwanted styles and attributes before they are rendered in the editor.
+
+Works seamlessly with CKEditor 5's modern architecture.
+
+
+Let me know if you need additional help with this approach!
