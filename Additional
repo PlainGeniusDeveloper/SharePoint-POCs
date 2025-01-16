@@ -1,102 +1,82 @@
-You can achieve this by adding an event listener for the keydown event and checking if the Escape key was pressed. Then, check if the modal-overlay div is visible, and either show a close button or close the modal.
+To remove all formatting, including inline styles, from the pasted content in CKEditor, you can use the pasteFilter configuration option or handle the paste event to sanitize the content.
 
-Implementation
+Option 1: Using pasteFilter
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Modal with Escape Key</title>
-  <style>
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 9999;
+CKEditor provides a built-in pasteFilter option to control what content is allowed during pasting. You can set it to 'plain-text' or configure specific rules.
+
+Example with pasteFilter
+
+CKEDITOR.replace('editor1', {
+  allowedContent: false, // Disallow all inline styles and formatting
+  pasteFilter: 'plain-text' // Converts pasted content to plain text
+});
+
+Option 2: Using the paste Event
+
+You can listen for the paste event and sanitize the content by stripping out all inline styles or converting the pasted content into plain text.
+
+Example with paste Event
+
+CKEDITOR.replace('editor1', {
+  on: {
+    paste: function (evt) {
+      // Get the raw pasted content
+      const pastedData = evt.data.dataValue;
+
+      // Create a temporary DOM element to parse the HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = pastedData;
+
+      // Remove all inline styles
+      const elements = tempDiv.querySelectorAll('*');
+      elements.forEach(element => {
+        element.removeAttribute('style');
+        element.removeAttribute('class'); // Optionally remove classes too
+      });
+
+      // Set the sanitized content back to the event data
+      evt.data.dataValue = tempDiv.innerHTML;
     }
-    .modal {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      border-radius: 5px;
-      text-align: center;
-    }
-    .close-button {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: red;
-      color: white;
-      border: none;
-      border-radius: 3px;
-      padding: 5px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <!-- Modal -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <button class="close-button" id="closeButton">X</button>
-      <p>This is a modal. Press Escape to close.</p>
-    </div>
-  </div>
+  }
+});
 
-  <button id="showModal">Show Modal</button>
+Option 3: Convert to Plain Text with pastefromword Plugin
 
-  <script>
-    const modalOverlay = document.getElementById('modalOverlay');
-    const closeButton = document.getElementById('closeButton');
-    const showModal = document.getElementById('showModal');
+If you use the pastefromword plugin, you can convert pasted content from Word or other rich editors into plain text.
 
-    // Show modal function
-    showModal.addEventListener('click', () => {
-      modalOverlay.style.display = 'block';
-    });
+Example with pastefromword Plugin
 
-    // Close modal function
-    const closeModal = () => {
-      modalOverlay.style.display = 'none';
-    };
-
-    closeButton.addEventListener('click', closeModal);
-
-    // Close modal on Escape key press
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && modalOverlay.style.display === 'block') {
-        closeModal();
-      }
-    });
-  </script>
-</body>
-</html>
+CKEDITOR.replace('editor1', {
+  extraPlugins: 'pastefromword',
+  forcePasteAsPlainText: true // Forces plain text pasting
+});
 
 Explanation
 
-1. HTML Structure:
+1. pasteFilter:
 
-modal-overlay: The background overlay for the modal.
-
-modal: The modal content box.
-
-close-button: A button to manually close the modal.
+When set to 'plain-text', CKEditor removes all formatting, converting the content into plain text.
 
 
 
-2. CSS:
+2. paste Event:
 
-The modal is initially hidden using display: none.
+Allows you to manipulate the pasted content programmatically before it is inserted into the editor.
 
-The modal and overlay are styled for a centered
+Inline styles and classes can be removed by iterating over the DOM elements in the pasted content.
 
 
+
+3. pastefromword Plugin:
+
+Specialized for cleaning up content pasted from Microsoft Word.
+
+forcePasteAsPlainText ensures only plain text is inserted.
+
+
+
+
+Final Result
+
+With these methods, any pasted content in CKEditor will be stripped of all formatting, inline styles, and unnecessary attributes. Use the method that best fits your use case.
 
