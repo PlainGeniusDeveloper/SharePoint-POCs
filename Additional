@@ -1,18 +1,18 @@
-If the paste event is not triggering, it could be because CKEditor processes clipboard events differently depending on the version and configuration. To ensure it works, you can explicitly listen for the paste event using the correct event handler registration and ensure that CKEditor is properly initialized.
+Ah, I see! You want to trigger the functionality after the content is pasted into the editor, rather than at the beginning when the paste event is initiated. CKEditor fires the afterPaste event, which occurs after the content has been inserted into the editor.
 
-Here’s the updated and tested implementation:
+Here's how you can achieve this:
 
 
 ---
 
-Correct Implementation to Automatically Remove Inline Styles on Paste
+Use afterPaste Event to Sanitize Content After It Is Pasted
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CKEditor Remove Inline Styles on Paste</title>
+  <title>CKEditor Remove Inline Styles After Paste</title>
   <script src="https://cdn.ckeditor.com/4.20.0/standard/ckeditor.js"></script>
 </head>
 <body>
@@ -25,14 +25,16 @@ Correct Implementation to Automatically Remove Inline Styles on Paste
         instanceReady: function (evt) {
           const editor = evt.editor;
 
-          // Add a paste listener
-          editor.on('paste', function (event) {
-            // Get the pasted content
-            const pastedData = event.data.dataValue;
+          // Listen to the afterPaste event
+          editor.on('afterPaste', function () {
+            console.log('Content pasted. Cleaning up...');
+            
+            // Get the editor content
+            let editorData = editor.getData();
 
-            // Use a temporary element to parse the content
+            // Use a temporary DOM element to parse the content
             const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = pastedData;
+            tempDiv.innerHTML = editorData;
 
             // Remove inline styles and other unwanted attributes
             const elements = tempDiv.querySelectorAll('*');
@@ -40,14 +42,11 @@ Correct Implementation to Automatically Remove Inline Styles on Paste
               element.removeAttribute('style'); // Remove inline styles
               element.removeAttribute('class'); // Remove classes
               element.removeAttribute('id');    // Remove IDs
-              // Remove event-related attributes for security
-              element.removeAttribute('onclick');
-              element.removeAttribute('onmouseover');
-              element.removeAttribute('onmouseout');
+              element.removeAttribute('onclick'); // Remove event handlers
             });
 
-            // Update the pasted content with sanitized HTML
-            event.data.dataValue = tempDiv.innerHTML;
+            // Update the editor content with sanitized HTML
+            editor.setData(tempDiv.innerHTML);
           });
         }
       }
@@ -59,27 +58,21 @@ Correct Implementation to Automatically Remove Inline Styles on Paste
 
 ---
 
-Debugging Tips if It Still Doesn’t Trigger
+Explanation
 
-1. Ensure CKEditor Is Properly Loaded:
+1. Event afterPaste:
 
-Open the browser console and verify that there are no errors related to CKEditor.
+This event is fired after the pasted content has been inserted into the editor.
 
-Check that the CKEditor script is loaded correctly.
-
-
-
-2. Ensure the Event Handler Is Attached:
-
-Add a console.log inside the paste event handler to verify if it’s being triggered:
-
-console.log('Paste event detected!');
+At this point, you can safely access and modify the editor's content.
 
 
 
-3. Browser-Specific Behavior:
+2. Access and Sanitize Editor Content:
 
-Some browsers may restrict certain clipboard interactions. Test in different browsers (e.g., Chrome,
+Use editor.getData() to retrieve the content in the editor after the paste.
+
+Parse the HTML using a temporary div element and remove unwanted attributes like style, class,
 
 
 
