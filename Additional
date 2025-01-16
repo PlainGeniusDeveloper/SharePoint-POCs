@@ -1,6 +1,4 @@
-Yes, data.isSoft is a property provided by CKEditor to differentiate between a "soft enter" (Shift+Enter, which inserts <br>) and a "hard enter" (Enter, which inserts <p> by default). You can leverage this property to detect and override the Enter key's behavior to mimic a soft enter.
-
-Here’s how you can use data.isSoft in CKEditor:
+You can achieve this by adding an event listener for the keydown event and checking if the Escape key was pressed. Then, check if the modal-overlay div is visible, and either show a close button or close the modal.
 
 Implementation
 
@@ -9,27 +7,73 @@ Implementation
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CKEditor Custom Enter Key</title>
-  <script src="https://cdn.ckeditor.com/4.20.0/standard/ckeditor.js"></script>
+  <title>Modal with Escape Key</title>
+  <style>
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+    }
+    .modal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 5px;
+      text-align: center;
+    }
+    .close-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 5px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <textarea id="editor1"></textarea>
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <button class="close-button" id="closeButton">X</button>
+      <p>This is a modal. Press Escape to close.</p>
+    </div>
+  </div>
+
+  <button id="showModal">Show Modal</button>
 
   <script>
-    CKEDITOR.replace('editor1', {
-      on: {
-        instanceReady: function (evt) {
-          const editor = evt.editor;
+    const modalOverlay = document.getElementById('modalOverlay');
+    const closeButton = document.getElementById('closeButton');
+    const showModal = document.getElementById('showModal');
 
-          // Override key handling
-          editor.on('key', function (event) {
-            if (event.data.keyCode === 13 && !event.data.isSoft) {
-              // Simulate Shift+Enter (soft enter behavior)
-              editor.insertHtml('<br>'); // Insert a <br>
-              event.cancel(); // Prevent the default behavior
-            }
-          });
-        }
+    // Show modal function
+    showModal.addEventListener('click', () => {
+      modalOverlay.style.display = 'block';
+    });
+
+    // Close modal function
+    const closeModal = () => {
+      modalOverlay.style.display = 'none';
+    };
+
+    closeButton.addEventListener('click', closeModal);
+
+    // Close modal on Escape key press
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modalOverlay.style.display === 'block') {
+        closeModal();
       }
     });
   </script>
@@ -38,34 +82,21 @@ Implementation
 
 Explanation
 
-1. event.data.isSoft:
+1. HTML Structure:
 
-This property is true when the user presses Shift+Enter.
+modal-overlay: The background overlay for the modal.
 
-It is false when the user presses Enter without the Shift key.
+modal: The modal content box.
 
-
-
-2. Key Override:
-
-When Enter is pressed (keyCode === 13) and data.isSoft is false, the Enter key behavior is overridden to insert a <br> (soft enter behavior).
-
-The event.cancel() method prevents the default Enter behavior (which inserts a <p>).
+close-button: A button to manually close the modal.
 
 
 
-3. Simulating Shift+Enter:
+2. CSS:
 
-The editor.insertHtml('<br>') line mimics the behavior of Shift+Enter by directly inserting a line break.
+The modal is initially hidden using display: none.
 
-
-
-
-Final Behavior
-
-Enter Key: Acts like Shift+Enter, inserting a <br>.
-
-Shift+Enter Key: Retains its default behavior, also inserting a <br>.
+The modal and overlay are styled for a centered
 
 
-This approach is clean and utilizes CKEditor’s built-in isSoft property, ensuring that the editor behaves consistently.
+
