@@ -1,82 +1,82 @@
-To remove all formatting, including inline styles, from the pasted content in CKEditor, you can use the pasteFilter configuration option or handle the paste event to sanitize the content.
+If the paste event is not triggering, it's likely due to how CKEditor is handling the clipboard events. Ensure you are attaching the event handler correctly. Here's the corrected and verified implementation:
 
-Option 1: Using pasteFilter
+Correct Implementation for the paste Event
 
-CKEditor provides a built-in pasteFilter option to control what content is allowed during pasting. You can set it to 'plain-text' or configure specific rules.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CKEditor Paste Event</title>
+  <script src="https://cdn.ckeditor.com/4.20.0/standard/ckeditor.js"></script>
+</head>
+<body>
+  <textarea id="editor1"></textarea>
 
-Example with pasteFilter
+  <script>
+    CKEDITOR.replace('editor1', {
+      on: {
+        paste: function (evt) {
+          console.log('Paste event triggered!'); // Check if the event triggers
+          const pastedData = evt.data.dataValue; // Get the pasted content
 
-CKEDITOR.replace('editor1', {
-  allowedContent: false, // Disallow all inline styles and formatting
-  pasteFilter: 'plain-text' // Converts pasted content to plain text
-});
+          // Create a temporary DOM element to parse and sanitize the HTML
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = pastedData;
 
-Option 2: Using the paste Event
+          // Remove all inline styles and classes
+          const elements = tempDiv.querySelectorAll('*');
+          elements.forEach(element => {
+            element.removeAttribute('style');
+            element.removeAttribute('class');
+          });
 
-You can listen for the paste event and sanitize the content by stripping out all inline styles or converting the pasted content into plain text.
+          // Update the pasted content with sanitized HTML
+          evt.data.dataValue = tempDiv.innerHTML;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
 
-Example with paste Event
+Key Points to Check
 
-CKEDITOR.replace('editor1', {
-  on: {
-    paste: function (evt) {
-      // Get the raw pasted content
-      const pastedData = evt.data.dataValue;
+1. Console Log:
 
-      // Create a temporary DOM element to parse the HTML
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = pastedData;
+Check for the Paste event triggered! log in the browser's developer console when you paste content.
 
-      // Remove all inline styles
-      const elements = tempDiv.querySelectorAll('*');
-      elements.forEach(element => {
-        element.removeAttribute('style');
-        element.removeAttribute('class'); // Optionally remove classes too
-      });
-
-      // Set the sanitized content back to the event data
-      evt.data.dataValue = tempDiv.innerHTML;
-    }
-  }
-});
-
-Option 3: Convert to Plain Text with pastefromword Plugin
-
-If you use the pastefromword plugin, you can convert pasted content from Word or other rich editors into plain text.
-
-Example with pastefromword Plugin
-
-CKEDITOR.replace('editor1', {
-  extraPlugins: 'pastefromword',
-  forcePasteAsPlainText: true // Forces plain text pasting
-});
-
-Explanation
-
-1. pasteFilter:
-
-When set to 'plain-text', CKEditor removes all formatting, converting the content into plain text.
+If it doesn't appear, ensure CKEditor is properly initialized.
 
 
 
-2. paste Event:
+2. Browser Clipboard Permissions:
 
-Allows you to manipulate the pasted content programmatically before it is inserted into the editor.
-
-Inline styles and classes can be removed by iterating over the DOM elements in the pasted content.
+Some browsers might block clipboard access. Ensure you grant clipboard permissions.
 
 
 
-3. pastefromword Plugin:
+3. Using Plugins:
 
-Specialized for cleaning up content pasted from Microsoft Word.
+If you're using plugins like pastefromword, ensure they don't interfere with the custom paste event.
 
-forcePasteAsPlainText ensures only plain text is inserted.
+
+
+4. External Clipboard Handling:
+
+CKEditor may process clipboard data asynchronously, so ensure the paste event is correctly attached during initialization.
 
 
 
 
-Final Result
+Debugging Steps
 
-With these methods, any pasted content in CKEditor will be stripped of all formatting, inline styles, and unnecessary attributes. Use the method that best fits your use case.
+Verify CKEditor initialization: Ensure CKEDITOR.replace is called for the correct textarea element.
+
+Check for errors: Look for JavaScript errors in the console that might prevent the paste event from firing.
+
+Try a clean editor setup: Test with the simplest CKEditor configuration to isolate the issue.
+
+
+Let me know if you continue to face issues, and we can debug further!
 
