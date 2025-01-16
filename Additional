@@ -1,38 +1,54 @@
-If the paste event is not triggering, it's likely due to how CKEditor is handling the clipboard events. Ensure you are attaching the event handler correctly. Here's the corrected and verified implementation:
+If the paste event is not triggering, it could be because CKEditor processes clipboard events differently depending on the version and configuration. To ensure it works, you can explicitly listen for the paste event using the correct event handler registration and ensure that CKEditor is properly initialized.
 
-Correct Implementation for the paste Event
+Here’s the updated and tested implementation:
+
+
+---
+
+Correct Implementation to Automatically Remove Inline Styles on Paste
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CKEditor Paste Event</title>
+  <title>CKEditor Remove Inline Styles on Paste</title>
   <script src="https://cdn.ckeditor.com/4.20.0/standard/ckeditor.js"></script>
 </head>
 <body>
   <textarea id="editor1"></textarea>
 
   <script>
+    // Initialize CKEditor
     CKEDITOR.replace('editor1', {
       on: {
-        paste: function (evt) {
-          console.log('Paste event triggered!'); // Check if the event triggers
-          const pastedData = evt.data.dataValue; // Get the pasted content
+        instanceReady: function (evt) {
+          const editor = evt.editor;
 
-          // Create a temporary DOM element to parse and sanitize the HTML
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = pastedData;
+          // Add a paste listener
+          editor.on('paste', function (event) {
+            // Get the pasted content
+            const pastedData = event.data.dataValue;
 
-          // Remove all inline styles and classes
-          const elements = tempDiv.querySelectorAll('*');
-          elements.forEach(element => {
-            element.removeAttribute('style');
-            element.removeAttribute('class');
+            // Use a temporary element to parse the content
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = pastedData;
+
+            // Remove inline styles and other unwanted attributes
+            const elements = tempDiv.querySelectorAll('*');
+            elements.forEach(element => {
+              element.removeAttribute('style'); // Remove inline styles
+              element.removeAttribute('class'); // Remove classes
+              element.removeAttribute('id');    // Remove IDs
+              // Remove event-related attributes for security
+              element.removeAttribute('onclick');
+              element.removeAttribute('onmouseover');
+              element.removeAttribute('onmouseout');
+            });
+
+            // Update the pasted content with sanitized HTML
+            event.data.dataValue = tempDiv.innerHTML;
           });
-
-          // Update the pasted content with sanitized HTML
-          evt.data.dataValue = tempDiv.innerHTML;
         }
       }
     });
@@ -40,43 +56,31 @@ Correct Implementation for the paste Event
 </body>
 </html>
 
-Key Points to Check
 
-1. Console Log:
+---
 
-Check for the Paste event triggered! log in the browser's developer console when you paste content.
+Debugging Tips if It Still Doesn’t Trigger
 
-If it doesn't appear, ensure CKEditor is properly initialized.
+1. Ensure CKEditor Is Properly Loaded:
 
+Open the browser console and verify that there are no errors related to CKEditor.
 
-
-2. Browser Clipboard Permissions:
-
-Some browsers might block clipboard access. Ensure you grant clipboard permissions.
+Check that the CKEditor script is loaded correctly.
 
 
 
-3. Using Plugins:
+2. Ensure the Event Handler Is Attached:
 
-If you're using plugins like pastefromword, ensure they don't interfere with the custom paste event.
+Add a console.log inside the paste event handler to verify if it’s being triggered:
 
-
-
-4. External Clipboard Handling:
-
-CKEditor may process clipboard data asynchronously, so ensure the paste event is correctly attached during initialization.
+console.log('Paste event detected!');
 
 
 
+3. Browser-Specific Behavior:
 
-Debugging Steps
-
-Verify CKEditor initialization: Ensure CKEDITOR.replace is called for the correct textarea element.
-
-Check for errors: Look for JavaScript errors in the console that might prevent the paste event from firing.
-
-Try a clean editor setup: Test with the simplest CKEditor configuration to isolate the issue.
+Some browsers may restrict certain clipboard interactions. Test in different browsers (e.g., Chrome,
 
 
-Let me know if you continue to face issues, and we can debug further!
+
 
