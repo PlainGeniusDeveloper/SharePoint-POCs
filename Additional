@@ -1,186 +1,88 @@
-If your product-specific JSON comes from a SharePoint list and the default JSON is stored in the Style Library or another centralized location, we can fetch the data dynamically from both sources, merge them, and then use the merged result. Here's how to implement it:
+Based on the provided image and your requirement, we will modify the existing code to:
+
+1. Fetch the Default JSON from the Style Library.
+
+
+2. Compare and merge it with the product-specific JSON coming from the list.
+
+
+3. Bind the merged result to your bind_banner_details.
+
+
+
+Here’s the updated code:
 
 
 ---
 
-Steps
+Updated Code
 
-1. Fetch Default JSON: Load the default JSON file from the Style Library.
+function previewDataBind(listTitle, paramContentOffering, paramVersion) {
+    var listName = listTitle;
 
+    getListItems(listName, paramContentOffering, paramVersion, function (data) {
+        if (publishListDetails.ProductDetails === listName || baseListDetails.ProductDetails === listName) {
+            var items = data.d.results[0].JSON_x0020_Template;
+            items = JSON.parse(items);
 
-2. Fetch Product JSON from the List: Use the SharePoint REST API to retrieve the product-specific JSON from a SharePoint list.
+            // Fetch default JSON
+            const defaultJsonUrl = "/sites/SiteName/Style Library/json/default.json";
+            $.getJSON(defaultJsonUrl, function (defaultJson) {
+                // Merge default JSON with the specific JSON
+                const mergedItems = mergeJSON(defaultJson, items);
 
+                // Bind the merged result
+                bind_banner_details(mergedItems);
+            }).fail(function (error) {
+                console.error("Error fetching default JSON:", error);
+            });
 
-3. Merge the JSONs: Merge the default JSON and the product-specific JSON dynamically.
-
-
-4. Output or Use the Merged Result.
-
-
-
-
----
-
-Implementation Example
-
-Default JSON (stored in Style Library):
-
-{
-  "Product": {
-    "name": "Default Product",
-    "price": "100",
-    "brand": "Generic",
-    "description": "Default description",
-    "features": {
-      "warranty": "1 year",
-      "support": "Standard"
-    }
-  }
-}
-
-Product-Specific JSON from the SharePoint List:
-Assume the product-specific JSON (e.g., for "Nokia") is stored in a SharePoint list field (e.g., "ProductJSON").
-
-
----
-
-JavaScript Code
-
-$(document).ready(function () {
-  // URL to the default JSON stored in the Style Library
-  const defaultJsonUrl = "/sites/SiteName/Style Library/json/default.json";
-
-  // Function to load product-specific JSON from the SharePoint list
-  function loadProductJsonFromList(productId) {
-    const listName = "Products"; // Replace with your list name
-    const siteUrl = _spPageContextInfo.webAbsoluteUrl; // Current site URL
-    const apiUrl = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=ID eq ${productId}&$select=ProductJSON`;
-
-    return $.ajax({
-      url: apiUrl,
-      method: "GET",
-      headers: {
-        "Accept": "application/json;odata=verbose"
-      }
+            return;
+        } else if (publishListDetails.AreaOfSupport === listName || baseListDetails.AreaOfSupport === listName) {
+            var items = data.d.results;
+            if (items.length > 0) {
+                const supportInfoHtml = contentTypeHandlers["SupportCards"](items);
+                $("#divSupportSlider").append(supportInfoHtml);
+            }
+            return;
+        }
     });
-  }
 
-  // Load default JSON and product-specific JSON
-  $.getJSON(defaultJsonUrl, function (defaultJson) {
-    const productId = 1; // Replace with the desired product ID
-
-    loadProductJsonFromList(productId).done(function (response) {
-      // Extract product-specific JSON from the list response
-      const productJsonString = response.d.results[0].ProductJSON;
-      const specificJson = JSON.parse(productJsonString);
-
-      // Merge default JSON with specific JSON
-      const mergedJson = mergeJSON(defaultJson, specificJson);
-
-      // Display the merged JSON
-      console.log("Merged JSON:", mergedJson);
-    }).fail(function (error) {
-      console.error("Error fetching product JSON from SharePoint list:", error);
-    });
-  }).fail(function (error) {
-    console.error("Error fetching default JSON:", error);
-  });
-
-  // Recursive function to merge JSON objects
-  function mergeJSON(defaultJson, specificJson) {
-    for (const key in defaultJson) {
-      if (!specificJson.hasOwnProperty(key)) {
-        // Add missing keys from the default JSON
-        specificJson[key] = defaultJson[key];
-      } else if (typeof defaultJson[key] === "object" && !Array.isArray(defaultJson[key])) {
-        // Recursively merge nested objects
-        specificJson[key] = mergeJSON(defaultJson[key], specificJson[key]);
-      }
+    // Recursive function to merge JSON objects
+    function mergeJSON(defaultJson, specificJson) {
+        for (const key in defaultJson) {
+            if (!specificJson.hasOwnProperty(key)) {
+                // Add missing keys from the default JSON
+                specificJson[key] = defaultJson[key];
+            } else if (typeof defaultJson[key] === "object" && !Array.isArray(defaultJson[key])) {
+                // Recursively merge nested objects
+                specificJson[key] = mergeJSON(defaultJson[key], specificJson[key]);
+            }
+        }
+        return specificJson;
     }
-    return specificJson;
-  }
-});
-
-
----
-
-Key Components of the Code
-
-1. Fetch Default JSON:
-
-Loaded from the Style Library using $.getJSON.
-
-
-
-2. Fetch Product JSON from SharePoint List:
-
-The SharePoint REST API is used to retrieve the JSON stored in a list field (e.g., ProductJSON).
-
-The product ID is used to filter the specific item.
-
-
-
-3. Merge JSONs:
-
-Missing keys or values from the product-specific JSON are filled using the default JSON.
-
-
-
-4. Dynamic Site URLs:
-
-_spPageContextInfo.webAbsoluteUrl dynamically constructs the API URL for the current site.
-
-
-
-
-
----
-
-Example Output for Nokia (from List)
-
-Specific JSON in the SharePoint List:
-
-{
-  "Product": {
-    "name": "Nokia",
-    "price": "200",
-    "features": {
-      "warranty": "2 years"
-    }
-  }
-}
-
-Merged Output:
-
-{
-  "Product": {
-    "name": "Nokia",
-    "price": "200",
-    "brand": "Generic",
-    "description": "Default description",
-    "features": {
-      "warranty": "2 years",
-      "support": "Standard"
-    }
-  }
 }
 
 
 ---
 
-SharePoint List Setup
+Key Changes
 
-1. List Name: Products.
+1. Fetching Default JSON:
+
+The default JSON is loaded using $.getJSON from the Style Library.
 
 
-2. Field for JSON: ProductJSON (Multi-line text field or Note field).
+
+2. Merging JSONs:
+
+A mergeJSON function is used to recursively add missing keys or nested objects from the default JSON into the product-specific JSON.
 
 
-3. Example Data:
 
-ID: 1
+3. Binding Merged Result:
 
-ProductJSON: (as shown above).
+After merging, the combined JSON (mergedItems) is passed to the existing bind_banner_details function.
 
 
 
@@ -188,14 +90,63 @@ ProductJSON: (as shown above).
 
 ---
 
-Benefits of This Approach
+Example Flow
 
-Centralized default configuration in the Style Library.
+1. Default JSON (from Style Library):
 
-Dynamically retrieves specific product JSON from the SharePoint list.
+{
+    "Product": {
+        "name": "Default Product",
+        "price": "100",
+        "brand": "Generic",
+        "features": {
+            "warranty": "1 year"
+        }
+    }
+}
 
-Ensures consistency by merging missing fields from the default JSON.
+
+2. Product-Specific JSON (from List):
+
+{
+    "Product": {
+        "name": "Nokia",
+        "features": {
+            "warranty": "2 years"
+        }
+    }
+}
 
 
-Let me know if you need more help!
+3. Merged Result:
+
+{
+    "Product": {
+        "name": "Nokia",
+        "price": "100",
+        "brand": "Generic",
+        "features": {
+            "warranty": "2 years"
+        }
+    }
+}
+
+
+
+
+---
+
+Testing
+
+1. Verify that the default.json file is accessible under the Style Library path.
+
+
+2. Ensure your list contains valid JSON in the JSON_x0020_Template field.
+
+
+3. Check the console for any errors in fetching or merging the data.
+
+
+
+Let me know if you need further assistance!
 
