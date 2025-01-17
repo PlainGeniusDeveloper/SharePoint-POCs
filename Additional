@@ -4,16 +4,29 @@ function previewDataBind(listTitle, paramContentOffering, paramVersion) {
     // Step 1: Fetch Product-Specific JSON
     const fetchProductJson = new Promise((resolve, reject) => {
         getListItems(listTitle, paramContentOffering, paramVersion, function (data) {
-            if (data.d.results.length > 0) {
+            if (
+                publishListDetails.ProductDetails === listTitle ||
+                baseListDetails.ProductDetails === listTitle
+            ) {
                 const items = JSON.parse(data.d.results[0].JSON_x0020_Template);
-                resolve(items); // Resolve with product-specific JSON
+                resolve({ type: "product", data: items }); // Resolve with product-specific JSON
+            } else if (
+                publishListDetails.AreaOfSupport === listTitle ||
+                baseListDetails.AreaOfSupport === listTitle
+            ) {
+                const items = data.d.results;
+                if (items.length > 0) {
+                    resolve({ type: "support", data: items }); // Resolve with support-specific data
+                } else {
+                    reject("Area of Support data not found!");
+                }
             } else {
-                reject("Product JSON not found!");
+                reject("Unsupported list title!");
             }
         });
     });
 
-    // Step 2: Fetch Default JSON
+    // Step 2: Fetch Default JSON (only for ProductDetails)
     const fetchDefaultJson = new Promise((resolve, reject) => {
         $.get(defaultJsonUrl, function (defaultJsonText) {
             try {
@@ -27,17 +40,26 @@ function previewDataBind(listTitle, paramContentOffering, paramVersion) {
         });
     });
 
-    // Step 3: Run All Operations in Sequence
-    Promise.all([fetchProductJson, fetchDefaultJson])
-        .then(([productJson, defaultJson]) => {
-            // Merge JSONs
-            const mergedItems = mergeJSON(defaultJson, productJson);
-
-            // Bind Data
-            bind_banner_details(mergedItems);
-
-            // Additional functions after everything is done
-            afterAllCompleted();
+    // Step 3: Run All Operations and Handle Both Scenarios
+    fetchProductJson
+        .then((result) => {
+            if (result.type === "product") {
+                // For ProductDetails, merge with default JSON
+                fetchDefaultJson
+                    .then((defaultJson) => {
+                        const mergedItems = mergeJSON(defaultJson, result.data);
+                        bind_banner_details(mergedItems);
+                        afterAllCompleted();
+                    })
+                    .catch((error) => {
+                        console.error("Error loading default JSON:", error);
+                    });
+            } else if (result.type === "support") {
+                // For AreaOfSupport, directly bind the data
+                const supportInfoHtml = contentTypeHandlers["SupportCards"](result.data);
+                $("#divSupportSlider").append(supportInfoHtml);
+                afterAllCompleted();
+            }
         })
         .catch((error) => {
             console.error("Error:", error);
