@@ -1,16 +1,32 @@
-Based on the provided image and your requirement, we will modify the existing code to:
-
-1. Fetch the Default JSON from the Style Library.
+Yes, you can use a .txt file instead of a .json file to store your default JSON content. Here’s how you can do it:
 
 
-2. Compare and merge it with the product-specific JSON coming from the list.
+---
+
+Steps
+
+1. Save Default JSON in a .txt File:
+
+Create a file named default.txt and store your JSON content as plain text.
+
+{
+    "Product": {
+        "name": "Default Product",
+        "price": "100",
+        "brand": "Generic",
+        "features": {
+            "warranty": "1 year"
+        }
+    }
+}
+
+Upload this file to your SharePoint library (e.g., Style Library).
 
 
-3. Bind the merged result to your bind_banner_details.
+
+2. Update the Code: Modify the code to fetch the .txt file and parse its content.
 
 
-
-Here’s the updated code:
 
 
 ---
@@ -25,9 +41,12 @@ function previewDataBind(listTitle, paramContentOffering, paramVersion) {
             var items = data.d.results[0].JSON_x0020_Template;
             items = JSON.parse(items);
 
-            // Fetch default JSON
-            const defaultJsonUrl = "/sites/SiteName/Style Library/json/default.json";
-            $.getJSON(defaultJsonUrl, function (defaultJson) {
+            // Fetch default JSON from .txt file
+            const defaultJsonUrl = "/sites/SiteName/Style Library/json/default.txt";
+            $.get(defaultJsonUrl, function (defaultJsonText) {
+                // Parse the text content into JSON
+                const defaultJson = JSON.parse(defaultJsonText);
+
                 // Merge default JSON with the specific JSON
                 const mergedItems = mergeJSON(defaultJson, items);
 
@@ -68,68 +87,16 @@ function previewDataBind(listTitle, paramContentOffering, paramVersion) {
 
 Key Changes
 
-1. Fetching Default JSON:
+1. Using .txt File:
 
-The default JSON is loaded using $.getJSON from the Style Library.
-
-
-
-2. Merging JSONs:
-
-A mergeJSON function is used to recursively add missing keys or nested objects from the default JSON into the product-specific JSON.
+The default JSON is stored in a .txt file instead of .json.
 
 
 
-3. Binding Merged Result:
+2. Parsing .txt Content:
 
-After merging, the combined JSON (mergedItems) is passed to the existing bind_banner_details function.
+The content of the .txt file is retrieved as plain text and parsed into JSON using JSON.parse.
 
-
-
-
-
----
-
-Example Flow
-
-1. Default JSON (from Style Library):
-
-{
-    "Product": {
-        "name": "Default Product",
-        "price": "100",
-        "brand": "Generic",
-        "features": {
-            "warranty": "1 year"
-        }
-    }
-}
-
-
-2. Product-Specific JSON (from List):
-
-{
-    "Product": {
-        "name": "Nokia",
-        "features": {
-            "warranty": "2 years"
-        }
-    }
-}
-
-
-3. Merged Result:
-
-{
-    "Product": {
-        "name": "Nokia",
-        "price": "100",
-        "brand": "Generic",
-        "features": {
-            "warranty": "2 years"
-        }
-    }
-}
 
 
 
@@ -138,15 +105,15 @@ Example Flow
 
 Testing
 
-1. Verify that the default.json file is accessible under the Style Library path.
+1. Upload default.txt to the desired SharePoint location.
 
 
-2. Ensure your list contains valid JSON in the JSON_x0020_Template field.
+2. Update the defaultJsonUrl variable with the correct path to your .txt file.
 
 
-3. Check the console for any errors in fetching or merging the data.
+3. Test the application to ensure that the default values are correctly merged with product-specific JSON.
 
 
 
-Let me know if you need further assistance!
+This approach avoids the .json file restriction while retaining the functionality. Let me know if you need further help!
 
