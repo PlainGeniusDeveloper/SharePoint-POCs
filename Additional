@@ -1,52 +1,134 @@
-To replace custom tags like [url=https://google.com]Display Text[/url] with a proper <a> tag using jQuery, you can use a regular expression to parse the content and perform the replacement.
-
-Here’s how you can do it:
+If your product-specific JSON comes from a SharePoint list and the default JSON is stored in the Style Library or another centralized location, we can fetch the data dynamically from both sources, merge them, and then use the merged result. Here's how to implement it:
 
 
 ---
 
-jQuery Code to Replace [url] with <a> Tag
+Steps
+
+1. Fetch Default JSON: Load the default JSON file from the Style Library.
+
+
+2. Fetch Product JSON from the List: Use the SharePoint REST API to retrieve the product-specific JSON from a SharePoint list.
+
+
+3. Merge the JSONs: Merge the default JSON and the product-specific JSON dynamically.
+
+
+4. Output or Use the Merged Result.
+
+
+
+
+---
+
+Implementation Example
+
+Default JSON (stored in Style Library):
+
+{
+  "Product": {
+    "name": "Default Product",
+    "price": "100",
+    "brand": "Generic",
+    "description": "Default description",
+    "features": {
+      "warranty": "1 year",
+      "support": "Standard"
+    }
+  }
+}
+
+Product-Specific JSON from the SharePoint List:
+Assume the product-specific JSON (e.g., for "Nokia") is stored in a SharePoint list field (e.g., "ProductJSON").
+
+
+---
+
+JavaScript Code
 
 $(document).ready(function () {
-    // Example content
-    let content = "This is a [url=https://google.com]Google[/url] link.";
+  // URL to the default JSON stored in the Style Library
+  const defaultJsonUrl = "/sites/SiteName/Style Library/json/default.json";
 
-    // Replace custom [url] tags with <a> tags
-    content = content.replace(/url=(.+?)(.+?)\/url/g, function (match, url, text) {
-        return `<a href="${url}" target="_blank">${text}</a>`;
+  // Function to load product-specific JSON from the SharePoint list
+  function loadProductJsonFromList(productId) {
+    const listName = "Products"; // Replace with your list name
+    const siteUrl = _spPageContextInfo.webAbsoluteUrl; // Current site URL
+    const apiUrl = `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?$filter=ID eq ${productId}&$select=ProductJSON`;
+
+    return $.ajax({
+      url: apiUrl,
+      method: "GET",
+      headers: {
+        "Accept": "application/json;odata=verbose"
+      }
     });
+  }
 
-    // Display the modified content
-    $("#output").html(content);
+  // Load default JSON and product-specific JSON
+  $.getJSON(defaultJsonUrl, function (defaultJson) {
+    const productId = 1; // Replace with the desired product ID
+
+    loadProductJsonFromList(productId).done(function (response) {
+      // Extract product-specific JSON from the list response
+      const productJsonString = response.d.results[0].ProductJSON;
+      const specificJson = JSON.parse(productJsonString);
+
+      // Merge default JSON with specific JSON
+      const mergedJson = mergeJSON(defaultJson, specificJson);
+
+      // Display the merged JSON
+      console.log("Merged JSON:", mergedJson);
+    }).fail(function (error) {
+      console.error("Error fetching product JSON from SharePoint list:", error);
+    });
+  }).fail(function (error) {
+    console.error("Error fetching default JSON:", error);
+  });
+
+  // Recursive function to merge JSON objects
+  function mergeJSON(defaultJson, specificJson) {
+    for (const key in defaultJson) {
+      if (!specificJson.hasOwnProperty(key)) {
+        // Add missing keys from the default JSON
+        specificJson[key] = defaultJson[key];
+      } else if (typeof defaultJson[key] === "object" && !Array.isArray(defaultJson[key])) {
+        // Recursively merge nested objects
+        specificJson[key] = mergeJSON(defaultJson[key], specificJson[key]);
+      }
+    }
+    return specificJson;
+  }
 });
 
 
 ---
 
-Explanation
+Key Components of the Code
 
-1. Regular Expression:
+1. Fetch Default JSON:
 
-url=(.+?)(.+?)\/url
-
-Matches [url=...]Display Text[/url] patterns.
-
-(.*?) captures the URL and display text.
+Loaded from the Style Library using $.getJSON.
 
 
 
+2. Fetch Product JSON from SharePoint List:
 
-2. Replacement Function:
+The SharePoint REST API is used to retrieve the JSON stored in a list field (e.g., ProductJSON).
 
-In the replace function, url and text are the captured groups.
-
-The replacement string is <a href="${url}" target="_blank">${text}</a>.
-
+The product ID is used to filter the specific item.
 
 
-3. Updating Content:
 
-The modified content is inserted into an HTML element using $("#output").html(content).
+3. Merge JSONs:
+
+Missing keys or values from the product-specific JSON are filled using the default JSON.
+
+
+
+4. Dynamic Site URLs:
+
+_spPageContextInfo.webAbsoluteUrl dynamically constructs the API URL for the current site.
 
 
 
@@ -54,26 +136,66 @@ The modified content is inserted into an HTML element using $("#output").html(co
 
 ---
 
-Example HTML for Testing
+Example Output for Nokia (from List)
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Replace Custom URL Tags</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</head>
-<body>
-  <div id="output">
-    This is a [url=https://google.com]Google[/url] link.
-  </div>
+Specific JSON in the SharePoint List:
 
-  <script>
-    $(document).ready(function () {
-        // Example content
-        let content = $("#output").html();
+{
+  "Product": {
+    "name": "Nokia",
+    "price": "200",
+    "features": {
+      "warranty": "2 years"
+    }
+  }
+}
 
-        // Replace custom [url] tags with <a> tags
-        content = content.replace(/url=(.+?)(.+
+Merged Output:
+
+{
+  "Product": {
+    "name": "Nokia",
+    "price": "200",
+    "brand": "Generic",
+    "description": "Default description",
+    "features": {
+      "warranty": "2 years",
+      "support": "Standard"
+    }
+  }
+}
+
+
+---
+
+SharePoint List Setup
+
+1. List Name: Products.
+
+
+2. Field for JSON: ProductJSON (Multi-line text field or Note field).
+
+
+3. Example Data:
+
+ID: 1
+
+ProductJSON: (as shown above).
+
+
+
+
+
+---
+
+Benefits of This Approach
+
+Centralized default configuration in the Style Library.
+
+Dynamically retrieves specific product JSON from the SharePoint list.
+
+Ensures consistency by merging missing fields from the default JSON.
+
+
+Let me know if you need more help!
 
