@@ -1,91 +1,52 @@
-If you're using a newer version of CKEditor (e.g., CKEditor 5) and want to handle clipboardInput using the editor.editing.view.document.on method, here’s how to set it up:
+To replace custom tags like [url=https://google.com]Display Text[/url] with a proper <a> tag using jQuery, you can use a regular expression to parse the content and perform the replacement.
+
+Here’s how you can do it:
 
 
 ---
 
-Handling clipboardInput in CKEditor 5
+jQuery Code to Replace [url] with <a> Tag
 
-The clipboardInput event is triggered when content is pasted or dropped into the editor. This event allows you to intercept the clipboard data before it is inserted into the editor.
+$(document).ready(function () {
+    // Example content
+    let content = "This is a [url=https://google.com]Google[/url] link.";
 
-Here’s how to implement it:
-
-// Assuming you have already initialized CKEditor 5
-ClassicEditor
-    .create(document.querySelector('#editor'))
-    .then(editor => {
-        // Add a listener for the clipboardInput event
-        editor.editing.view.document.on('clipboardInput', (evt, data) => {
-            console.log('Clipboard input detected!');
-
-            // Access the pasted content
-            const htmlContent = data.dataTransfer.getData('text/html');
-            if (htmlContent) {
-                // Create a temporary DOM element to parse the content
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = htmlContent;
-
-                // Remove inline styles and other unwanted attributes
-                const elements = tempDiv.querySelectorAll('*');
-                elements.forEach(element => {
-                    element.removeAttribute('style'); // Remove inline styles
-                    element.removeAttribute('class'); // Remove classes
-                    element.removeAttribute('id');    // Remove IDs
-                    element.removeAttribute('onclick'); // Remove event handlers
-                });
-
-                // Update the data before it is inserted
-                data.content = editor.data.processor.toView(tempDiv.innerHTML);
-            }
-        });
-
-        console.log('Editor is ready.');
-    })
-    .catch(error => {
-        console.error('Error initializing editor:', error);
+    // Replace custom [url] tags with <a> tags
+    content = content.replace(/url=(.+?)(.+?)\/url/g, function (match, url, text) {
+        return `<a href="${url}" target="_blank">${text}</a>`;
     });
 
+    // Display the modified content
+    $("#output").html(content);
+});
+
 
 ---
 
-Explanation of the Code
+Explanation
 
-1. Initialization:
+1. Regular Expression:
 
-Replace the #editor selector with the element containing your editor instance.
+url=(.+?)(.+?)\/url
 
-Ensure you are using CKEditor 5.
+Matches [url=...]Display Text[/url] patterns.
 
-
-
-2. Listening to clipboardInput:
-
-clipboardInput is triggered before the clipboard data is inserted into the editor.
-
-You can access the clipboard data using data.dataTransfer.getData().
+(.*?) captures the URL and display text.
 
 
 
-3. Sanitize Clipboard Content:
 
-Use a temporary div to parse the HTML content.
+2. Replacement Function:
 
-Remove unwanted attributes like style, class, and id.
+In the replace function, url and text are the captured groups.
 
-
-
-4. Update the Pasted Content:
-
-Convert the sanitized HTML back to CKEditor’s view-compatible content using editor.data.processor.toView().
-
-Replace the data.content property with the sanitized content.
+The replacement string is <a href="${url}" target="_blank">${text}</a>.
 
 
 
-5. Testing:
+3. Updating Content:
 
-Paste content with inline styles or unwanted formatting into the editor.
-
-Confirm in the browser console that the event is triggered, and the sanitized content is inserted.
+The modified content is inserted into an HTML element using $("#output").html(content).
 
 
 
@@ -93,13 +54,26 @@ Confirm in the browser console that the event is triggered, and the sanitized co
 
 ---
 
-Benefits of Using clipboardInput
+Example HTML for Testing
 
-Allows fine-grained control over pasted or dropped content.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Replace Custom URL Tags</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <div id="output">
+    This is a [url=https://google.com]Google[/url] link.
+  </div>
 
-Prevents unwanted styles and attributes before they are rendered in the editor.
+  <script>
+    $(document).ready(function () {
+        // Example content
+        let content = $("#output").html();
 
-Works seamlessly with CKEditor 5's modern architecture.
+        // Replace custom [url] tags with <a> tags
+        content = content.replace(/url=(.+?)(.+
 
-
-Let me know if you need additional help with this approach!
