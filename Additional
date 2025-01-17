@@ -9,14 +9,14 @@ function previewDataBind(listTitle, paramContentOffering, paramVersion) {
                 baseListDetails.ProductDetails === listTitle
             ) {
                 const items = JSON.parse(data.d.results[0].JSON_x0020_Template);
-                resolve({ type: "product", data: items }); // Resolve with product-specific JSON
+                resolve({ type: "product", data: items });
             } else if (
                 publishListDetails.AreaOfSupport === listTitle ||
                 baseListDetails.AreaOfSupport === listTitle
             ) {
                 const items = data.d.results;
                 if (items.length > 0) {
-                    resolve({ type: "support", data: items }); // Resolve with support-specific data
+                    resolve({ type: "support", data: items });
                 } else {
                     reject("Area of Support data not found!");
                 }
@@ -26,39 +26,30 @@ function previewDataBind(listTitle, paramContentOffering, paramVersion) {
         });
     });
 
-    // Step 2: Fetch Default JSON (only for ProductDetails)
+    // Step 2: Fetch Default JSON
     const fetchDefaultJson = new Promise((resolve, reject) => {
         $.get(defaultJsonUrl, function (defaultJsonText) {
             try {
                 const defaultJson = JSON.parse(defaultJsonText);
-                resolve(defaultJson); // Resolve with default JSON
+                resolve(defaultJson);
             } catch (error) {
                 reject("Failed to parse default JSON");
             }
         }).fail(function (error) {
-            reject(error); // Handle fetch error
+            reject(error);
         });
     });
 
-    // Step 3: Run All Operations and Handle Both Scenarios
-    fetchProductJson
-        .then((result) => {
-            if (result.type === "product") {
-                // For ProductDetails, merge with default JSON
-                fetchDefaultJson
-                    .then((defaultJson) => {
-                        const mergedItems = mergeJSON(defaultJson, result.data);
-                        bind_banner_details(mergedItems);
-                        afterAllCompleted();
-                    })
-                    .catch((error) => {
-                        console.error("Error loading default JSON:", error);
-                    });
-            } else if (result.type === "support") {
-                // For AreaOfSupport, directly bind the data
-                const supportInfoHtml = contentTypeHandlers["SupportCards"](result.data);
-                $("#divSupportSlider").append(supportInfoHtml);
-                afterAllCompleted();
+    // Step 3: Handle promises
+    Promise.all([fetchProductJson, fetchDefaultJson])
+        .then(([productResult, defaultJson]) => {
+            if (productResult.type === "product") {
+                // Merge product JSON with default JSON
+                const mergedItems = mergeJSON(defaultJson, productResult.data);
+                bind_banner_details(mergedItems);
+            } else if (productResult.type === "support") {
+                // Run the else block logic
+                handleElseBlock(productResult.data);
             }
         })
         .catch((error) => {
@@ -77,9 +68,31 @@ function previewDataBind(listTitle, paramContentOffering, paramVersion) {
         return specificJson;
     }
 
+    // Function for the "else" block logic
+    function handleElseBlock(supportData) {
+        waitForElement("#divSupportSlider", () => {
+            const supportInfoHtml = contentTypeHandlers["SupportCards"](supportData);
+            $("#divSupportSlider").append(supportInfoHtml);
+            afterAllCompleted();
+        });
+    }
+
     // Function to execute after everything is completed
     function afterAllCompleted() {
         console.log("All tasks completed!");
-        // Add any post-processing or additional logic here
+    }
+
+    // Function to wait for an element to be available in the DOM
+    function waitForElement(selector, callback) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if ($(selector).length > 0) {
+                    observer.disconnect(); // Stop observing once the element is found
+                    callback();
+                }
+            });
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 }
