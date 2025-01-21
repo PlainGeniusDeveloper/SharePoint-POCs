@@ -1,34 +1,42 @@
+// Step 3: Run All Operations and Handle Both Scenarios
 Promise.all([fetchProductJson, fetchDefaultJson])
-    .then(([productResult, defaultJson]) => {
-        // Assuming productResult is an array of results
-        return processAllResults(productResult, defaultJson);
-    })
-    .then(() => {
-        console.log("Started custom code");
-        afterAllCompleted(); // Call your custom function here
-    })
-    .catch((error) => {
-        console.error("Error handling promises:", error);
-    });
+  .then(async ([productResult, defaultResult]) => {
+    // Initialize an array to store the results of processResult
+    const processTasks = [];
 
-// Async function to process all results
-async function processAllResults(results, defaultJson) {
-    for (const result of results) {
-        // Await the processing of each result
-        await processResult(result, defaultJson);
+    // Iterate through results and process them
+    const results = [
+      { result: productResult, defaultJson: defaultResult }
+    ];
+
+    for (const { result, defaultJson } of results) {
+      // Push the processResult promises to the array
+      processTasks.push(processResult(result, defaultJson));
     }
-    return Promise.resolve(); // Ensure this function is async
-}
 
-// Async function to process a single result
+    // Wait for all processResults to complete
+    await Promise.all(processTasks);
+  })
+  .then(() => {
+    // After all results are processed
+    console.log("Started custom code");
+    afterAllCompleted();
+  })
+  .catch((error) => {
+    // Handle errors
+    console.error("Error processing results:", error);
+  });
+
+// Process result as an async function
 async function processResult(result, defaultJson) {
-    if (result.type === "content-type") {
-        const mergedItems = mergeJSON(defaultJson, result.data);
-        await bind_banner_details(mergedItems); // Await async operation
-    } else if (result.type === "support-cards") {
-        const supportInfoHtml = contentTypeHandlers["SupportCards"](result.data);
-        $("#divSupportSlider").append(supportInfoHtml);
-    } else {
-        console.warn("Unhandled result type:", result.type);
-    }
+  if (result.type === "content-type") {
+    // Merge product JSON with default JSON
+    const mergedItems = mergeJSON(defaultJson, result.data);
+    bindBannerDetails(mergedItems);
+  } else if (result.type === "support-cards") {
+    const supportInfoHtml = contentTypeHandlers["SupportCards"](result.data);
+    $("#divSupportSlider").append(supportInfoHtml);
+  } else {
+    console.warn("Unknown result type:", result.type);
+  }
 }
