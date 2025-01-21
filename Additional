@@ -1,8 +1,22 @@
-The issue is occurring because Promise.all resolves concurrently for all promises, and even though you are processing the results in sequence (in then), the custom log statements for "All results processed" are being executed for each processed item.
+No, Promise.all doesn't provide a direct way to get the count of resolved promises during its execution. It only resolves when all promises are fulfilled, or rejects as soon as one fails.
 
-To ensure "All results processed" runs only once after both promises are fully resolved and their results are processed, you can modify the code as follows:
+However, you can work around this limitation by:
 
-Updated Code
+1. Wrapping promises with metadata or tracking their state.
+
+
+2. Using Promise.allSettled to get information about all promises, including their resolved or rejected state.
+
+
+
+
+---
+
+Using Promise.allSettled to Track Resolved Promises
+
+Promise.allSettled gives detailed information about each promise's state (fulfilled/rejected), allowing you to count the resolved ones.
+
+Example:
 
 function previewdataBind(listTitle, paramContentOffering, paramVersion) {
   var listName = listTitle;
@@ -12,11 +26,11 @@ function previewdataBind(listTitle, paramContentOffering, paramVersion) {
     getListItems(listTitle, paramContentOffering, paramVersion, function (data) {
       if (publishListDetails.ProductDetails === listTitle || baseListDetails.ProductDetails === listTitle) {
         const items = JSON.parse(data.d.results[0].JSON_x0020_Template);
-        resolve({ type: "content-type", data: items }); // Resolve with product-specific JSON
+        resolve({ type: "content-type", data: items, source: "fetchProductJson" });
       } else if (publishListDetails.AreaOfSupport === listTitle || baseListDetails.AreaOfSupport === listTitle) {
         const items = data.d.results;
         if (items.length > 0) {
-          resolve({ type: "support-cards", data: items }); // Resolve with support-specific data
+          resolve({ type: "support-cards", data: items, source: "fetchProductJson" });
         } else {
           reject("Area of Support data not found!");
         }
@@ -31,68 +45,71 @@ function previewdataBind(listTitle, paramContentOffering, paramVersion) {
     $.get(defaultJsonUrl, function (defaultJsonText) {
       try {
         const defaultJson = JSON.parse(defaultJsonText);
-        resolve(defaultJson); // Resolve with default JSON
+        resolve({ data: defaultJson, source: "fetchDefaultJson" });
       } catch (error) {
         reject("Failed to parse default JSON");
       }
     }).fail(function (error) {
-      reject(error); // Handle fetch error
+      reject(error);
     });
   });
 
-  // Step 2: Run Promises and Process Results
-  Promise.all([fetchProductJson, fetchDefaultJson])
-    .then(([productJsonResult, defaultJson]) => {
-      // Process results sequentially
-      processResult(productJsonResult, defaultJson)
-        .then(() => {
-          console.log("All results processed."); // Log once after processing
-          afterAllCompleted(); // Call custom function after all processing is done
-        })
-        .catch((error) => {
-          console.error("Error during result processing:", error);
-        });
-    })
-    .catch((error) => {
-      console.error("Error occurred:", error);
+  // Step 2: Use Promise.allSettled
+  Promise.allSettled([fetchProductJson, fetchDefaultJson]).then((results) => {
+    let resolvedCount = 0;
+
+    results.forEach((result) => {
+      if (result.status === "fulfilled") {
+        resolvedCount++;
+        console.log(`Resolved Promise from: ${result.value.source}`);
+        if (result.value.type === "content-type") {
+          console.log("Content type process");
+          bindBannerDetails(result.value.data); // Handle content type data
+        } else if (result.value.type === "support-cards") {
+          console.log("Support cards process");
+          $("#divSupportSlider").append(contentTypeHandlers["SupportCards"](result.value.data));
+        }
+      } else {
+        console.error(`Rejected Promise: ${result.reason}`);
+      }
     });
 
-  // Function to process a single result
-  async function processResult(productJsonResult, defaultJson) {
-    if (productJsonResult.type === "content-type") {
-      console.log("Content type process");
-      const mergedItems = mergeJSON(defaultJson, productJsonResult.data); // Merge logic
-      bindBannerDetails(mergedItems); // Your binding function
-    } else if (productJsonResult.type === "support-cards") {
-      console.log("Support cards processing");
-      const supportInfoHtml = contentTypeHandlers["SupportCards"](productJsonResult.data);
-      $("#divSupportSlider").append(supportInfoHtml); // Append logic
-    } else {
-      console.log("Unknown type:", productJsonResult.type);
+    console.log(`Total Promises Resolved: ${resolvedCount}`);
+    console.log("All promises settled.");
+    if (resolvedCount === results.length) {
+      console.log("All promises resolved successfully!");
+      afterAllCompleted(); // Run your custom function
     }
-  }
+  });
 }
 
 
 ---
 
-Key Adjustments
+Key Notes:
 
-1. Consolidated Final Log:
+1. Promise.allSettled:
 
-The console.log("All results processed.") is placed after both types of data are processed.
+It waits for all promises to either resolve or reject.
+
+Returns an array of objects where each object contains:
+
+status: "fulfilled" or "rejected".
+
+value (if resolved) or reason (if rejected).
 
 
 
-2. Sequential Processing:
 
-The processResult function handles one result at a time, and only after all results are processed, the final log and custom function (afterAllCompleted()) are executed.
+2. Resolved Count:
+
+A counter (resolvedCount) is incremented for every fulfilled promise.
 
 
 
-3. Removed Duplicate Logs:
+3. Processing Rejections:
 
-Log statements inside processResult ensure individual tasks are logged, while "All results processed" is logged only once.
+Rejected promises are logged separately but don’t stop processing other promises.
 
 
 
@@ -100,12 +117,23 @@ Log statements inside processResult ensure individual tasks are logged, while "A
 
 ---
 
-Output
+Output Example:
 
 If both promises resolve:
 
+Resolved Promise from: fetchProductJson
 Content type process
-Support cards processing
-All results processed
+Resolved Promise from: fetchDefaultJson
+Total Promises Resolved: 2
+All promises settled.
+All promises resolved successfully!
 
-If there
+If one promise fails:
+
+Resolved Promise from: fetchProductJson
+Content type process
+Rejected Promise: Failed to parse default JSON
+Total Promises Resolved: 1
+All promises settled.
+
+This approach ensures you can count and log each resolved promise while handling failures gracefully.
