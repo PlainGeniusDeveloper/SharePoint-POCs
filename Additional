@@ -1,100 +1,74 @@
-Yes, if you call await afterCompleted() at two different places, the afterCompleted() function will execute independently at both places, and the function will be called twice. This happens because await does not cache or share results of function calls; it simply waits for the current execution to complete.
+To execute a custom function after handling all results returned by a promise or an operation, you can leverage Promise.all in combination with .then. Here's how you can ensure that a custom function is executed after all operations for the results are completed:
 
+Updated Code
 
----
+// Step 3: Run All Operations and Handle Both Scenarios
+Promise.all([fetchProductJson, fetchDefaultJson])
+    .then(([result, defaultJson]) => {
+        if (result.type === "content-type") {
+            // Merge product JSON with default JSON
+            const mergedItems = mergeJSON(defaultJson, result.data);
+            bind_banner_details(mergedItems);
+        } else if (result.type === "support-cards") {
+            const supportInfoHtml = contentTypeHandlers["SupportCards"](result.data);
+            $("#divSupportSlider").append(supportInfoHtml);
+        }
 
-Example of Function Being Called Twice
+        return result; // Return the processed result for further use
+    })
+    .then(() => {
+        // Custom function to execute after handling all results
+        runCustomFunction();
+    })
+    .catch((error) => {
+        console.error("Error handling promises:", error);
+    });
 
-async function afterCompleted() {
-    console.log("Executing afterCompleted...");
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate a delay
-    console.log("afterCompleted done!");
+// Custom Function
+function runCustomFunction() {
+    console.log("All processing is done. Running custom function...");
+    // Your custom logic here
 }
 
-async function main() {
-    console.log("Calling afterCompleted the first time...");
-    await afterCompleted(); // First call
-    console.log("First call completed.");
+Explanation
 
-    console.log("Calling afterCompleted the second time...");
-    await afterCompleted(); // Second call
-    console.log("Second call completed.");
-}
+1. Promise.all:
 
-main();
-
-
----
-
-Output:
-
-Calling afterCompleted the first time...
-Executing afterCompleted...
-afterCompleted done!
-First call completed.
-Calling afterCompleted the second time...
-Executing afterCompleted...
-afterCompleted done!
-Second call completed.
-
-
----
-
-How to Prevent Multiple Calls
-
-If you want the function to only execute once and reuse the result in subsequent calls, you can cache the result of the function using a variable or a flag.
-
-Solution with Caching:
-
-let afterCompletedPromise = null;
-
-async function afterCompleted() {
-    if (!afterCompletedPromise) {
-        afterCompletedPromise = new Promise((resolve) => {
-            console.log("Executing afterCompleted...");
-            setTimeout(() => {
-                console.log("afterCompleted done!");
-                resolve();
-            }, 2000); // Simulated delay
-        });
-    }
-    return afterCompletedPromise;
-}
-
-async function main() {
-    console.log("Calling afterCompleted the first time...");
-    await afterCompleted(); // First call
-    console.log("First call completed.");
-
-    console.log("Calling afterCompleted the second time...");
-    await afterCompleted(); // Second call (cached result)
-    console.log("Second call completed.");
-}
-
-main();
-
-
----
-
-Updated Output (with Caching):
-
-Calling afterCompleted the first time...
-Executing afterCompleted...
-afterCompleted done!
-First call completed.
-Calling afterCompleted the second time...
-First call completed.
-Second call completed.
-
-
----
-
-Key Points:
-
-1. Without Caching: The function will execute separately for each call.
-
-
-2. With Caching: The result of the first execution is reused for subsequent calls, and the function runs only once.
+It waits for all promises in the array (fetchProductJson and fetchDefaultJson) to resolve before proceeding to .then.
 
 
 
+2. First .then Block:
+
+Handles individual results (result and defaultJson) and processes them accordingly. For example:
+
+Merges JSONs.
+
+Binds data to a banner.
+
+Appends content to a slider.
+
+
+
+
+3. Second .then Block:
+
+Executes the custom function runCustomFunction() after all the data processing for the results is complete.
+
+
+
+4. Error Handling:
+
+The .catch block ensures that errors in any promise or processing step are logged.
+
+
+
+
+Key Benefits
+
+Ensures runCustomFunction is executed only after all promises are resolved and data processing is completed.
+
+Avoids race conditions or incomplete executions.
+
+
+This approach will ensure your custom function runs only after all operations for the results are fully processed.
