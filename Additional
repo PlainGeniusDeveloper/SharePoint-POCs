@@ -1,16 +1,9 @@
-The current approach (results.forEach with processResult) doesn't handle asynchronous execution properly. forEach doesn't wait for promises to resolve, so the .then block will execute immediately after starting the forEach loop, without waiting for all processResult calls to complete.
-
-To fix this, use a for...of loop with await or Promise.all() to ensure proper synchronization.
-
-Updated Code
-
 Promise.all([fetchProductJson, fetchDefaultJson])
-    .then(([results, defaultJson]) => {
-        // Call the async function to process all results
-        return processAllResults(results, defaultJson);
+    .then(([productResult, defaultJson]) => {
+        // Assuming productResult is an array of results
+        return processAllResults(productResult, defaultJson);
     })
     .then(() => {
-        // This will execute only after all results are processed
         console.log("Started custom code");
         afterAllCompleted(); // Call your custom function here
     })
@@ -39,41 +32,3 @@ async function processResult(result, defaultJson) {
         console.warn("Unhandled result type:", result.type);
     }
 }
-
-
----
-
-Key Changes
-
-1. Use for...of Loop in processAllResults:
-
-for...of ensures that each processResult is awaited before moving to the next one.
-
-
-
-2. Await processResult:
-
-Ensures each result is fully processed before proceeding to the next.
-
-
-
-3. afterAllCompleted Only After All Results:
-
-The .then() block containing afterAllCompleted runs only after all processResult calls are completed.
-
-
-
-
-
----
-
-Why This Works
-
-Promise.all ensures that both fetchProductJson and fetchDefaultJson are resolved before proceeding.
-
-The processAllResults function handles results one by one, waiting for each to complete.
-
-afterAllCompleted runs only after all results have been fully processed.
-
-
-This approach ensures proper synchronization and scalability, handling asynchronous tasks efficiently.
