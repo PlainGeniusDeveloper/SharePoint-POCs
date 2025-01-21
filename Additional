@@ -1,103 +1,100 @@
-To ensure that the function waits until another independent function has added buttons to a specific div, you can use async/await in combination with a Promise that resolves when the independent function completes.
-
-Here's an example:
+Yes, if you call await afterCompleted() at two different places, the afterCompleted() function will execute independently at both places, and the function will be called twice. This happens because await does not cache or share results of function calls; it simply waits for the current execution to complete.
 
 
 ---
 
-Scenario
+Example of Function Being Called Twice
 
-You have an independent function (addButtons) that dynamically adds buttons to a div. You want another function (triggerClick) to wait until those buttons are added.
-
-
----
-
-Example Code
-
-// Function to dynamically add buttons to a div
-function addButtons() {
-    return new Promise((resolve) => {
-        console.log("Adding buttons...");
-
-        // Simulating an asynchronous operation
-        setTimeout(() => {
-            const targetDiv = $("#button-container");
-            targetDiv.append('<button class="dynamic-button">Button 1</button>');
-            targetDiv.append('<button class="dynamic-button">Button 2</button>');
-
-            console.log("Buttons added!");
-            resolve(); // Resolve the promise once buttons are added
-        }, 2000); // Simulated delay (e.g., fetching data or some other task)
-    });
+async function afterCompleted() {
+    console.log("Executing afterCompleted...");
+    await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate a delay
+    console.log("afterCompleted done!");
 }
 
-// Function to trigger a click event on dynamically added buttons
-async function triggerClick() {
-    console.log("Waiting for buttons to be added...");
+async function main() {
+    console.log("Calling afterCompleted the first time...");
+    await afterCompleted(); // First call
+    console.log("First call completed.");
 
-    // Wait for addButtons to complete
-    await addButtons();
-
-    console.log("Buttons are ready. Triggering click...");
-    $(".dynamic-button").on("click", function () {
-        alert($(this).text() + " clicked!");
-    });
-
-    // Trigger the click event programmatically
-    $(".dynamic-button").first().trigger("click");
+    console.log("Calling afterCompleted the second time...");
+    await afterCompleted(); // Second call
+    console.log("Second call completed.");
 }
 
-$(document).ready(function () {
-    triggerClick(); // Call the triggerClick function when the DOM is ready
-});
+main();
 
 
 ---
 
-How It Works
+Output:
 
-1. addButtons Function:
-
-Simulates the process of adding buttons asynchronously (e.g., via an API call or other delay).
-
-Returns a Promise that resolves once the buttons are added to the DOM.
-
-
-
-2. triggerClick Function:
-
-An async function that uses await to wait for addButtons to complete before proceeding.
-
-Once the buttons are added, it binds a click event to the dynamically added buttons and triggers a click programmatically.
-
-
-
-3. Process:
-
-When the page loads, triggerClick ensures that the buttons are added before triggering any events.
-
-
-
+Calling afterCompleted the first time...
+Executing afterCompleted...
+afterCompleted done!
+First call completed.
+Calling afterCompleted the second time...
+Executing afterCompleted...
+afterCompleted done!
+Second call completed.
 
 
 ---
 
-Output
+How to Prevent Multiple Calls
 
-1. Console logs:
+If you want the function to only execute once and reuse the result in subsequent calls, you can cache the result of the function using a variable or a flag.
 
-"Waiting for buttons to be added..."
+Solution with Caching:
 
-"Adding buttons..."
+let afterCompletedPromise = null;
 
-"Buttons added!"
+async function afterCompleted() {
+    if (!afterCompletedPromise) {
+        afterCompletedPromise = new Promise((resolve) => {
+            console.log("Executing afterCompleted...");
+            setTimeout(() => {
+                console.log("afterCompleted done!");
+                resolve();
+            }, 2000); // Simulated delay
+        });
+    }
+    return afterCompletedPromise;
+}
 
-"Buttons are ready. Triggering click..."
+async function main() {
+    console.log("Calling afterCompleted the first time...");
+    await afterCompleted(); // First call
+    console.log("First call completed.");
+
+    console.log("Calling afterCompleted the second time...");
+    await afterCompleted(); // Second call (cached result)
+    console.log("Second call completed.");
+}
+
+main();
+
+
+---
+
+Updated Output (with Caching):
+
+Calling afterCompleted the first time...
+Executing afterCompleted...
+afterCompleted done!
+First call completed.
+Calling afterCompleted the second time...
+First call completed.
+Second call completed.
+
+
+---
+
+Key Points:
+
+1. Without Caching: The function will execute separately for each call.
+
+
+2. With Caching: The result of the first execution is reused for subsequent calls, and the function runs only once.
 
 
 
-2. Alerts when a button is clicked.
-
-
-
-This approach ensures that you don't run the click logic until the buttons are fully added to the DOM.
