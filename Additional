@@ -1,90 +1,65 @@
-To handle the processing logic in a loop, you can iterate over the results (if there are multiple) and handle each result in sequence, waiting for the processing of each to complete before moving to the next. Here's an updated version with the loop-based approach:
+The current approach (results.forEach with processResult) doesn't handle asynchronous execution properly. forEach doesn't wait for promises to resolve, so the .then block will execute immediately after starting the forEach loop, without waiting for all processResult calls to complete.
 
-Updated Code with Loop for Processing Results
+To fix this, use a for...of loop with await or Promise.all() to ensure proper synchronization.
 
-// Step 3: Run All Operations and Handle Both Scenarios
+Updated Code
+
 Promise.all([fetchProductJson, fetchDefaultJson])
-    .then(([results, defaultJson]) => processResultsInLoop(results, defaultJson)) // Process results in a loop
+    .then(([results, defaultJson]) => {
+        // Call the async function to process all results
+        return processAllResults(results, defaultJson);
+    })
     .then(() => {
-        // Ensure this runs only after all processing is complete
-        runCustomFunction();
+        // This will execute only after all results are processed
+        console.log("Started custom code");
+        afterAllCompleted(); // Call your custom function here
     })
     .catch((error) => {
         console.error("Error handling promises:", error);
     });
 
-// Async function to handle results in a loop
-async function processResultsInLoop(results, defaultJson) {
+// Async function to process all results
+async function processAllResults(results, defaultJson) {
     for (const result of results) {
-        switch (result.type) {
-            case "content-type":
-                // Merge product JSON with default JSON
-                const mergedItems = mergeJSON(defaultJson, result.data);
-
-                // Await binding banner details
-                await bind_banner_details(mergedItems);
-
-                console.log("Content-type processing done for:", result);
-                break;
-
-            case "support-cards":
-                const supportInfoHtml = contentTypeHandlers["SupportCards"](result.data);
-
-                // Simulate async operation (if necessary)
-                await new Promise((resolve) => {
-                    $("#divSupportSlider").append(supportInfoHtml);
-                    resolve();
-                });
-
-                console.log("Support-cards processing done for:", result);
-                break;
-
-            default:
-                console.warn(`Unhandled type: ${result.type}`);
-                // Await if there's some asynchronous task for unhandled types
-                await new Promise((resolve) => setTimeout(resolve, 0)); // Dummy async operation
-                break;
-        }
+        // Await the processing of each result
+        await processResult(result, defaultJson);
     }
-
-    // Ensure the function completes asynchronously
-    return Promise.resolve();
+    return Promise.resolve(); // Ensure this function is async
 }
 
-// Custom Function
-function runCustomFunction() {
-    console.log("All processing is done. Running custom function...");
-    // Your custom logic here
+// Async function to process a single result
+async function processResult(result, defaultJson) {
+    if (result.type === "content-type") {
+        const mergedItems = mergeJSON(defaultJson, result.data);
+        await bind_banner_details(mergedItems); // Await async operation
+    } else if (result.type === "support-cards") {
+        const supportInfoHtml = contentTypeHandlers["SupportCards"](result.data);
+        $("#divSupportSlider").append(supportInfoHtml);
+    } else {
+        console.warn("Unhandled result type:", result.type);
+    }
 }
 
 
 ---
 
-How It Works
+Key Changes
 
-1. Iterate with a for...of Loop:
+1. Use for...of Loop in processAllResults:
 
-The processResultsInLoop function takes an array of results and processes them one by one.
-
-
-
-2. Await for Each Item:
-
-Inside the loop, each result is processed synchronously (one after the other) by awaiting the relevant operation.
-
-Ensures that subsequent iterations only run after the current iteration completes.
+for...of ensures that each processResult is awaited before moving to the next one.
 
 
 
-3. Handle Multiple Results:
+2. Await processResult:
 
-If there are multiple results (e.g., multiple types of JSON responses), each will be processed in sequence.
+Ensures each result is fully processed before proceeding to the next.
 
 
 
-4. Custom Function Runs After All:
+3. afterAllCompleted Only After All Results:
 
-runCustomFunction() will only be called after all results have been processed, ensuring proper flow.
+The .then() block containing afterAllCompleted runs only after all processResult calls are completed.
 
 
 
@@ -92,14 +67,13 @@ runCustomFunction() will only be called after all results have been processed, e
 
 ---
 
-Example Output (Expected)
+Why This Works
 
-For two results:
+Promise.all ensures that both fetchProductJson and fetchDefaultJson are resolved before proceeding.
 
-Processing content-type for: {type: "content-type", data: {...}}
-Content-type processing done for: {type: "content-type", data: {...}}
-Processing support-cards for: {type: "support-cards", data: {...}}
-Support-cards processing done for: {type: "support-cards", data: {...}}
-All processing is done. Running custom function...
+The processAllResults function handles results one by one, waiting for each to complete.
 
-This approach ensures that your logic is modular and scalable, handling any number of results while maintaining proper asynchronous flow.
+afterAllCompleted runs only after all results have been fully processed.
+
+
+This approach ensures proper synchronization and scalability, handling asynchronous tasks efficiently.
