@@ -1,31 +1,33 @@
-The issue arises because forEach does not await promises by itself. We need to use a for...of loop with await or ensure we collect the promises and await them explicitly before proceeding.
+If the .then() block after your loop is still being executed prematurely, the issue might be that Promise.all resolves before the asynchronous operations within the loop are complete. This can happen if the asynchronous operations are not properly awaited or the loop isn't correctly designed to handle asynchronous behavior.
 
-Here’s how you can properly handle the situation:
+To ensure everything is handled properly, convert the Promise.all and processing logic into a fully async/await flow. Here's the updated code:
 
-Updated Code with for...of:
+Fully Async Approach
 
-// Step 3: Run All Operations and Handle Both Scenarios
-Promise.all([fetchProductJson, fetchDefaultJson])
-  .then(async ([productResult, defaultResult]) => {
+(async function executeAllOperations() {
+  try {
+    // Step 3: Run All Operations and Handle Both Scenarios
+    const [productResult, defaultResult] = await Promise.all([fetchProductJson, fetchDefaultJson]);
+
     // Wrap the processing in an async function
     const results = [
       { result: productResult, defaultJson: defaultResult }
     ];
 
-    // Iterate over results with a for...of loop to process each result sequentially
+    // Use a for...of loop to await each result processing
     for (const { result, defaultJson } of results) {
-      await processResult(result, defaultJson);
+      await processResult(result, defaultJson); // Ensure each result is fully processed
     }
-  })
-  .then(() => {
+
     // After all results are processed
     console.log("Started custom code");
     afterAllCompleted();
-  })
-  .catch((error) => {
+
+  } catch (error) {
     // Handle errors
     console.error("Error processing results:", error);
-  });
+  }
+})();
 
 // Process result as an async function
 async function processResult(result, defaultJson) {
@@ -41,33 +43,36 @@ async function processResult(result, defaultJson) {
   }
 }
 
-Key Points:
+Key Adjustments:
 
-1. for...of with await:
+1. Top-Level async Function:
 
-The for...of loop ensures that each processResult call completes before moving to the next.
-
-It allows the loop to wait for processResult to finish before continuing.
+We wrapped the entire operation in an async function (executeAllOperations), ensuring proper use of await.
 
 
 
-2. Sequential Execution:
+2. await Inside Loop:
 
-Using await processResult(...) ensures each result is fully processed before moving to the next one.
-
-
-
-3. Custom Code Execution:
-
-The .then() after the loop only runs after all results are processed.
+Each processResult call is awaited. This ensures that each result is fully processed before moving to the next.
 
 
 
-4. No Need for Promise.all in Loop:
+3. No .then() for Processing:
 
-By using await inside the loop, you handle each promise sequentially.
+By using async/await completely, there's no need to rely on .then() for sequencing.
+
+
+
+4. Order Guaranteed:
+
+The for...of loop guarantees sequential processing, and the await ensures no code in the then block runs until the loop finishes.
 
 
 
 
-This ensures the custom function (afterAllCompleted()) only executes after the loop has processed all results completely.
+Why It Works:
+
+The await keyword pauses execution of the executeAllOperations function until the asynchronous operation resolves.
+
+This guarantees afterAllCompleted() only runs after all processResult calls have completed.
+
