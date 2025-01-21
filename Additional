@@ -1,78 +1,123 @@
-If the .then() block after your loop is still being executed prematurely, the issue might be that Promise.all resolves before the asynchronous operations within the loop are complete. This can happen if the asynchronous operations are not properly awaited or the loop isn't correctly designed to handle asynchronous behavior.
+Here’s the updated code for your previewdataBind function. The update ensures that the custom function will execute only after all promises are resolved and processed:
 
-To ensure everything is handled properly, convert the Promise.all and processing logic into a fully async/await flow. Here's the updated code:
+Updated Code
 
-Fully Async Approach
+function previewdataBind(listTitle, paramContentOffering, paramVersion) {
+  var listName = listTitle;
 
-(async function executeAllOperations() {
-  try {
-    // Step 3: Run All Operations and Handle Both Scenarios
-    const [productResult, defaultResult] = await Promise.all([fetchProductJson, fetchDefaultJson]);
+  // Step 1: Define Promises
+  const fetchProductJson = new Promise((resolve, reject) => {
+    getListItems(listTitle, paramContentOffering, paramVersion, function (data) {
+      if (publishListDetails.ProductDetails === listTitle || baseListDetails.ProductDetails === listTitle) {
+        const items = JSON.parse(data.d.results[0].JSON_x0020_Template);
+        resolve({ type: "content-type", data: items }); // Resolve with product-specific JSON
+      } else if (publishListDetails.AreaOfSupport === listTitle || baseListDetails.AreaOfSupport === listTitle) {
+        const items = data.d.results;
+        if (items.length > 0) {
+          resolve({ type: "support-cards", data: items }); // Resolve with support-specific data
+        } else {
+          reject("Area of Support data not found!");
+        }
+      } else {
+        reject("Unsupported list title!");
+      }
+    });
+  });
 
-    // Wrap the processing in an async function
-    const results = [
-      { result: productResult, defaultJson: defaultResult }
-    ];
+  const fetchDefaultJson = new Promise((resolve, reject) => {
+    const defaultJsonUrl = siteUrl + "/Style Library/Json/product.txt";
+    $.get(defaultJsonUrl, function (defaultJsonText) {
+      try {
+        const defaultJson = JSON.parse(defaultJsonText);
+        resolve(defaultJson); // Resolve with default JSON
+      } catch (error) {
+        reject("Failed to parse default JSON");
+      }
+    }).fail(function (error) {
+      reject(error); // Handle fetch error
+    });
+  });
 
-    // Use a for...of loop to await each result processing
-    for (const { result, defaultJson } of results) {
-      await processResult(result, defaultJson); // Ensure each result is fully processed
+  // Step 2: Run Promises and Process Results
+  Promise.all([fetchProductJson, fetchDefaultJson])
+    .then(async ([productJsonResult, defaultJson]) => {
+      // Process results sequentially
+      await processResult(productJsonResult, defaultJson);
+
+      // Call custom function after processing all results
+      console.log("All results processed. Running custom code...");
+      afterAllCompleted();
+    })
+    .catch((error) => {
+      console.error("Error occurred:", error);
+    });
+
+  // Function to process a single result
+  async function processResult(productJsonResult, defaultJson) {
+    if (productJsonResult.type === "content-type") {
+      const mergedItems = mergeJSON(defaultJson, productJsonResult.data); // Merge logic
+      bindBannerDetails(mergedItems); // Your binding function
+    } else if (productJsonResult.type === "support-cards") {
+      const supportInfoHtml = contentTypeHandlers["SupportCards"](productJsonResult.data);
+      $("#divSupportSlider").append(supportInfoHtml); // Append logic
+    } else {
+      console.log("Unknown type:", productJsonResult.type);
     }
-
-    // After all results are processed
-    console.log("Started custom code");
-    afterAllCompleted();
-
-  } catch (error) {
-    // Handle errors
-    console.error("Error processing results:", error);
-  }
-})();
-
-// Process result as an async function
-async function processResult(result, defaultJson) {
-  if (result.type === "content-type") {
-    // Merge product JSON with default JSON
-    const mergedItems = mergeJSON(defaultJson, result.data);
-    bindBannerDetails(mergedItems);
-  } else if (result.type === "support-cards") {
-    const supportInfoHtml = contentTypeHandlers["SupportCards"](result.data);
-    $("#divSupportSlider").append(supportInfoHtml);
-  } else {
-    console.warn("Unknown result type:", result.type);
   }
 }
 
-Key Adjustments:
 
-1. Top-Level async Function:
+---
 
-We wrapped the entire operation in an async function (executeAllOperations), ensuring proper use of await.
+Explanation of Updates
 
+1. Sequential Execution:
 
-
-2. await Inside Loop:
-
-Each processResult call is awaited. This ensures that each result is fully processed before moving to the next.
+Used await in the then block to ensure sequential execution of processResult.
 
 
 
-3. No .then() for Processing:
+2. Custom Function:
 
-By using async/await completely, there's no need to rely on .then() for sequencing.
-
-
-
-4. Order Guaranteed:
-
-The for...of loop guarantees sequential processing, and the await ensures no code in the then block runs until the loop finishes.
+afterAllCompleted() is called only after both promises resolve and their results are fully processed.
 
 
 
+3. Error Handling:
 
-Why It Works:
+Added a catch block to handle any errors that occur during promise resolution or result processing.
 
-The await keyword pauses execution of the executeAllOperations function until the asynchronous operation resolves.
 
-This guarantees afterAllCompleted() only runs after all processResult calls have completed.
 
+4. Process Result Logic:
+
+processResult is refactored as an async function for sequential execution when merging or appending data.
+
+
+
+
+
+---
+
+Flow:
+
+1. Fetch Promises:
+
+Both fetchProductJson and fetchDefaultJson run concurrently.
+
+
+
+2. Process Results:
+
+Results are processed sequentially using processResult.
+
+
+
+3. Custom Function Execution:
+
+After processing all results, the afterAllCompleted function is called.
+
+
+
+
+This ensures all data is processed before moving forward. Let me know if there are additional adjustments needed!
