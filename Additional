@@ -1,45 +1,44 @@
-No, Promise.all doesn't provide a direct way to get the count of resolved promises during its execution. It only resolves when all promises are fulfilled, or rejects as soon as one fails.
-
-However, you can work around this limitation by:
-
-1. Wrapping promises with metadata or tracking their state.
-
-
-2. Using Promise.allSettled to get information about all promises, including their resolved or rejected state.
-
-
+Here's how you can create a new promise specifically for the publishListDetails.AreaOfSupport === listTitle condition. We will extract that logic into a separate promise and integrate it with the existing Promise.allSettled workflow.
 
 
 ---
 
-Using Promise.allSettled to Track Resolved Promises
-
-Promise.allSettled gives detailed information about each promise's state (fulfilled/rejected), allowing you to count the resolved ones.
-
-Example:
+Updated Code with an Additional Promise:
 
 function previewdataBind(listTitle, paramContentOffering, paramVersion) {
   var listName = listTitle;
 
   // Step 1: Define Promises
+
+  // Promise for fetching Product JSON
   const fetchProductJson = new Promise((resolve, reject) => {
     getListItems(listTitle, paramContentOffering, paramVersion, function (data) {
       if (publishListDetails.ProductDetails === listTitle || baseListDetails.ProductDetails === listTitle) {
         const items = JSON.parse(data.d.results[0].JSON_x0020_Template);
         resolve({ type: "content-type", data: items, source: "fetchProductJson" });
-      } else if (publishListDetails.AreaOfSupport === listTitle || baseListDetails.AreaOfSupport === listTitle) {
-        const items = data.d.results;
-        if (items.length > 0) {
-          resolve({ type: "support-cards", data: items, source: "fetchProductJson" });
-        } else {
-          reject("Area of Support data not found!");
-        }
       } else {
-        reject("Unsupported list title!");
+        reject("Unsupported list title for ProductDetails!");
       }
     });
   });
 
+  // Promise for fetching Area of Support data
+  const fetchAreaOfSupport = new Promise((resolve, reject) => {
+    getListItems(listTitle, paramContentOffering, paramVersion, function (data) {
+      if (publishListDetails.AreaOfSupport === listTitle || baseListDetails.AreaOfSupport === listTitle) {
+        const items = data.d.results;
+        if (items.length > 0) {
+          resolve({ type: "support-cards", data: items, source: "fetchAreaOfSupport" });
+        } else {
+          reject("Area of Support data not found!");
+        }
+      } else {
+        reject("Unsupported list title for AreaOfSupport!");
+      }
+    });
+  });
+
+  // Promise for fetching Default JSON
   const fetchDefaultJson = new Promise((resolve, reject) => {
     const defaultJsonUrl = siteUrl + "/Style Library/Json/product.txt";
     $.get(defaultJsonUrl, function (defaultJsonText) {
@@ -55,7 +54,7 @@ function previewdataBind(listTitle, paramContentOffering, paramVersion) {
   });
 
   // Step 2: Use Promise.allSettled
-  Promise.allSettled([fetchProductJson, fetchDefaultJson]).then((results) => {
+  Promise.allSettled([fetchProductJson, fetchAreaOfSupport, fetchDefaultJson]).then((results) => {
     let resolvedCount = 0;
 
     results.forEach((result) => {
@@ -86,30 +85,36 @@ function previewdataBind(listTitle, paramContentOffering, paramVersion) {
 
 ---
 
-Key Notes:
+Explanation of the New Promise:
 
-1. Promise.allSettled:
+1. fetchAreaOfSupport:
 
-It waits for all promises to either resolve or reject.
+This promise handles the logic specific to publishListDetails.AreaOfSupport === listTitle.
 
-Returns an array of objects where each object contains:
+Resolves with the support-cards data when the condition is met and items exist.
 
-status: "fulfilled" or "rejected".
+Rejects if:
 
-value (if resolved) or reason (if rejected).
+The listTitle doesn't match the expected value.
 
-
-
-
-2. Resolved Count:
-
-A counter (resolvedCount) is incremented for every fulfilled promise.
+No items are found for AreaOfSupport.
 
 
 
-3. Processing Rejections:
 
-Rejected promises are logged separately but don’t stop processing other promises.
+2. Promise.allSettled:
+
+It now handles all three promises: fetchProductJson, fetchAreaOfSupport, and fetchDefaultJson.
+
+Logs the resolved or rejected state for each promise.
+
+
+
+3. Custom Handling:
+
+Added source property to each promise's resolution to indicate its origin.
+
+This makes debugging and tracking easier.
 
 
 
@@ -119,21 +124,27 @@ Rejected promises are logged separately but don’t stop processing other promis
 
 Output Example:
 
-If both promises resolve:
+Case: All Promises Resolve
 
 Resolved Promise from: fetchProductJson
 Content type process
+Resolved Promise from: fetchAreaOfSupport
+Support cards process
 Resolved Promise from: fetchDefaultJson
-Total Promises Resolved: 2
+Total Promises Resolved: 3
 All promises settled.
 All promises resolved successfully!
 
-If one promise fails:
+Case: One Promise Fails
 
 Resolved Promise from: fetchProductJson
 Content type process
-Rejected Promise: Failed to parse default JSON
-Total Promises Resolved: 1
+Rejected Promise: Area of Support data not found!
+Resolved Promise from: fetchDefaultJson
+Total Promises Resolved: 2
 All promises settled.
 
-This approach ensures you can count and log each resolved promise while handling failures gracefully.
+
+---
+
+This ensures that each condition is handled separately, making the code modular, testable, and easier to debug.
