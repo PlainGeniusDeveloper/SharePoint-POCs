@@ -1,21 +1,12 @@
-To execute a custom function after handling all results returned by a promise or an operation, you can leverage Promise.all in combination with .then. Here's how you can ensure that a custom function is executed after all operations for the results are completed:
+Yes, you can absolutely refactor the if-else logic into a separate async function. By doing so, you can use await or return a Promise to ensure the if-else block completes before proceeding to the .then block.
 
-Updated Code
+Here’s how you can refactor it:
+
+Refactored Code Using a Separate Async Function
 
 // Step 3: Run All Operations and Handle Both Scenarios
 Promise.all([fetchProductJson, fetchDefaultJson])
-    .then(([result, defaultJson]) => {
-        if (result.type === "content-type") {
-            // Merge product JSON with default JSON
-            const mergedItems = mergeJSON(defaultJson, result.data);
-            bind_banner_details(mergedItems);
-        } else if (result.type === "support-cards") {
-            const supportInfoHtml = contentTypeHandlers["SupportCards"](result.data);
-            $("#divSupportSlider").append(supportInfoHtml);
-        }
-
-        return result; // Return the processed result for further use
-    })
+    .then(([result, defaultJson]) => processResult(result, defaultJson)) // Call the async function
     .then(() => {
         // Custom function to execute after handling all results
         runCustomFunction();
@@ -24,51 +15,69 @@ Promise.all([fetchProductJson, fetchDefaultJson])
         console.error("Error handling promises:", error);
     });
 
+// Async function to handle if-else logic
+async function processResult(result, defaultJson) {
+    if (result.type === "content-type") {
+        // Merge product JSON with default JSON
+        const mergedItems = mergeJSON(defaultJson, result.data);
+
+        // Bind banner details (assume this is asynchronous)
+        await bind_banner_details(mergedItems); // Make sure this function returns a promise if asynchronous
+
+        console.log("Content-type processing done.");
+    } else if (result.type === "support-cards") {
+        const supportInfoHtml = contentTypeHandlers["SupportCards"](result.data);
+
+        // Append to the DOM (simulate async operation if needed)
+        await new Promise((resolve) => {
+            $("#divSupportSlider").append(supportInfoHtml);
+            resolve(); // Signal completion
+        });
+
+        console.log("Support-cards processing done.");
+    }
+}
+
 // Custom Function
 function runCustomFunction() {
     console.log("All processing is done. Running custom function...");
     // Your custom logic here
 }
 
-Explanation
+Explanation of Changes
 
-1. Promise.all:
+1. Separate Async Function (processResult):
 
-It waits for all promises in the array (fetchProductJson and fetchDefaultJson) to resolve before proceeding to .then.
+Handles the if-else logic.
 
+Makes it easier to test and debug.
 
-
-2. First .then Block:
-
-Handles individual results (result and defaultJson) and processes them accordingly. For example:
-
-Merges JSONs.
-
-Binds data to a banner.
-
-Appends content to a slider.
+Uses await to wait for asynchronous operations within each block.
 
 
 
+2. Await Asynchronous Operations:
 
-3. Second .then Block:
+await bind_banner_details(mergedItems) ensures that the function waits for bind_banner_details to complete (it must return a promise for this to work).
 
-Executes the custom function runCustomFunction() after all the data processing for the results is complete.
+For $("#divSupportSlider").append(supportInfoHtml), a manual Promise is used to simulate asynchronous behavior.
 
 
 
-4. Error Handling:
+3. Wait for Completion in .then:
 
-The .catch block ensures that errors in any promise or processing step are logged.
+The .then block will wait for processResult to resolve before proceeding.
 
 
 
 
-Key Benefits
+Benefits
 
-Ensures runCustomFunction is executed only after all promises are resolved and data processing is completed.
+Clarity: The main Promise.all chain is cleaner and easier to read.
 
-Avoids race conditions or incomplete executions.
+Reusability: You can reuse processResult elsewhere if needed.
+
+Control: Each block within the if-else handles its asynchronous operations independently, and the parent chain waits for completion.
 
 
-This approach will ensure your custom function runs only after all operations for the results are fully processed.
+This ensures that the runCustomFunction() will only execute after processResult has fully resolved.
