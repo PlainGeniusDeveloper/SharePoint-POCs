@@ -1,47 +1,53 @@
-To handle future scalability (e.g., more else if conditions), it's better to dynamically structure the code to avoid manually resolving promises in every block. Instead, the async function can return a resolved Promise after completing the processing for each condition. Here’s how you can make the function modular and scalable:
+To handle the processing logic in a loop, you can iterate over the results (if there are multiple) and handle each result in sequence, waiting for the processing of each to complete before moving to the next. Here's an updated version with the loop-based approach:
 
-Refactored Code for Scalability
+Updated Code with Loop for Processing Results
 
 // Step 3: Run All Operations and Handle Both Scenarios
 Promise.all([fetchProductJson, fetchDefaultJson])
-    .then(([result, defaultJson]) => processResult(result, defaultJson)) // Call the async function
+    .then(([results, defaultJson]) => processResultsInLoop(results, defaultJson)) // Process results in a loop
     .then(() => {
-        // Custom function to execute after handling all results
+        // Ensure this runs only after all processing is complete
         runCustomFunction();
     })
     .catch((error) => {
         console.error("Error handling promises:", error);
     });
 
-// Async function to handle if-else logic
-async function processResult(result, defaultJson) {
-    switch (result.type) {
-        case "content-type":
-            // Merge product JSON with default JSON
-            const mergedItems = mergeJSON(defaultJson, result.data);
+// Async function to handle results in a loop
+async function processResultsInLoop(results, defaultJson) {
+    for (const result of results) {
+        switch (result.type) {
+            case "content-type":
+                // Merge product JSON with default JSON
+                const mergedItems = mergeJSON(defaultJson, result.data);
 
-            // Bind banner details (assume this is asynchronous)
-            await bind_banner_details(mergedItems);
+                // Await binding banner details
+                await bind_banner_details(mergedItems);
 
-            console.log("Content-type processing done.");
-            break;
+                console.log("Content-type processing done for:", result);
+                break;
 
-        case "support-cards":
-            const supportInfoHtml = contentTypeHandlers["SupportCards"](result.data);
+            case "support-cards":
+                const supportInfoHtml = contentTypeHandlers["SupportCards"](result.data);
 
-            // Append to the DOM (simulate async operation if needed)
-            $("#divSupportSlider").append(supportInfoHtml);
+                // Simulate async operation (if necessary)
+                await new Promise((resolve) => {
+                    $("#divSupportSlider").append(supportInfoHtml);
+                    resolve();
+                });
 
-            console.log("Support-cards processing done.");
-            break;
+                console.log("Support-cards processing done for:", result);
+                break;
 
-        default:
-            console.warn(`Unhandled type: ${result.type}`);
-            // Handle unrecognized types if necessary
-            break;
+            default:
+                console.warn(`Unhandled type: ${result.type}`);
+                // Await if there's some asynchronous task for unhandled types
+                await new Promise((resolve) => setTimeout(resolve, 0)); // Dummy async operation
+                break;
+        }
     }
 
-    // Return a resolved promise explicitly for consistency
+    // Ensure the function completes asynchronously
     return Promise.resolve();
 }
 
@@ -54,25 +60,31 @@ function runCustomFunction() {
 
 ---
 
-Improvements for Scalability
+How It Works
 
-1. Replaced if-else with switch:
+1. Iterate with a for...of Loop:
 
-A switch statement makes the function more modular and easier to extend.
-
-Adding a new case (e.g., case "new-type":) tomorrow requires minimal effort.
+The processResultsInLoop function takes an array of results and processes them one by one.
 
 
 
-2. Default Case for Unhandled Types:
+2. Await for Each Item:
 
-A default case ensures unrecognized result.type values are logged or handled safely without breaking the flow.
+Inside the loop, each result is processed synchronously (one after the other) by awaiting the relevant operation.
+
+Ensures that subsequent iterations only run after the current iteration completes.
 
 
 
-3. Return a Resolved Promise at the End:
+3. Handle Multiple Results:
 
-Ensures that the function explicitly signals completion, no matter how many cases you add.
+If there are multiple results (e.g., multiple types of JSON responses), each will be processed in sequence.
+
+
+
+4. Custom Function Runs After All:
+
+runCustomFunction() will only be called after all results have been processed, ensuring proper flow.
 
 
 
@@ -80,16 +92,14 @@ Ensures that the function explicitly signals completion, no matter how many case
 
 ---
 
-Benefits
+Example Output (Expected)
 
-Extensibility: Adding new conditions is straightforward.
+For two results:
 
-Maintainability: Centralizes logic in a structured manner.
+Processing content-type for: {type: "content-type", data: {...}}
+Content-type processing done for: {type: "content-type", data: {...}}
+Processing support-cards for: {type: "support-cards", data: {...}}
+Support-cards processing done for: {type: "support-cards", data: {...}}
+All processing is done. Running custom function...
 
-Safety: Handles unknown types gracefully, avoiding runtime errors.
-
-Explicit Completion: Ensures the promise is always resolved regardless of the conditions.
-
-
-With this setup, you can add any number of new conditions tomorrow without altering the flow or worrying about missing a resolve.
-
+This approach ensures that your logic is modular and scalable, handling any number of results while maintaining proper asynchronous flow.
