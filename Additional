@@ -1,98 +1,103 @@
-function previewDataBind(listTitle, paramContentOffering, paramVersion) {
-    const defaultJsonUrl = "/sites/SiteName/Style Library/json/default.txt";
+To ensure that the function waits until another independent function has added buttons to a specific div, you can use async/await in combination with a Promise that resolves when the independent function completes.
 
-    // Step 1: Fetch Product-Specific JSON
-    const fetchProductJson = new Promise((resolve, reject) => {
-        getListItems(listTitle, paramContentOffering, paramVersion, function (data) {
-            if (
-                publishListDetails.ProductDetails === listTitle ||
-                baseListDetails.ProductDetails === listTitle
-            ) {
-                const items = JSON.parse(data.d.results[0].JSON_x0020_Template);
-                resolve({ type: "product", data: items });
-            } else if (
-                publishListDetails.AreaOfSupport === listTitle ||
-                baseListDetails.AreaOfSupport === listTitle
-            ) {
-                const items = data.d.results;
-                if (items.length > 0) {
-                    resolve({ type: "support", data: items });
-                } else {
-                    reject("Area of Support data not found!");
-                }
-            } else {
-                reject("Unsupported list title!");
-            }
-        });
+Here's an example:
+
+
+---
+
+Scenario
+
+You have an independent function (addButtons) that dynamically adds buttons to a div. You want another function (triggerClick) to wait until those buttons are added.
+
+
+---
+
+Example Code
+
+// Function to dynamically add buttons to a div
+function addButtons() {
+    return new Promise((resolve) => {
+        console.log("Adding buttons...");
+
+        // Simulating an asynchronous operation
+        setTimeout(() => {
+            const targetDiv = $("#button-container");
+            targetDiv.append('<button class="dynamic-button">Button 1</button>');
+            targetDiv.append('<button class="dynamic-button">Button 2</button>');
+
+            console.log("Buttons added!");
+            resolve(); // Resolve the promise once buttons are added
+        }, 2000); // Simulated delay (e.g., fetching data or some other task)
     });
-
-    // Step 2: Fetch Default JSON
-    const fetchDefaultJson = new Promise((resolve, reject) => {
-        $.get(defaultJsonUrl, function (defaultJsonText) {
-            try {
-                const defaultJson = JSON.parse(defaultJsonText);
-                resolve(defaultJson);
-            } catch (error) {
-                reject("Failed to parse default JSON");
-            }
-        }).fail(function (error) {
-            reject(error);
-        });
-    });
-
-    // Step 3: Handle promises
-    Promise.all([fetchProductJson, fetchDefaultJson])
-        .then(([productResult, defaultJson]) => {
-            if (productResult.type === "product") {
-                // Merge product JSON with default JSON
-                const mergedItems = mergeJSON(defaultJson, productResult.data);
-                bind_banner_details(mergedItems);
-            } else if (productResult.type === "support") {
-                // Run the else block logic
-                handleElseBlock(productResult.data);
-            }
-        })
-        .catch((error) => {
-            console.error("Error:", error);
-        });
-
-    // Recursive function to merge JSON objects
-    function mergeJSON(defaultJson, specificJson) {
-        for (const key in defaultJson) {
-            if (!specificJson.hasOwnProperty(key)) {
-                specificJson[key] = defaultJson[key];
-            } else if (typeof defaultJson[key] === "object" && !Array.isArray(defaultJson[key])) {
-                specificJson[key] = mergeJSON(defaultJson[key], specificJson[key]);
-            }
-        }
-        return specificJson;
-    }
-
-    // Function for the "else" block logic
-    function handleElseBlock(supportData) {
-        waitForElement("#divSupportSlider", () => {
-            const supportInfoHtml = contentTypeHandlers["SupportCards"](supportData);
-            $("#divSupportSlider").append(supportInfoHtml);
-            afterAllCompleted();
-        });
-    }
-
-    // Function to execute after everything is completed
-    function afterAllCompleted() {
-        console.log("All tasks completed!");
-    }
-
-    // Function to wait for an element to be available in the DOM
-    function waitForElement(selector, callback) {
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if ($(selector).length > 0) {
-                    observer.disconnect(); // Stop observing once the element is found
-                    callback();
-                }
-            });
-        });
-
-        observer.observe(document.body, { childList: true, subtree: true });
-    }
 }
+
+// Function to trigger a click event on dynamically added buttons
+async function triggerClick() {
+    console.log("Waiting for buttons to be added...");
+
+    // Wait for addButtons to complete
+    await addButtons();
+
+    console.log("Buttons are ready. Triggering click...");
+    $(".dynamic-button").on("click", function () {
+        alert($(this).text() + " clicked!");
+    });
+
+    // Trigger the click event programmatically
+    $(".dynamic-button").first().trigger("click");
+}
+
+$(document).ready(function () {
+    triggerClick(); // Call the triggerClick function when the DOM is ready
+});
+
+
+---
+
+How It Works
+
+1. addButtons Function:
+
+Simulates the process of adding buttons asynchronously (e.g., via an API call or other delay).
+
+Returns a Promise that resolves once the buttons are added to the DOM.
+
+
+
+2. triggerClick Function:
+
+An async function that uses await to wait for addButtons to complete before proceeding.
+
+Once the buttons are added, it binds a click event to the dynamically added buttons and triggers a click programmatically.
+
+
+
+3. Process:
+
+When the page loads, triggerClick ensures that the buttons are added before triggering any events.
+
+
+
+
+
+---
+
+Output
+
+1. Console logs:
+
+"Waiting for buttons to be added..."
+
+"Adding buttons..."
+
+"Buttons added!"
+
+"Buttons are ready. Triggering click..."
+
+
+
+2. Alerts when a button is clicked.
+
+
+
+This approach ensures that you don't run the click logic until the buttons are fully added to the DOM.
