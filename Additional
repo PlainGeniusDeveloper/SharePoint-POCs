@@ -1,21 +1,21 @@
+The issue arises because forEach does not await promises by itself. We need to use a for...of loop with await or ensure we collect the promises and await them explicitly before proceeding.
+
+Here’s how you can properly handle the situation:
+
+Updated Code with for...of:
+
 // Step 3: Run All Operations and Handle Both Scenarios
 Promise.all([fetchProductJson, fetchDefaultJson])
   .then(async ([productResult, defaultResult]) => {
-    // Initialize an array to store the results of processResult
-    const processTasks = [];
-
-    // Iterate through results and process them
+    // Wrap the processing in an async function
     const results = [
       { result: productResult, defaultJson: defaultResult }
     ];
 
+    // Iterate over results with a for...of loop to process each result sequentially
     for (const { result, defaultJson } of results) {
-      // Push the processResult promises to the array
-      processTasks.push(processResult(result, defaultJson));
+      await processResult(result, defaultJson);
     }
-
-    // Wait for all processResults to complete
-    await Promise.all(processTasks);
   })
   .then(() => {
     // After all results are processed
@@ -40,3 +40,34 @@ async function processResult(result, defaultJson) {
     console.warn("Unknown result type:", result.type);
   }
 }
+
+Key Points:
+
+1. for...of with await:
+
+The for...of loop ensures that each processResult call completes before moving to the next.
+
+It allows the loop to wait for processResult to finish before continuing.
+
+
+
+2. Sequential Execution:
+
+Using await processResult(...) ensures each result is fully processed before moving to the next one.
+
+
+
+3. Custom Code Execution:
+
+The .then() after the loop only runs after all results are processed.
+
+
+
+4. No Need for Promise.all in Loop:
+
+By using await inside the loop, you handle each promise sequentially.
+
+
+
+
+This ensures the custom function (afterAllCompleted()) only executes after the loop has processed all results completely.
