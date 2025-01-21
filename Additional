@@ -1,21 +1,22 @@
-Here's how you can create a new promise specifically for the publishListDetails.AreaOfSupport === listTitle condition. We will extract that logic into a separate promise and integrate it with the existing Promise.allSettled workflow.
+If other promises are showing undefined, it's likely because they aren't resolving properly with the expected structure. The issue might be with how the promise's resolve function is being called or with the data being passed.
 
+Let’s debug step by step and update the code to ensure all promises resolve with the correct data structure.
 
----
-
-Updated Code with an Additional Promise:
+Updated Code
 
 function previewdataBind(listTitle, paramContentOffering, paramVersion) {
   var listName = listTitle;
-
-  // Step 1: Define Promises
 
   // Promise for fetching Product JSON
   const fetchProductJson = new Promise((resolve, reject) => {
     getListItems(listTitle, paramContentOffering, paramVersion, function (data) {
       if (publishListDetails.ProductDetails === listTitle || baseListDetails.ProductDetails === listTitle) {
-        const items = JSON.parse(data.d.results[0].JSON_x0020_Template);
-        resolve({ type: "content-type", data: items, source: "fetchProductJson" });
+        try {
+          const items = JSON.parse(data.d.results[0].JSON_x0020_Template);
+          resolve({ type: "content-type", data: items, source: "fetchProductJson" });
+        } catch (error) {
+          reject("Error parsing ProductDetails JSON");
+        }
       } else {
         reject("Unsupported list title for ProductDetails!");
       }
@@ -27,7 +28,7 @@ function previewdataBind(listTitle, paramContentOffering, paramVersion) {
     getListItems(listTitle, paramContentOffering, paramVersion, function (data) {
       if (publishListDetails.AreaOfSupport === listTitle || baseListDetails.AreaOfSupport === listTitle) {
         const items = data.d.results;
-        if (items.length > 0) {
+        if (items && items.length > 0) {
           resolve({ type: "support-cards", data: items, source: "fetchAreaOfSupport" });
         } else {
           reject("Area of Support data not found!");
@@ -67,6 +68,8 @@ function previewdataBind(listTitle, paramContentOffering, paramVersion) {
         } else if (result.value.type === "support-cards") {
           console.log("Support cards process");
           $("#divSupportSlider").append(contentTypeHandlers["SupportCards"](result.value.data));
+        } else {
+          console.log(`Default JSON loaded from: ${result.value.source}`);
         }
       } else {
         console.error(`Rejected Promise: ${result.reason}`);
@@ -85,36 +88,27 @@ function previewdataBind(listTitle, paramContentOffering, paramVersion) {
 
 ---
 
-Explanation of the New Promise:
+Key Fixes:
 
-1. fetchAreaOfSupport:
+1. Added Safety Checks:
 
-This promise handles the logic specific to publishListDetails.AreaOfSupport === listTitle.
+Ensure data.d.results exists before trying to access it.
 
-Resolves with the support-cards data when the condition is met and items exist.
-
-Rejects if:
-
-The listTitle doesn't match the expected value.
-
-No items are found for AreaOfSupport.
+Ensure parsed JSON and array items are valid before resolving the promise.
 
 
 
+2. Debugging Promise Data:
 
-2. Promise.allSettled:
+Logged the result.value.source to identify which promise's data is resolved.
 
-It now handles all three promises: fetchProductJson, fetchAreaOfSupport, and fetchDefaultJson.
-
-Logs the resolved or rejected state for each promise.
-
+Added proper error handling with clear reject messages for debugging.
 
 
-3. Custom Handling:
 
-Added source property to each promise's resolution to indicate its origin.
+3. Default JSON Handling:
 
-This makes debugging and tracking easier.
+Ensure fetchDefaultJson resolves with the correct structure.
 
 
 
@@ -122,29 +116,57 @@ This makes debugging and tracking easier.
 
 ---
 
-Output Example:
+Debugging Steps:
 
-Case: All Promises Resolve
+1. Confirm Inputs:
+
+Verify the listTitle, paramContentOffering, and paramVersion values being passed.
+
+Make sure the backend API (getListItems) returns expected data.
+
+
+
+2. Check API Response:
+
+Log data in both fetchProductJson and fetchAreaOfSupport to confirm the structure:
+
+console.log("API Response:", data);
+
+
+
+3. Verify JSON Structure:
+
+Ensure JSON_x0020_Template exists in data.d.results[0] for fetchProductJson.
+
+Confirm data.d.results exists and has items for fetchAreaOfSupport.
+
+
+
+
+
+---
+
+Example Outputs:
+
+Success:
 
 Resolved Promise from: fetchProductJson
 Content type process
 Resolved Promise from: fetchAreaOfSupport
 Support cards process
 Resolved Promise from: fetchDefaultJson
+Default JSON loaded from: fetchDefaultJson
 Total Promises Resolved: 3
 All promises settled.
 All promises resolved successfully!
 
-Case: One Promise Fails
+Failure:
 
 Resolved Promise from: fetchProductJson
 Content type process
 Rejected Promise: Area of Support data not found!
 Resolved Promise from: fetchDefaultJson
+Default JSON loaded from: fetchDefaultJson
 Total Promises Resolved: 2
 All promises settled.
 
-
----
-
-This ensures that each condition is handled separately, making the code modular, testable, and easier to debug.
