@@ -1,0 +1,18 @@
+function mergeJSON(defaultJson, specificJson) {
+    for (const key in defaultJson) {
+        if (!specificJson.hasOwnProperty(key)) {
+            // Add missing keys from the default JSON
+            specificJson[key] = defaultJson[key];
+        } else if (typeof defaultJson[key] === "object" && 
+                   !Array.isArray(defaultJson[key]) &&
+                   defaultJson[key] !== null) {
+            // Ensure specificJson[key] is also an object before merging
+            if (typeof specificJson[key] !== "object" || Array.isArray(specificJson[key]) || specificJson[key] === null) {
+                specificJson[key] = {};
+            }
+            // Recursively merge nested objects
+            specificJson[key] = mergeJSON(defaultJson[key], specificJson[key]);
+        }
+    }
+    return specificJson;
+}
