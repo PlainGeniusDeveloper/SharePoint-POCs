@@ -3,10 +3,10 @@ function mergeJSON(defaultJson, specificJson) {
 
     for (const key in defaultJson) {
         if (!specificJson.hasOwnProperty(key)) {
-            // Add missing keys in the order of defaultJson
+            // Add missing keys from defaultJson while keeping order
             mergedJson[key] = defaultJson[key];
         } else if (typeof defaultJson[key] === "object" && !Array.isArray(defaultJson[key]) && defaultJson[key] !== null) {
-            // Ensure nested objects are merged and keep order
+            // Ensure nested objects are merged while preventing overwriting existing values
             mergedJson[key] = mergeJSON(defaultJson[key], specificJson[key] || {});
         } else if (Array.isArray(defaultJson[key])) {
             // Ensure the array exists in specificJson
@@ -21,13 +21,13 @@ function mergeJSON(defaultJson, specificJson) {
                     let found = specificArray.find(item => item.tabName === defaultItem.tabName);
                     mergedJson[key].push(found ? mergeJSON(defaultItem, found) : defaultItem);
                 } else {
-                    // Keep primitive values in order
-                    mergedJson[key].push(specificArray.includes(defaultItem) ? defaultItem : defaultItem);
+                    // Keep primitive values in order and avoid duplication
+                    mergedJson[key].push(specificArray.includes(defaultItem) ? specificArray[specificArray.indexOf(defaultItem)] : defaultItem);
                 }
             }
         } else {
-            // Primitive values, keep specificJson value
-            mergedJson[key] = specificJson[key];
+            // Prevent overwriting specificJson values with empty defaultJson values
+            mergedJson[key] = specificJson[key] !== "" ? specificJson[key] : defaultJson[key];
         }
     }
     return mergedJson;
