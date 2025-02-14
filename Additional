@@ -12,6 +12,25 @@ function mergeJSON(defaultJson, specificJson) {
             }
             // Recursively merge nested objects
             specificJson[key] = mergeJSON(defaultJson[key], specificJson[key]);
+        } else if (Array.isArray(defaultJson[key])) {
+            // Ensure the array exists in specificJson
+            if (!Array.isArray(specificJson[key])) {
+                specificJson[key] = [];
+            }
+            // Merge arrays by adding missing items (Assumes arrays are lists of objects)
+            for (let i = 0; i < defaultJson[key].length; i++) {
+                if (typeof defaultJson[key][i] === "object") {
+                    // Try to find a matching object in the specificJson array
+                    let found = specificJson[key].find(item => item.tabName === defaultJson[key][i].tabName);
+                    if (!found) {
+                        specificJson[key].push(defaultJson[key][i]); // Add missing object
+                    } else {
+                        mergeJSON(defaultJson[key][i], found); // Merge found object
+                    }
+                } else if (!specificJson[key].includes(defaultJson[key][i])) {
+                    specificJson[key].push(defaultJson[key][i]); // Add primitive values if missing
+                }
+            }
         }
     }
     return specificJson;
