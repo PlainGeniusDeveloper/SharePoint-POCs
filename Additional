@@ -6,10 +6,14 @@ function mergeJSON(defaultJson, specificJson) {
             // Add missing keys from defaultJson while keeping order
             mergedJson[key] = defaultJson[key];
         } else if (typeof defaultJson[key] === "object" && !Array.isArray(defaultJson[key]) && defaultJson[key] !== null) {
-            // Ensure nested objects are merged while preventing overwriting existing values
-            mergedJson[key] = mergeJSON(defaultJson[key], specificJson[key] || {});
+            // Ensure nested objects are merged and prevent overwriting non-empty specificJson objects
+            if (Object.keys(defaultJson[key]).length === 0) {
+                mergedJson[key] = specificJson[key]; // Don't replace with empty default object
+            } else {
+                mergedJson[key] = mergeJSON(defaultJson[key], specificJson[key] || {});
+            }
         } else if (Array.isArray(defaultJson[key])) {
-            // Ensure the array exists in specificJson
+            // Ensure arrays follow defaultJson order without overwriting non-empty specificJson arrays
             mergedJson[key] = [];
             const specificArray = Array.isArray(specificJson[key]) ? specificJson[key] : [];
 
