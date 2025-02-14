@@ -13,7 +13,7 @@ function mergeJSON(defaultJson, specificJson) {
                 mergedJson[key] = mergeJSON(defaultJson[key], specificJson[key] || {});
             }
         } else if (Array.isArray(defaultJson[key])) {
-            // Ensure arrays follow defaultJson order without overwriting non-empty specificJson arrays
+            // Merge arrays while preserving defaultJson order
             mergedJson[key] = [];
             const specificArray = Array.isArray(specificJson[key]) ? specificJson[key] : [];
 
@@ -21,7 +21,7 @@ function mergeJSON(defaultJson, specificJson) {
                 const defaultItem = defaultJson[key][i];
 
                 if (typeof defaultItem === "object") {
-                    // Find matching object by a unique key (e.g., tabName)
+                    // Find matching object by unique key (e.g., tabName)
                     let found = specificArray.find(item => item.tabName === defaultItem.tabName);
                     mergedJson[key].push(found ? mergeJSON(defaultItem, found) : defaultItem);
                 } else {
@@ -31,7 +31,11 @@ function mergeJSON(defaultJson, specificJson) {
             }
         } else {
             // Prevent overwriting specificJson values with empty defaultJson values
-            mergedJson[key] = specificJson[key] !== "" ? specificJson[key] : defaultJson[key];
+            if (defaultJson[key] === "" && specificJson[key] !== "") {
+                mergedJson[key] = specificJson[key]; // Keep existing non-empty specificJson values
+            } else {
+                mergedJson[key] = specificJson[key] !== undefined ? specificJson[key] : defaultJson[key];
+            }
         }
     }
     return mergedJson;
