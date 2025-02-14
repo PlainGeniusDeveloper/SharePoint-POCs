@@ -1,24 +1,30 @@
-Understood! Since your JSON structure contains an array of objects, we first need to find the object with "tabName": "Support", then update its tabContent.productArea.
+function setValueByPath(jsonObj, path, value) {
+    if (!path) return false;
 
-
----
-
-Fixed Function to Handle Arrays
-
-function setValueByTabName(jsonArray, tabName, path, value) {
-    // Find the object with the given tabName
-    let tabObject = jsonArray.find(obj => obj.tabName === tabName);
-    
-    if (!tabObject) return false; // If tab not found, do nothing
-
-    const keys = path.split('.');
-    let current = tabObject;
+    const keys = path.split('.'); // Split path into keys
+    let current = jsonObj;
 
     for (let i = 0; i < keys.length - 1; i++) {
-        if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
-            current[keys[i]] = {}; // Create missing objects
+        let key = keys[i];
+
+        // Special handling for "tabsDetails" since it's an array of objects
+        if (key === "tabsDetails" && Array.isArray(current)) {
+            let tabName = keys[i + 1]; // Extract "Support" from "tabsDetails.Support"
+            let tabObj = current.find(obj => obj.tabName === tabName);
+
+            if (!tabObj) return false; // If tab is missing, do nothing
+
+            current = tabObj; // Move inside the tab object
+            i++; // Skip the next key (because we already used it)
+            continue;
         }
-        current = current[keys[i]];
+
+        // Create missing objects along the path
+        if (!current[key] || typeof current[key] !== 'object') {
+            current[key] = {};
+        }
+        
+        current = current[key];
     }
 
     // Set the final value
@@ -26,7 +32,7 @@ function setValueByTabName(jsonArray, tabName, path, value) {
     return true;
 }
 
-// Example Usage:
+// Example JSON
 let json_template_to_be_filled = [
     {
         "tabName": "Restrictions",
@@ -45,45 +51,10 @@ let json_template_to_be_filled = [
     }
 ];
 
-let tabName = "Support";
-let jsonPath = "tabContent.productArea";
+// Path & Value
+let jsonPath = "tabsDetails.Support.tabContent.productArea";
 let productArea = ["Product 1", "Product 2"];
 
-setValueByTabName(json_template_to_be_filled, tabName, jsonPath, productArea);
+setValueByPath(json_template_to_be_filled, jsonPath, productArea);
 
 console.log(JSON.stringify(json_template_to_be_filled, null, 2));
-
-
----
-
-Expected Output
-
-[
-  {
-    "tabName": "Restrictions",
-    "tabContent": {
-      "titleName": "Restrictions",
-      "tabAddOnTitleDescription": [],
-      "description": ""
-    }
-  },
-  {
-    "tabName": "Support",
-    "tabContent": {
-      "titleName": "Support",
-      "description": "",
-      "productArea": ["Product 1", "Product 2"]
-    }
-  }
-]
-
-
----
-
-What This Fixes
-
-✅ Finds the correct object in the array using "tabName": "Support"
-✅ Ensures missing objects (tabContent) are created if needed
-✅ Preserves existing properties
-
-Let me know if you need modifications!
