@@ -1,25 +1,49 @@
+Got it! If json_template_to_be_filled already has some structure, but productArea is missing at the specified jsonPath, we need to add it only if it doesn't exist.
+
+Updated Function
+
 function setValueByPath(obj, path, value) {
     if (!path) return; // Ensure path is valid
 
-    const keys = path.split('.'); // Split the path into keys
+    const keys = path.split('.'); 
     let current = obj;
 
     for (let i = 0; i < keys.length - 1; i++) {
         if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
-            current[keys[i]] = {}; // Create an empty object if key is missing
+            current[keys[i]] = {}; // Create nested objects if missing
         }
         current = current[keys[i]];
     }
 
-    // Set the final value
-    current[keys[keys.length - 1]] = value;
+    // Set value **only if the key does not already exist**
+    if (!(keys[keys.length - 1] in current)) {
+        current[keys[keys.length - 1]] = value;
+    }
 }
 
 // Example Usage
-let json_template_to_be_filled = {}; // Initial JSON object
+let json_template_to_be_filled = {
+    "tabsDetails": {
+        "Support": {
+            "tabContent": {} // Existing structure
+        }
+    }
+};
+
 let jsonPath = "tabsDetails.Support.tabContent.productArea";
-let productArea = "Product Value"; // Example value
+let productArea = "Product Value";
 
 setValueByPath(json_template_to_be_filled, jsonPath, productArea);
 
 console.log(json_template_to_be_filled);
+
+Behavior
+
+Existing structure is preserved
+
+If productArea is missing, it gets added
+
+If productArea already exists, it won't be overwritten
+
+
+Would you like an option to overwrite existing values too?
