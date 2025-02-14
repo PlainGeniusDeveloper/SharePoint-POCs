@@ -1,42 +1,68 @@
-function mergeJSON(defaultJson, specificJson) {
-    let mergedJson = Array.isArray(defaultJson) ? [] : {}; // Maintain structure
+I see the issue now:
 
-    for (const key in defaultJson) {
-        if (!specificJson.hasOwnProperty(key)) {
-            // Add missing keys from defaultJson while keeping order
-            mergedJson[key] = defaultJson[key];
-        } else if (typeof defaultJson[key] === "object" && !Array.isArray(defaultJson[key]) && defaultJson[key] !== null) {
-            // Ensure nested objects are merged and prevent overwriting non-empty specificJson objects
-            if (Object.keys(defaultJson[key]).length === 0) {
-                mergedJson[key] = specificJson[key]; // Don't replace with empty default object
-            } else {
-                mergedJson[key] = mergeJSON(defaultJson[key], specificJson[key] || {});
-            }
-        } else if (Array.isArray(defaultJson[key])) {
-            // Merge arrays while preserving defaultJson order
-            mergedJson[key] = [];
-            const specificArray = Array.isArray(specificJson[key]) ? specificJson[key] : [];
+Your Keywords array, e.g., "Keywords": [DEMO], is likely being overwritten as an empty array ([]) during the merge. This happens because mergeJSON currently initializes arrays (mergedJson[key] = []) before merging, but it doesn’t handle arrays properly when merging non-object values like strings or numbers inside them.
 
-            for (let i = 0; i < defaultJson[key].length; i++) {
-                const defaultItem = defaultJson[key][i];
 
-                if (typeof defaultItem === "object") {
-                    // Find matching object by unique key (e.g., tabName)
-                    let found = specificArray.find(item => item.tabName === defaultItem.tabName);
-                    mergedJson[key].push(found ? mergeJSON(defaultItem, found) : defaultItem);
-                } else {
-                    // Keep primitive values in order and avoid duplication
-                    mergedJson[key].push(specificArray.includes(defaultItem) ? specificArray[specificArray.indexOf(defaultItem)] : defaultItem);
-                }
-            }
+---
+
+Fix: Properly Merge Arrays
+
+We need to preserve existing values in specificJson arrays while ensuring defaultJson arrays provide missing values.
+
+Updated Array Handling in mergeJSON
+
+Modify the array handling section like this:
+
+} else if (Array.isArray(defaultJson[key])) {
+    // Preserve order and merge non-empty specificJson array values
+    mergedJson[key] = Array.isArray(specificJson[key]) ? [...specificJson[key]] : [];
+
+    for (let i = 0; i < defaultJson[key].length; i++) {
+        const defaultItem = defaultJson[key][i];
+
+        if (typeof defaultItem === "object") {
+            // Find matching object in specificJson based on a unique identifier (like tabName)
+            let found = mergedJson[key].find(item => item.tabName === defaultItem.tabName);
+            mergedJson[key][i] = found ? mergeJSON(defaultItem, found) : defaultItem;
         } else {
-            // Prevent overwriting specificJson values with empty defaultJson values
-            if (defaultJson[key] === "" && specificJson[key] !== "") {
-                mergedJson[key] = specificJson[key]; // Keep existing non-empty specificJson values
-            } else {
-                mergedJson[key] = specificJson[key] !== undefined ? specificJson[key] : defaultJson[key];
+            // Avoid overwriting existing array elements
+            if (!mergedJson[key].includes(defaultItem)) {
+                mergedJson[key].push(defaultItem);
             }
         }
     }
-    return mergedJson;
 }
+
+
+---
+
+How This Fix Works
+
+✅ Retains existing specificJson array values.
+✅ Prevents replacing non-empty arrays with empty ones.
+✅ Keeps array elements from both defaultJson and specificJson.
+✅ Ensures objects inside arrays are merged recursively.
+
+
+---
+
+Test Case
+
+const defaultJson = {
+    Keywords: ["DEMO", "TEST"]
+};
+
+const specificJson = {
+    Keywords: ["CUSTOM"]
+};
+
+const mergedJson = mergeJSON(defaultJson, specificJson);
+console.log(JSON.stringify(mergedJson, null, 2));
+
+Expected Output
+
+{
+  "Keywords": ["CUSTOM", "DEMO", "TEST"]
+}
+
+Let me know if this works for your case!
