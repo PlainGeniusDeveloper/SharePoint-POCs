@@ -1,16 +1,18 @@
-function processJsonObject(jsonObject) {
-  for (const key in jsonObject) {
-    if (typeof jsonObject[key] === "string") {
-      jsonObject[key] = convertToHtmlLink(jsonObject[key]); // Replace pattern in strings
-    } else if (typeof jsonObject[key] === "object") {
-      processJsonObject(jsonObject[key]); // Recursively process nested objects
+function mergeJSON(defaultJson, specificJson) {
+    for (const key in defaultJson) {
+        if (!specificJson.hasOwnProperty(key)) {
+            // Add missing keys from the default JSON
+            specificJson[key] = defaultJson[key];
+        } else if (typeof defaultJson[key] === "object" && 
+                   !Array.isArray(defaultJson[key]) &&
+                   defaultJson[key] !== null) {
+            // Ensure specificJson[key] is also an object before merging
+            if (typeof specificJson[key] !== "object" || Array.isArray(specificJson[key]) || specificJson[key] === null) {
+                specificJson[key] = {};
+            }
+            // Recursively merge nested objects
+            specificJson[key] = mergeJSON(defaultJson[key], specificJson[key]);
+        }
     }
-  }
-  return jsonObject;
+    return specificJson;
 }
-
-// Apply replacement to the whole JSON
-const updatedJsonData = processJsonObject(jsonData);
-
-// Display updated content
-document.getElementById("output").innerHTML = JSON.stringify(updatedJsonData, null, 2);
