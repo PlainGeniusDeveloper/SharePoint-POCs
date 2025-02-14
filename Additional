@@ -1,68 +1,25 @@
-I see the issue now:
+function setJsonValue(obj, path, value) {
+    const keys = path.split('.'); // Split the path into keys
+    let current = obj;
 
-Your Keywords array, e.g., "Keywords": [DEMO], is likely being overwritten as an empty array ([]) during the merge. This happens because mergeJSON currently initializes arrays (mergedJson[key] = []) before merging, but it doesn’t handle arrays properly when merging non-object values like strings or numbers inside them.
-
-
----
-
-Fix: Properly Merge Arrays
-
-We need to preserve existing values in specificJson arrays while ensuring defaultJson arrays provide missing values.
-
-Updated Array Handling in mergeJSON
-
-Modify the array handling section like this:
-
-} else if (Array.isArray(defaultJson[key])) {
-    // Preserve order and merge non-empty specificJson array values
-    mergedJson[key] = Array.isArray(specificJson[key]) ? [...specificJson[key]] : [];
-
-    for (let i = 0; i < defaultJson[key].length; i++) {
-        const defaultItem = defaultJson[key][i];
-
-        if (typeof defaultItem === "object") {
-            // Find matching object in specificJson based on a unique identifier (like tabName)
-            let found = mergedJson[key].find(item => item.tabName === defaultItem.tabName);
-            mergedJson[key][i] = found ? mergeJSON(defaultItem, found) : defaultItem;
-        } else {
-            // Avoid overwriting existing array elements
-            if (!mergedJson[key].includes(defaultItem)) {
-                mergedJson[key].push(defaultItem);
-            }
+    for (let i = 0; i < keys.length - 1; i++) {
+        if (!current[keys[i]]) {
+            current[keys[i]] = {}; // Create the path if it doesn't exist
         }
+        current = current[keys[i]];
     }
+
+    current[keys[keys.length - 1]] = value; // Set the final value
 }
 
+// Example Usage:
+let config = {};
 
----
+// Path from config
+let jsonPath = "user.details.age";
+let htmlValue = "30"; // Example value from HTML element
 
-How This Fix Works
+setJsonValue(config, jsonPath, htmlValue);
 
-✅ Retains existing specificJson array values.
-✅ Prevents replacing non-empty arrays with empty ones.
-✅ Keeps array elements from both defaultJson and specificJson.
-✅ Ensures objects inside arrays are merged recursively.
-
-
----
-
-Test Case
-
-const defaultJson = {
-    Keywords: ["DEMO", "TEST"]
-};
-
-const specificJson = {
-    Keywords: ["CUSTOM"]
-};
-
-const mergedJson = mergeJSON(defaultJson, specificJson);
-console.log(JSON.stringify(mergedJson, null, 2));
-
-Expected Output
-
-{
-  "Keywords": ["CUSTOM", "DEMO", "TEST"]
-}
-
-Let me know if this works for your case!
+console.log(config);
+// Output: { user: { details: { age: "30" } } }
