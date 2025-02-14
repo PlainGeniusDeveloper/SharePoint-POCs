@@ -1,25 +1,25 @@
-function setJsonValue(obj, path, value) {
+function setValueByPath(obj, path, value) {
+    if (!path) return; // Ensure path is valid
+
     const keys = path.split('.'); // Split the path into keys
     let current = obj;
 
     for (let i = 0; i < keys.length - 1; i++) {
-        if (!current[keys[i]]) {
-            current[keys[i]] = {}; // Create the path if it doesn't exist
+        if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
+            current[keys[i]] = {}; // Create an empty object if key is missing
         }
         current = current[keys[i]];
     }
 
-    current[keys[keys.length - 1]] = value; // Set the final value
+    // Set the final value
+    current[keys[keys.length - 1]] = value;
 }
 
-// Example Usage:
-let config = {};
+// Example Usage
+let json_template_to_be_filled = {}; // Initial JSON object
+let jsonPath = "tabsDetails.Support.tabContent.productArea";
+let productArea = "Product Value"; // Example value
 
-// Path from config
-let jsonPath = "user.details.age";
-let htmlValue = "30"; // Example value from HTML element
+setValueByPath(json_template_to_be_filled, jsonPath, productArea);
 
-setJsonValue(config, jsonPath, htmlValue);
-
-console.log(config);
-// Output: { user: { details: { age: "30" } } }
+console.log(json_template_to_be_filled);
