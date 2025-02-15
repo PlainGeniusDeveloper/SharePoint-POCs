@@ -3,36 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controls & Tools</title>
+    <title>Controls & Tools Table</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+            margin: 20px;
         }
 
-        .container {
-            display: flex;
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .controls, .tools {
-            width: 50%;
-            padding: 20px;
-        }
-
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        li, .tool {
-            padding: 10px;
+        th, td {
             border: 1px solid #ddd;
-            margin: 5px 0;
-            cursor: pointer;
+            padding: 10px;
+            text-align: left;
         }
 
-        .highlight {
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .tool {
+            display: inline-block;
+            margin: 5px;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            background-color: #f9f9f9;
+        }
+
+        .tool:hover, .highlight {
             background-color: yellow;
         }
 
@@ -63,16 +65,17 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="controls">
-            <h3>Controls</h3>
-            <ul id="controlsList"></ul>
-        </div>
-        <div class="tools">
-            <h3>Tools</h3>
-            <div id="toolsList"></div>
-        </div>
-    </div>
+
+    <h2>Controls & Tools</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Control</th>
+                <th>Tools</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
 
     <!-- Modal for tool info -->
     <div id="toolModal" class="modal">
@@ -116,6 +119,26 @@
                         "disclaimer": "Experimental feature.",
                         "advantages": ["Lightweight", "Fast setup"]
                     }
+                },
+                "toolD": {
+                    "name": "Tool D",
+                    "info": {
+                        "importantLinks": [
+                            { "text": "User Guide", "url": "https://userguide.example.com" }
+                        ],
+                        "disclaimer": "May require additional setup.",
+                        "advantages": ["Easy integration", "High availability"]
+                    }
+                },
+                "toolE": {
+                    "name": "Tool E",
+                    "info": {
+                        "importantLinks": [
+                            { "text": "Getting Started", "url": "https://start.example.com" }
+                        ],
+                        "disclaimer": "Only works on latest browsers.",
+                        "advantages": ["Cross-platform", "Optimized for speed"]
+                    }
                 }
             },
             "controls": [
@@ -129,13 +152,24 @@
                     "id": "control2",
                     "displayText": "Control 2",
                     "url": "https://example2.com",
-                    "tools": ["toolA", "toolC"]
+                    "tools": ["toolA", "toolC", "toolD"]
+                },
+                {
+                    "id": "control3",
+                    "displayText": "Control 3",
+                    "url": "https://example3.com",
+                    "tools": ["toolB", "toolC", "toolE"]
+                },
+                {
+                    "id": "control4",
+                    "displayText": "Control 4",
+                    "url": "https://example4.com",
+                    "tools": ["toolD", "toolE"]
                 }
             ]
         };
 
-        const controlsList = document.getElementById("controlsList");
-        const toolsList = document.getElementById("toolsList");
+        const tableBody = document.getElementById("tableBody");
         const modal = document.getElementById("toolModal");
         const modalTitle = document.getElementById("modalTitle");
         const modalLinks = document.getElementById("modalLinks");
@@ -143,16 +177,20 @@
         const modalAdvantages = document.getElementById("modalAdvantages");
         const closeModal = document.querySelector(".close");
 
-        // Load all controls and tools at once
+        // Load all controls and tools into table
         jsonData.controls.forEach(control => {
-            // Add control to left side
-            const li = document.createElement("li");
-            li.innerHTML = `<a href="${control.url}" target="_blank">${control.displayText}</a>`;
-            controlsList.appendChild(li);
+            const row = document.createElement("tr");
 
-            // Add corresponding tools to the right side
+            // Control column
+            const controlCell = document.createElement("td");
+            controlCell.innerHTML = `<a href="${control.url}" target="_blank">${control.displayText}</a>`;
+            row.appendChild(controlCell);
+
+            // Tools column
+            const toolsCell = document.createElement("td");
+
             control.tools.forEach(toolId => {
-                const tool = jsonData.tools[toolId]; // Fetch tool details from tools section
+                const tool = jsonData.tools[toolId];
                 if (tool) {
                     const toolDiv = document.createElement("div");
                     toolDiv.classList.add("tool");
@@ -166,9 +204,12 @@
                     // Click to open modal
                     toolDiv.addEventListener("click", () => openModal(tool.name, tool.info));
 
-                    toolsList.appendChild(toolDiv);
+                    toolsCell.appendChild(toolDiv);
                 }
             });
+
+            row.appendChild(toolsCell);
+            tableBody.appendChild(row);
         });
 
         // Highlight tools of the same type
@@ -184,7 +225,7 @@
 
             // Populate Important Links
             modalLinks.innerHTML = "<h3>Important Links</h3>";
-            if (info.importantLinks && info.importantLinks.length > 0) {
+            if (info.importantLinks.length > 0) {
                 info.importantLinks.forEach(link => {
                     modalLinks.innerHTML += `<p><a href="${link.url}" target="_blank">${link.text}</a></p>`;
                 });
@@ -193,17 +234,13 @@
             }
 
             // Populate Disclaimer
-            modalDisclaimer.innerHTML = `<h3>Disclaimer</h3><p>${info.disclaimer || "No disclaimer available."}</p>`;
+            modalDisclaimer.innerHTML = `<h3>Disclaimer</h3><p>${info.disclaimer}</p>`;
 
             // Populate Advantages
             modalAdvantages.innerHTML = "<h3>Advantages</h3>";
-            if (info.advantages && info.advantages.length > 0) {
-                info.advantages.forEach(adv => {
-                    modalAdvantages.innerHTML += `<li>${adv}</li>`;
-                });
-            } else {
-                modalAdvantages.innerHTML += "<p>No advantages listed.</p>";
-            }
+            info.advantages.forEach(adv => {
+                modalAdvantages.innerHTML += `<li>${adv}</li>`;
+            });
 
             modal.style.display = "flex";
         }
