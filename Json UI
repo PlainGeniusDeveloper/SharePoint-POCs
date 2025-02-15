@@ -75,12 +75,30 @@
             background: white;
             padding: 20px;
             border-radius: 5px;
-            width: 50%;
+            width: 60%;
         }
 
         .close {
             float: right;
             cursor: pointer;
+        }
+
+        /* Grid Table for Modal */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .info-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .info-header {
+            font-weight: bold;
+            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -102,9 +120,18 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2 id="modalTitle"></h2>
-            <div id="modalLinks"></div>
-            <p id="modalDisclaimer"></p>
-            <ul id="modalAdvantages"></ul>
+            <table class="info-table">
+                <tr>
+                    <td><div class="info-header">Important Links</div><div id="modalImportantLinks"></div></td>
+                    <td><div class="info-header">Useful Links</div><div id="modalUsefulLinks"></div></td>
+                    <td><div class="info-header">Version History</div><div id="modalVersionHistory"></div></td>
+                </tr>
+                <tr>
+                    <td><div class="info-header">Disclaimers</div><div id="modalDisclaimers"></div></td>
+                    <td><div class="info-header">Advantages</div><div id="modalAdvantages"></div></td>
+                    <td><div class="info-header">Notes</div><div id="modalNotes"></div></td>
+                </tr>
+            </table>
         </div>
     </div>
 
@@ -116,8 +143,11 @@
                     "icon": "https://via.placeholder.com/40",
                     "info": {
                         "importantLinks": [{ "text": "Docs", "url": "https://docs.example.com" }],
+                        "usefulLinks": [{ "text": "Tutorial", "url": "https://tutorial.example.com" }],
+                        "versionHistory": ["v1.0", "v1.1", "v2.0"],
                         "disclaimer": "Use this tool at your own risk.",
-                        "advantages": ["Fast", "User-friendly"]
+                        "advantages": ["Fast", "User-friendly"],
+                        "notes": "This tool is best for beginners."
                     }
                 },
                 "toolB": {
@@ -125,8 +155,11 @@
                     "icon": "https://via.placeholder.com/40",
                     "info": {
                         "importantLinks": [{ "text": "API", "url": "https://api.example.com" }],
+                        "usefulLinks": [{ "text": "Guide", "url": "https://guide.example.com" }],
+                        "versionHistory": ["v2.1", "v2.2", "v3.0"],
                         "disclaimer": "Limited access for free users.",
-                        "advantages": ["Customizable", "Scalable"]
+                        "advantages": ["Customizable", "Scalable"],
+                        "notes": "Recommended for advanced users."
                     }
                 }
             },
@@ -149,9 +182,12 @@
         const tableBody = document.getElementById("tableBody");
         const modal = document.getElementById("toolModal");
         const modalTitle = document.getElementById("modalTitle");
-        const modalLinks = document.getElementById("modalLinks");
-        const modalDisclaimer = document.getElementById("modalDisclaimer");
+        const modalImportantLinks = document.getElementById("modalImportantLinks");
+        const modalUsefulLinks = document.getElementById("modalUsefulLinks");
+        const modalVersionHistory = document.getElementById("modalVersionHistory");
+        const modalDisclaimers = document.getElementById("modalDisclaimers");
         const modalAdvantages = document.getElementById("modalAdvantages");
+        const modalNotes = document.getElementById("modalNotes");
         const closeModal = document.querySelector(".close");
 
         jsonData.controls.forEach(control => {
@@ -186,11 +222,6 @@
                     toolText.textContent = tool.name;
                     toolCard.appendChild(toolText);
 
-                    // Hover effect to highlight similar tools
-                    toolCard.addEventListener("mouseover", () => highlightTools(toolId, true));
-                    toolCard.addEventListener("mouseout", () => highlightTools(toolId, false));
-
-                    // Click to open modal
                     toolCard.addEventListener("click", () => openModal(tool.name, tool.info));
 
                     toolBox.appendChild(toolCard);
@@ -202,39 +233,18 @@
             tableBody.appendChild(row);
         });
 
-        function highlightTools(toolId, highlight) {
-            document.querySelectorAll(`[data-tool-id="${toolId}"]`).forEach(el => {
-                el.classList.toggle("highlight", highlight);
-            });
-        }
-
         function openModal(title, info) {
             modalTitle.textContent = title;
-            modalLinks.innerHTML = "<h3>Important Links</h3>";
-            if (info.importantLinks.length > 0) {
-                info.importantLinks.forEach(link => {
-                    modalLinks.innerHTML += `<p><a href="${link.url}" target="_blank">${link.text}</a></p>`;
-                });
-            } else {
-                modalLinks.innerHTML += "<p>No links available.</p>";
-            }
-            modalDisclaimer.innerHTML = `<h3>Disclaimer</h3><p>${info.disclaimer}</p>`;
-            modalAdvantages.innerHTML = "<h3>Advantages</h3>";
-            info.advantages.forEach(adv => {
-                modalAdvantages.innerHTML += `<li>${adv}</li>`;
-            });
+            modalImportantLinks.innerHTML = info.importantLinks.map(link => `<p><a href="${link.url}" target="_blank">${link.text}</a></p>`).join("");
+            modalUsefulLinks.innerHTML = info.usefulLinks.map(link => `<p><a href="${link.url}" target="_blank">${link.text}</a></p>`).join("");
+            modalVersionHistory.innerHTML = info.versionHistory.join(", ");
+            modalDisclaimers.textContent = info.disclaimer;
+            modalAdvantages.innerHTML = info.advantages.join(", ");
+            modalNotes.textContent = info.notes;
             modal.style.display = "flex";
         }
 
-        closeModal.addEventListener("click", () => {
-            modal.style.display = "none";
-        });
-
-        window.addEventListener("click", (event) => {
-            if (event.target === modal) {
-                modal.style.display = "none";
-            }
-        });
+        closeModal.addEventListener("click", () => modal.style.display = "none");
     </script>
 </body>
 </html>
