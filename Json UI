@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controls & Tools</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+        }
+
+        .controls, .tools {
+            width: 50%;
+            padding: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li, .tool {
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+
+        .highlight {
+            background-color: yellow;
+        }
+
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            width: 50%;
+        }
+
+        .close {
+            float: right;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <h3>Controls</h3>
+            <ul id="controlsList"></ul>
+        </div>
+        <div class="tools">
+            <h3>Tools</h3>
+            <div id="toolsList"></div>
+        </div>
+    </div>
+
+    <!-- Modal for tool info -->
+    <div id="toolModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <div id="modalLinks"></div>
+            <p id="modalDisclaimer"></p>
+            <ul id="modalAdvantages"></ul>
+        </div>
+    </div>
+
+    <script>
+        const jsonData = {
+            "tools": {
+                "toolA": {
+                    "name": "Tool A",
+                    "info": {
+                        "importantLinks": [
+                            { "text": "Documentation", "url": "https://docs.example.com" },
+                            { "text": "Support", "url": "https://support.example.com" }
+                        ],
+                        "disclaimer": "Use this tool at your own risk.",
+                        "advantages": ["Fast processing", "User-friendly", "Highly secure"]
+                    }
+                },
+                "toolB": {
+                    "name": "Tool B",
+                    "info": {
+                        "importantLinks": [
+                            { "text": "API Reference", "url": "https://api.example.com" }
+                        ],
+                        "disclaimer": "Limited access for free users.",
+                        "advantages": ["Customizable", "Scalable"]
+                    }
+                },
+                "toolC": {
+                    "name": "Tool C",
+                    "info": {
+                        "importantLinks": [],
+                        "disclaimer": "Experimental feature.",
+                        "advantages": ["Lightweight", "Fast setup"]
+                    }
+                }
+            },
+            "controls": [
+                {
+                    "id": "control1",
+                    "displayText": "Control 1",
+                    "url": "https://example.com",
+                    "tools": ["toolA", "toolB"]
+                },
+                {
+                    "id": "control2",
+                    "displayText": "Control 2",
+                    "url": "https://example2.com",
+                    "tools": ["toolA", "toolC"]
+                }
+            ]
+        };
+
+        const controlsList = document.getElementById("controlsList");
+        const toolsList = document.getElementById("toolsList");
+        const modal = document.getElementById("toolModal");
+        const modalTitle = document.getElementById("modalTitle");
+        const modalLinks = document.getElementById("modalLinks");
+        const modalDisclaimer = document.getElementById("modalDisclaimer");
+        const modalAdvantages = document.getElementById("modalAdvantages");
+        const closeModal = document.querySelector(".close");
+
+        // Load all controls and tools at once
+        jsonData.controls.forEach(control => {
+            // Add control to left side
+            const li = document.createElement("li");
+            li.innerHTML = `<a href="${control.url}" target="_blank">${control.displayText}</a>`;
+            controlsList.appendChild(li);
+
+            // Add corresponding tools to the right side
+            control.tools.forEach(toolId => {
+                const tool = jsonData.tools[toolId]; // Fetch tool details from tools section
+                if (tool) {
+                    const toolDiv = document.createElement("div");
+                    toolDiv.classList.add("tool");
+                    toolDiv.textContent = tool.name;
+                    toolDiv.dataset.toolId = toolId;
+
+                    // Hover effect to highlight similar tools
+                    toolDiv.addEventListener("mouseover", () => highlightTools(toolId, true));
+                    toolDiv.addEventListener("mouseout", () => highlightTools(toolId, false));
+
+                    // Click to open modal
+                    toolDiv.addEventListener("click", () => openModal(tool.name, tool.info));
+
+                    toolsList.appendChild(toolDiv);
+                }
+            });
+        });
+
+        // Highlight tools of the same type
+        function highlightTools(toolId, highlight) {
+            document.querySelectorAll(`[data-tool-id="${toolId}"]`).forEach(el => {
+                el.classList.toggle("highlight", highlight);
+            });
+        }
+
+        // Open modal with tool info
+        function openModal(title, info) {
+            modalTitle.textContent = title;
+
+            // Populate Important Links
+            modalLinks.innerHTML = "<h3>Important Links</h3>";
+            if (info.importantLinks && info.importantLinks.length > 0) {
+                info.importantLinks.forEach(link => {
+                    modalLinks.innerHTML += `<p><a href="${link.url}" target="_blank">${link.text}</a></p>`;
+                });
+            } else {
+                modalLinks.innerHTML += "<p>No links available.</p>";
+            }
+
+            // Populate Disclaimer
+            modalDisclaimer.innerHTML = `<h3>Disclaimer</h3><p>${info.disclaimer || "No disclaimer available."}</p>`;
+
+            // Populate Advantages
+            modalAdvantages.innerHTML = "<h3>Advantages</h3>";
+            if (info.advantages && info.advantages.length > 0) {
+                info.advantages.forEach(adv => {
+                    modalAdvantages.innerHTML += `<li>${adv}</li>`;
+                });
+            } else {
+                modalAdvantages.innerHTML += "<p>No advantages listed.</p>";
+            }
+
+            modal.style.display = "flex";
+        }
+
+        // Close modal
+        closeModal.addEventListener("click", () => {
+            modal.style.display = "none";
+        });
+
+        // Close modal on outside click
+        window.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+    </script>
+</body>
+</html>
