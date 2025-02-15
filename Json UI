@@ -19,22 +19,42 @@
             border: 1px solid #ddd;
             padding: 10px;
             text-align: left;
+            vertical-align: top;
         }
 
         th {
             background-color: #f4f4f4;
         }
 
-        .tool {
-            display: inline-block;
-            margin: 5px;
-            padding: 5px 10px;
+        .tool_box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tool_card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
             border: 1px solid #ccc;
             cursor: pointer;
             background-color: #f9f9f9;
+            width: 100px;
+            text-align: center;
         }
 
-        .tool:hover, .highlight {
+        .tool_card img {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 5px;
+        }
+
+        .tool_card_text {
+            font-size: 14px;
+        }
+
+        .tool_card:hover, .highlight {
             background-color: yellow;
         }
 
@@ -93,51 +113,20 @@
             "tools": {
                 "toolA": {
                     "name": "Tool A",
+                    "icon": "https://via.placeholder.com/40",
                     "info": {
-                        "importantLinks": [
-                            { "text": "Documentation", "url": "https://docs.example.com" },
-                            { "text": "Support", "url": "https://support.example.com" }
-                        ],
+                        "importantLinks": [{ "text": "Docs", "url": "https://docs.example.com" }],
                         "disclaimer": "Use this tool at your own risk.",
-                        "advantages": ["Fast processing", "User-friendly", "Highly secure"]
+                        "advantages": ["Fast", "User-friendly"]
                     }
                 },
                 "toolB": {
                     "name": "Tool B",
+                    "icon": "https://via.placeholder.com/40",
                     "info": {
-                        "importantLinks": [
-                            { "text": "API Reference", "url": "https://api.example.com" }
-                        ],
+                        "importantLinks": [{ "text": "API", "url": "https://api.example.com" }],
                         "disclaimer": "Limited access for free users.",
                         "advantages": ["Customizable", "Scalable"]
-                    }
-                },
-                "toolC": {
-                    "name": "Tool C",
-                    "info": {
-                        "importantLinks": [],
-                        "disclaimer": "Experimental feature.",
-                        "advantages": ["Lightweight", "Fast setup"]
-                    }
-                },
-                "toolD": {
-                    "name": "Tool D",
-                    "info": {
-                        "importantLinks": [
-                            { "text": "User Guide", "url": "https://userguide.example.com" }
-                        ],
-                        "disclaimer": "May require additional setup.",
-                        "advantages": ["Easy integration", "High availability"]
-                    }
-                },
-                "toolE": {
-                    "name": "Tool E",
-                    "info": {
-                        "importantLinks": [
-                            { "text": "Getting Started", "url": "https://start.example.com" }
-                        ],
-                        "disclaimer": "Only works on latest browsers.",
-                        "advantages": ["Cross-platform", "Optimized for speed"]
                     }
                 }
             },
@@ -152,19 +141,7 @@
                     "id": "control2",
                     "displayText": "Control 2",
                     "url": "https://example2.com",
-                    "tools": ["toolA", "toolC", "toolD"]
-                },
-                {
-                    "id": "control3",
-                    "displayText": "Control 3",
-                    "url": "https://example3.com",
-                    "tools": ["toolB", "toolC", "toolE"]
-                },
-                {
-                    "id": "control4",
-                    "displayText": "Control 4",
-                    "url": "https://example4.com",
-                    "tools": ["toolD", "toolE"]
+                    "tools": ["toolA"]
                 }
             ]
         };
@@ -177,7 +154,6 @@
         const modalAdvantages = document.getElementById("modalAdvantages");
         const closeModal = document.querySelector(".close");
 
-        // Load all controls and tools into table
         jsonData.controls.forEach(control => {
             const row = document.createElement("tr");
 
@@ -188,42 +164,52 @@
 
             // Tools column
             const toolsCell = document.createElement("td");
+            const toolBox = document.createElement("div");
+            toolBox.classList.add("tool_box");
 
             control.tools.forEach(toolId => {
                 const tool = jsonData.tools[toolId];
                 if (tool) {
-                    const toolDiv = document.createElement("div");
-                    toolDiv.classList.add("tool");
-                    toolDiv.textContent = tool.name;
-                    toolDiv.dataset.toolId = toolId;
+                    const toolCard = document.createElement("div");
+                    toolCard.classList.add("tool_card");
+                    toolCard.dataset.toolId = toolId;
+
+                    // Tool Image
+                    const toolImg = document.createElement("img");
+                    toolImg.src = tool.icon;
+                    toolImg.alt = tool.name;
+                    toolCard.appendChild(toolImg);
+
+                    // Tool Name
+                    const toolText = document.createElement("div");
+                    toolText.classList.add("tool_card_text");
+                    toolText.textContent = tool.name;
+                    toolCard.appendChild(toolText);
 
                     // Hover effect to highlight similar tools
-                    toolDiv.addEventListener("mouseover", () => highlightTools(toolId, true));
-                    toolDiv.addEventListener("mouseout", () => highlightTools(toolId, false));
+                    toolCard.addEventListener("mouseover", () => highlightTools(toolId, true));
+                    toolCard.addEventListener("mouseout", () => highlightTools(toolId, false));
 
                     // Click to open modal
-                    toolDiv.addEventListener("click", () => openModal(tool.name, tool.info));
+                    toolCard.addEventListener("click", () => openModal(tool.name, tool.info));
 
-                    toolsCell.appendChild(toolDiv);
+                    toolBox.appendChild(toolCard);
                 }
             });
 
+            toolsCell.appendChild(toolBox);
             row.appendChild(toolsCell);
             tableBody.appendChild(row);
         });
 
-        // Highlight tools of the same type
         function highlightTools(toolId, highlight) {
             document.querySelectorAll(`[data-tool-id="${toolId}"]`).forEach(el => {
                 el.classList.toggle("highlight", highlight);
             });
         }
 
-        // Open modal with tool info
         function openModal(title, info) {
             modalTitle.textContent = title;
-
-            // Populate Important Links
             modalLinks.innerHTML = "<h3>Important Links</h3>";
             if (info.importantLinks.length > 0) {
                 info.importantLinks.forEach(link => {
@@ -232,25 +218,18 @@
             } else {
                 modalLinks.innerHTML += "<p>No links available.</p>";
             }
-
-            // Populate Disclaimer
             modalDisclaimer.innerHTML = `<h3>Disclaimer</h3><p>${info.disclaimer}</p>`;
-
-            // Populate Advantages
             modalAdvantages.innerHTML = "<h3>Advantages</h3>";
             info.advantages.forEach(adv => {
                 modalAdvantages.innerHTML += `<li>${adv}</li>`;
             });
-
             modal.style.display = "flex";
         }
 
-        // Close modal
         closeModal.addEventListener("click", () => {
             modal.style.display = "none";
         });
 
-        // Close modal on outside click
         window.addEventListener("click", (event) => {
             if (event.target === modal) {
                 modal.style.display = "none";
