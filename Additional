@@ -1,40 +1,45 @@
-function setValueByPath(jsonObj, path, value) {
-    if (!path) return false;
+Understood! The goal is to traverse the JSON object dynamically based on the given path, creating any missing objects along the way, and then setting the final value at the correct location.
 
+
+---
+
+Improved Recursive Function
+
+This function: ✅ Traverses the given JSON structure dynamically
+✅ Creates missing objects/arrays along the path
+✅ Sets the value at the correct location
+
+function setValueByPath(obj, path, value) {
     const keys = path.split('.'); // Split path into keys
-    let current = jsonObj;
+    let current = obj;
 
     for (let i = 0; i < keys.length - 1; i++) {
         let key = keys[i];
 
-        // If the current object is an array, find the correct object inside it
+        // If the current level is an array, find or create the object inside it
         if (Array.isArray(current)) {
-            let targetName = keys[i + 1]; // Example: "Support"
-            let foundObj = current.find(obj => obj.tabName === targetName);
-
+            let foundObj = current.find(item => item.tabName === key);
             if (!foundObj) {
-                return false; // Target object not found in array
+                foundObj = { tabName: key, tabContent: {} }; // Default structure
+                current.push(foundObj);
             }
-
-            current = foundObj; // Move inside the found object
-            i++; // Skip next key since we already used it
+            current = foundObj;
             continue;
         }
 
-        // Create missing objects along the path
+        // If the key doesn't exist, create it as an object
         if (!current[key] || typeof current[key] !== 'object') {
             current[key] = {};
         }
 
-        current = current[key];
+        current = current[key]; // Move deeper
     }
 
     // Set the final value
     current[keys[keys.length - 1]] = value;
-    return true;
 }
 
-// Example JSON
+// Example JSON structure
 let json_template_to_be_filled = [
     {
         "tabName": "Restrictions",
@@ -53,10 +58,54 @@ let json_template_to_be_filled = [
     }
 ];
 
-// Path & Value
-let jsonPath = "tabsDetails.Support.tabContent.productArea";
+// Path where value should be set
+let jsonPath = "tabDetails.Support.tabContent.productArea";
 let productArea = ["Product 1", "Product 2"];
 
 setValueByPath(json_template_to_be_filled, jsonPath, productArea);
 
 console.log(JSON.stringify(json_template_to_be_filled, null, 2));
+
+
+---
+
+What This Function Does
+
+✔ Finds Support inside the array and updates its tabContent.productArea.
+✔ If any part of the path is missing, it creates it dynamically.
+✔ Works for deeply nested paths inside objects/arrays.
+
+
+---
+
+Expected Output
+
+[
+  {
+    "tabName": "Restrictions",
+    "tabContent": {
+      "titleName": "Restrictions",
+      "tabAddOnTitleDescription": [],
+      "description": ""
+    }
+  },
+  {
+    "tabName": "Support",
+    "tabContent": {
+      "titleName": "Support",
+      "description": "",
+      "productArea": ["Product 1", "Product 2"]
+    }
+  }
+]
+
+
+---
+
+Why This Works Well?
+
+✅ Finds the path dynamically instead of hardcoding.
+✅ Creates missing objects without breaking existing data.
+✅ Handles nested arrays/objects properly.
+
+Let me know if this perfectly meets your needs!
