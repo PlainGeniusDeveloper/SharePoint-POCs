@@ -1,111 +1,79 @@
-Understood! The goal is to traverse the JSON object dynamically based on the given path, creating any missing objects along the way, and then setting the final value at the correct location.
+It looks like the modal content is not properly resetting when reopening. Let's make sure:
+
+1. Before opening the modal, we clear the previous content.
+
+
+2. On closing the modal, we reset it properly.
+
+
 
 
 ---
 
-Improved Recursive Function
+Final Fixed Code
 
-This function: ✅ Traverses the given JSON structure dynamically
-✅ Creates missing objects/arrays along the path
-✅ Sets the value at the correct location
+function openModal(title, info) {
+    modalTitle.textContent = title;
 
-function setValueByPath(obj, path, value) {
-    const keys = path.split('.'); // Split path into keys
-    let current = obj;
+    // Clear previous content before adding new data
+    document.querySelectorAll(".modal-section").forEach(section => {
+        section.innerHTML = "";
+    });
 
-    for (let i = 0; i < keys.length - 1; i++) {
-        let key = keys[i];
+    Object.keys(info).forEach(key => {
+        let container = document.getElementById(`modal-${key}`);
+        if (container) {
+            container.innerHTML = ""; // Ensure it's cleared before appending new data
 
-        // If the current level is an array, find or create the object inside it
-        if (Array.isArray(current)) {
-            let foundObj = current.find(item => item.tabName === key);
-            if (!foundObj) {
-                foundObj = { tabName: key, tabContent: {} }; // Default structure
-                current.push(foundObj);
+            if (Array.isArray(info[key])) {
+                info[key].forEach(item => {
+                    let p = document.createElement("p");
+
+                    if (typeof item === "object") {
+                        let a = document.createElement("a");
+                        a.href = item.url;
+                        a.textContent = item.text;
+                        a.classList.add("outsidebody");
+                        a.target = "_blank";
+                        p.appendChild(a);
+                    } else {
+                        p.textContent = item;
+                    }
+
+                    p.classList.add(`${key}-paragraph`);
+                    container.appendChild(p);
+                });
+            } else {
+                let p = document.createElement("p");
+                p.textContent = info[key];
+                p.classList.add(`${key}-paragraph`);
+                container.appendChild(p);
             }
-            current = foundObj;
-            continue;
         }
+    });
 
-        // If the key doesn't exist, create it as an object
-        if (!current[key] || typeof current[key] !== 'object') {
-            current[key] = {};
-        }
-
-        current = current[key]; // Move deeper
-    }
-
-    // Set the final value
-    current[keys[keys.length - 1]] = value;
+    modal.style.display = "flex";
 }
 
-// Example JSON structure
-let json_template_to_be_filled = [
-    {
-        "tabName": "Restrictions",
-        "tabContent": {
-            "titleName": "Restrictions",
-            "tabAddOnTitleDescription": [],
-            "description": ""
-        }
-    },
-    {
-        "tabName": "Support",
-        "tabContent": {
-            "titleName": "Support",
-            "description": ""
-        }
-    }
-];
+// Close modal and reset content properly
+document.getElementById("closeModal").addEventListener("click", function () {
+    modal.style.display = "none";
 
-// Path where value should be set
-let jsonPath = "tabDetails.Support.tabContent.productArea";
-let productArea = ["Product 1", "Product 2"];
-
-setValueByPath(json_template_to_be_filled, jsonPath, productArea);
-
-console.log(JSON.stringify(json_template_to_be_filled, null, 2));
+    // Ensure modal content is fully cleared when closing
+    setTimeout(() => {
+        document.querySelectorAll(".modal-section").forEach(section => {
+            section.innerHTML = "";
+        });
+    }, 200); // Adding slight delay ensures smoother closing effect
+});
 
 
 ---
 
-What This Function Does
+What This Fix Does
 
-✔ Finds Support inside the array and updates its tabContent.productArea.
-✔ If any part of the path is missing, it creates it dynamically.
-✔ Works for deeply nested paths inside objects/arrays.
+✔ Clears previous data before opening the modal
+✔ Resets content properly on closing
+✔ Adds a slight delay (200ms) on clearing when closing to avoid flickering issues
 
-
----
-
-Expected Output
-
-[
-  {
-    "tabName": "Restrictions",
-    "tabContent": {
-      "titleName": "Restrictions",
-      "tabAddOnTitleDescription": [],
-      "description": ""
-    }
-  },
-  {
-    "tabName": "Support",
-    "tabContent": {
-      "titleName": "Support",
-      "description": "",
-      "productArea": ["Product 1", "Product 2"]
-    }
-  }
-]
-
-
----
-
-Why This Works Well?
-
-✅ Finds the path dynamically instead of hardcoding.
-✅ Creates missing objects without breaking existing data.
-✅ Handles nested arrays/objects properly.
-
-Let me know if this perfectly meets your needs!
+Now, when you close and reopen the modal, only the new content will appear without repetition. Let me know if you need further improvements!
