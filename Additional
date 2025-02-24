@@ -1,79 +1,40 @@
-It looks like the modal content is not properly resetting when reopening. Let's make sure:
+function deleteValueByPath(obj, path) {
+    if (!obj || !path) return;
 
-1. Before opening the modal, we clear the previous content.
+    // Convert bracket notation (e.g., tabsDetails[1].tabContent) to dot notation (tabsDetails.1.tabContent)
+    const keys = path.replace(/(\d+)/g, ".$1").split(".");
+    let current = obj;
 
+    for (let i = 0; i < keys.length - 1; i++) {
+        const key = keys[i];
 
-2. On closing the modal, we reset it properly.
-
-
-
-
----
-
-Final Fixed Code
-
-function openModal(title, info) {
-    modalTitle.textContent = title;
-
-    // Clear previous content before adding new data
-    document.querySelectorAll(".modal-section").forEach(section => {
-        section.innerHTML = "";
-    });
-
-    Object.keys(info).forEach(key => {
-        let container = document.getElementById(`modal-${key}`);
-        if (container) {
-            container.innerHTML = ""; // Ensure it's cleared before appending new data
-
-            if (Array.isArray(info[key])) {
-                info[key].forEach(item => {
-                    let p = document.createElement("p");
-
-                    if (typeof item === "object") {
-                        let a = document.createElement("a");
-                        a.href = item.url;
-                        a.textContent = item.text;
-                        a.classList.add("outsidebody");
-                        a.target = "_blank";
-                        p.appendChild(a);
-                    } else {
-                        p.textContent = item;
-                    }
-
-                    p.classList.add(`${key}-paragraph`);
-                    container.appendChild(p);
-                });
-            } else {
-                let p = document.createElement("p");
-                p.textContent = info[key];
-                p.classList.add(`${key}-paragraph`);
-                container.appendChild(p);
-            }
+        if (!(key in current)) {
+            return; // Path does not exist, exit
         }
-    });
 
-    modal.style.display = "flex";
+        current = current[key]; // Traverse deeper
+    }
+
+    // Delete the final key dynamically
+    const lastKey = keys[keys.length - 1];
+    if (lastKey in current) {
+        delete current[lastKey];
+        console.log(`Deleted: ${path}`);
+    }
 }
 
-// Close modal and reset content properly
-document.getElementById("closeModal").addEventListener("click", function () {
-    modal.style.display = "none";
+function processJsonTemplate(jsonTemplate, mapping) {
+    for (const [jsonPath, config] of Object.entries(mapping)) {
+        const elements = document.querySelectorAll(config.selector);
 
-    // Ensure modal content is fully cleared when closing
-    setTimeout(() => {
-        document.querySelectorAll(".modal-section").forEach(section => {
-            section.innerHTML = "";
+        elements.forEach((element) => {
+            if (element.closest(".section-description")?.classList.contains("disable_effect")) {
+                deleteValueByPath(jsonTemplate, jsonPath); // Use JSON path dynamically
+            }
         });
-    }, 200); // Adding slight delay ensures smoother closing effect
-});
 
-
----
-
-What This Fix Does
-
-✔ Clears previous data before opening the modal
-✔ Resets content properly on closing
-✔ Adds a slight delay (200ms) on clearing when closing to avoid flickering issues
-
-Now, when you close and reopen the modal, only the new content will appear without repetition. Let me know if you need further improvements!
+        if (config.handler) {
+            config.handler(jsonPath, config);
+        }
+    }
+}
