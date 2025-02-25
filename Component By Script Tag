@@ -3,56 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiple Editable Divs with Placeholder</title>
+    <title>Editable Div with Font Awesome Icons</title>
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
     <style>
-        .editable-div {
-            width: 300px;
+        .editable-container {
+            position: relative;
+            display: inline-block;
+            width: 320px;
+            margin-bottom: 10px;
+        }
+
+        .content-editable {
+            width: 100%;
             min-height: 30px;
             padding: 5px;
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 16px;
             color: #000;
-            margin-bottom: 10px;
+            padding-right: 50px; /* Space for icons */
+            background-color: #f9f9f9;
+        }
+
+        .disabled {
+            pointer-events: none;
+            background-color: #eee;
+            color: #666;
         }
 
         .placeholder {
             color: #aaa;
         }
+
+        .icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 16px;
+            color: gray;
+        }
+
+        .edit-icon {
+            right: 30px;
+        }
+
+        .erase-icon {
+            right: 5px;
+        }
+
+        .icon:hover {
+            color: black;
+        }
     </style>
 </head>
 <body>
 
-    <div id="section1" class="editable-div placeholder" contenteditable="true" data-placeholder="Enter section 1 text..."></div>
+    <!-- Editable Div 1 -->
+    <div class="editable-container">
+        <div class="content-editable placeholder disabled" contenteditable="false" data-placeholder="Enter section 1 text..."></div>
+        <i class="fa fa-pencil-alt icon edit-icon" onclick="toggleEditMode(this)"></i>
+        <i class="fa fa-trash icon erase-icon" onclick="clearContent(this)"></i>
+    </div>
 
-    <div id="section2" class="editable-div placeholder" contenteditable="true" data-placeholder="Enter section 2 text..."></div>
+    <!-- Editable Div 2 -->
+    <div class="editable-container">
+        <div class="content-editable placeholder disabled" contenteditable="false" data-placeholder="Enter section 2 text..."></div>
+        <i class="fa fa-pencil-alt icon edit-icon" onclick="toggleEditMode(this)"></i>
+        <i class="fa fa-trash icon erase-icon" onclick="clearContent(this)"></i>
+    </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const editableDivs = document.querySelectorAll(".editable-div");
-
-            editableDivs.forEach(div => {
+        function initializeEditableDivs() {
+            document.querySelectorAll(".content-editable").forEach(div => {
                 const placeholderText = div.getAttribute("data-placeholder");
 
-                // Initially set the placeholder
-                div.innerText = placeholderText;
-
-                div.addEventListener("focus", function () {
-                    if (div.innerText.trim() === placeholderText) {
-                        div.innerText = "";
-                        div.classList.remove("placeholder");
-                    }
-                });
-
-                div.addEventListener("blur", function () {
-                    div.innerText = div.innerText.trim(); // Remove whitespace
-                    if (div.innerText === "") {
-                        div.innerText = placeholderText;
-                        div.classList.add("placeholder");
-                    }
-                });
+                // Initially set the placeholder if empty
+                if (!div.innerText.trim()) {
+                    div.innerText = placeholderText;
+                    div.classList.add("placeholder");
+                }
             });
-        });
+        }
+
+        function toggleEditMode(icon) {
+            const container = icon.parentElement;
+            const div = container.querySelector(".content-editable");
+            const placeholderText = div.getAttribute("data-placeholder");
+            const editIcon = container.querySelector(".edit-icon");
+
+            if (div.contentEditable === "true") {
+                // Save Mode - Disable editing
+                div.contentEditable = "false";
+                div.classList.add("disabled");
+                editIcon.classList.remove("fa-save");
+                editIcon.classList.add("fa-pencil-alt"); // Switch back to edit icon
+
+                // Trim whitespace and restore placeholder if empty
+                div.innerText = div.innerText.trim();
+                if (div.innerText === "") {
+                    div.innerText = placeholderText;
+                    div.classList.add("placeholder");
+                }
+            } else {
+                // Edit Mode - Enable editing
+                div.contentEditable = "true";
+                div.classList.remove("disabled");
+                editIcon.classList.remove("fa-pencil-alt");
+                editIcon.classList.add("fa-save"); // Change to save icon
+
+                // Clear placeholder when editing
+                if (div.innerText.trim() === placeholderText) {
+                    div.innerText = "";
+                    div.classList.remove("placeholder");
+                }
+
+                div.focus();
+            }
+        }
+
+        function clearContent(icon) {
+            const container = icon.parentElement;
+            const div = container.querySelector(".content-editable");
+            const placeholderText = div.getAttribute("data-placeholder");
+
+            div.innerText = ""; // Clear the content
+            div.classList.add("placeholder");
+            div.innerText = placeholderText;
+        }
+
+        document.addEventListener("DOMContentLoaded", initializeEditableDivs);
     </script>
 
 </body>
