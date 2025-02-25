@@ -149,3 +149,77 @@
 
 </body>
 </html>
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    initializeEditableDivs();
+
+    // Bind click events dynamically
+    document.querySelectorAll(".edit-icon").forEach(icon => {
+        icon.addEventListener("click", toggleEditMode);
+    });
+
+    document.querySelectorAll(".erase-icon").forEach(icon => {
+        icon.addEventListener("click", clearContent);
+    });
+});
+
+function initializeEditableDivs() {
+    document.querySelectorAll(".content-editable").forEach(div => {
+        const placeholderText = div.getAttribute("data-placeholder");
+
+        // Initially set the placeholder if empty
+        if (!div.innerText.trim()) {
+            div.innerText = placeholderText;
+            div.classList.add("placeholder");
+        }
+    });
+}
+
+function toggleEditMode(event) {
+    const icon = event.currentTarget; // The clicked icon
+    const container = icon.closest(".editable-container");
+    const div = container.querySelector(".content-editable");
+    const placeholderText = div.getAttribute("data-placeholder");
+    const editIcon = container.querySelector(".edit-icon i");
+
+    if (div.contentEditable === "true") {
+        // Save Mode - Disable editing
+        div.contentEditable = "false";
+        div.classList.add("disabled");
+        editIcon.classList.remove("fa-save");
+        editIcon.classList.add("fa-pencil-alt"); // Switch back to edit icon
+
+        // Trim whitespace and restore placeholder if empty
+        div.innerText = div.innerText.trim();
+        if (div.innerText === "") {
+            div.innerText = placeholderText;
+            div.classList.add("placeholder");
+        }
+    } else {
+        // Edit Mode - Enable editing
+        div.contentEditable = "true";
+        div.classList.remove("disabled");
+        editIcon.classList.remove("fa-pencil-alt");
+        editIcon.classList.add("fa-save"); // Change to save icon
+
+        // Clear placeholder when editing
+        if (div.innerText.trim() === placeholderText) {
+            div.innerText = "";
+            div.classList.remove("placeholder");
+        }
+
+        div.focus();
+    }
+}
+
+function clearContent(event) {
+    const icon = event.currentTarget; // The clicked icon
+    const container = icon.closest(".editable-container");
+    const div = container.querySelector(".content-editable");
+    const placeholderText = div.getAttribute("data-placeholder");
+
+    div.innerText = ""; // Clear the content
+    div.classList.add("placeholder");
+    div.innerText = placeholderText;
+}
