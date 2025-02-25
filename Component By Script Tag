@@ -45,6 +45,7 @@
             cursor: pointer;
             font-size: 16px;
             color: gray;
+            text-decoration: none;
         }
 
         .edit-icon {
@@ -55,7 +56,7 @@
             right: 5px;
         }
 
-        .icon:hover {
+        .icon:hover i {
             color: black;
         }
     </style>
@@ -65,15 +66,23 @@
     <!-- Editable Div 1 -->
     <div class="editable-container">
         <div class="content-editable placeholder disabled" contenteditable="false" data-placeholder="Enter section 1 text..."></div>
-        <i class="fa fa-pencil-alt icon edit-icon" onclick="toggleEditMode(this)"></i>
-        <i class="fa fa-trash icon erase-icon" onclick="clearContent(this)"></i>
+        <a href="javascript:void(0);" class="icon edit-icon" onclick="toggleEditMode(this)">
+            <i class="fa fa-pencil-alt"></i>
+        </a>
+        <a href="javascript:void(0);" class="icon erase-icon" onclick="clearContent(this)">
+            <i class="fa fa-trash"></i>
+        </a>
     </div>
 
     <!-- Editable Div 2 -->
     <div class="editable-container">
         <div class="content-editable placeholder disabled" contenteditable="false" data-placeholder="Enter section 2 text..."></div>
-        <i class="fa fa-pencil-alt icon edit-icon" onclick="toggleEditMode(this)"></i>
-        <i class="fa fa-trash icon erase-icon" onclick="clearContent(this)"></i>
+        <a href="javascript:void(0);" class="icon edit-icon" onclick="toggleEditMode(this)">
+            <i class="fa fa-pencil-alt"></i>
+        </a>
+        <a href="javascript:void(0);" class="icon erase-icon" onclick="clearContent(this)">
+            <i class="fa fa-trash"></i>
+        </a>
     </div>
 
     <script>
@@ -89,11 +98,11 @@
             });
         }
 
-        function toggleEditMode(icon) {
-            const container = icon.parentElement;
+        function toggleEditMode(anchor) {
+            const container = anchor.parentElement;
             const div = container.querySelector(".content-editable");
             const placeholderText = div.getAttribute("data-placeholder");
-            const editIcon = container.querySelector(".edit-icon");
+            const editIcon = container.querySelector(".edit-icon i");
 
             if (div.contentEditable === "true") {
                 // Save Mode - Disable editing
@@ -125,8 +134,8 @@
             }
         }
 
-        function clearContent(icon) {
-            const container = icon.parentElement;
+        function clearContent(anchor) {
+            const container = anchor.parentElement;
             const div = container.querySelector(".content-editable");
             const placeholderText = div.getAttribute("data-placeholder");
 
