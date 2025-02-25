@@ -23,13 +23,9 @@
 </head>
 <body>
 
-    <div id="section1" class="editable-div placeholder" contenteditable="true" data-placeholder="Enter section 1 text...">
-        Enter section 1 text...
-    </div>
+    <div id="section1" class="editable-div placeholder" contenteditable="true" data-placeholder="Enter section 1 text..."></div>
 
-    <div id="section2" class="editable-div placeholder" contenteditable="true" data-placeholder="Enter section 2 text...">
-        Enter section 2 text...
-    </div>
+    <div id="section2" class="editable-div placeholder" contenteditable="true" data-placeholder="Enter section 2 text..."></div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -37,6 +33,9 @@
 
             editableDivs.forEach(div => {
                 const placeholderText = div.getAttribute("data-placeholder");
+
+                // Initially set the placeholder
+                div.innerText = placeholderText;
 
                 div.addEventListener("focus", function () {
                     if (div.innerText.trim() === placeholderText) {
