@@ -1,35 +1,60 @@
- // Create country dropdown options
-    checkedCheckboxes.each(function () {
-        const $checkbox = $(this);
-        const countryId = $checkbox.data("country-id");
-        const countryName = $checkbox.data("country-name");
-        const regionTitle = $checkbox.data("region-title");
-
-        // Get the associated note from the sibling input box
-        const note = $checkbox.closest(".dropdown-item").find("input[type='text']").val() || "";
-
-        // Add region to the unique set
-        if (regionTitle) {
-            uniqueRegions.add(regionTitle);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple Editable Divs with Placeholder</title>
+    <style>
+        .editable-div {
+            width: 300px;
+            min-height: 30px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            color: #000;
+            margin-bottom: 10px;
         }
 
-        // Create country option with the required attributes
-        const $countryOption = $("<option>")
-            .addClass("map-item-box clsCountry")
-            .val(countryId)
-            .attr("data-note", note)
-            .attr("data-region", regionTitle)
-            .text(countryName);
+        .placeholder {
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
 
-        $countryDropdown.append($countryOption);
-    });
+    <div id="section1" class="editable-div placeholder" contenteditable="true" data-placeholder="Enter section 1 text...">
+        Enter section 1 text...
+    </div>
 
-    // Create region dropdown options
-    uniqueRegions.forEach(regionTitle => {
-        const $regionOption = $("<option>")
-            .addClass("map-item-box")
-            .val(regionTitle)
-            .text(regionTitle);
+    <div id="section2" class="editable-div placeholder" contenteditable="true" data-placeholder="Enter section 2 text...">
+        Enter section 2 text...
+    </div>
 
-        $regionDropdown.append($regionOption);
-    });
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const editableDivs = document.querySelectorAll(".editable-div");
+
+            editableDivs.forEach(div => {
+                const placeholderText = div.getAttribute("data-placeholder");
+
+                div.addEventListener("focus", function () {
+                    if (div.innerText.trim() === placeholderText) {
+                        div.innerText = "";
+                        div.classList.remove("placeholder");
+                    }
+                });
+
+                div.addEventListener("blur", function () {
+                    div.innerText = div.innerText.trim(); // Remove whitespace
+                    if (div.innerText === "") {
+                        div.innerText = placeholderText;
+                        div.classList.add("placeholder");
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
