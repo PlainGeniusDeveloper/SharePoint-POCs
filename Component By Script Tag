@@ -1,5 +1,1 @@
-Pattern: "titleName"\s*:\s*"[^"]*"
-
-Replacement: "titleName":"{WorkflowVariable:txtTitle}"
-
-Output to: txtUpdatedJson
+("headerInfo"\s*:\s*\{\s*"titleName"\s*:\s*")[^"]*(")
