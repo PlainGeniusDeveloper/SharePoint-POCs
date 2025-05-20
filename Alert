@@ -1,0 +1,32 @@
+export function showAlert(message = "Action completed successfully!", type = "success", onOk = null) {
+  let wrapper = document.getElementById("alertWrapper");
+
+  // Define SVGs for different types
+  const svgs = {
+    success: "...",
+    error: "...",
+    warning: "...",
+    info: "..."
+  };
+
+  // If the wrapper doesn't exist, create it
+  if (!wrapper) {
+    const alertWrapper = document.createElement("div");
+    alertWrapper.id = "alertWrapper";
+    alertWrapper.innerHTML = `...`; // your HTML structure here
+    document.body.appendChild(alertWrapper);
+    wrapper = alertWrapper; // assign newly created element to wrapper
+  } else {
+    // If it exists, just update the message
+    const messageContainer = wrapper.querySelector(".alert-message");
+    if (messageContainer) {
+      messageContainer.textContent = message;
+    }
+  }
+
+  // Show the alert container
+  wrapper.style.display = "flex";
+
+  // Add event listener for the OK button
+  addEventListenerToOkButton(onOk);
+}
