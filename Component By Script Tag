@@ -1,1 +1,24 @@
-("headerInfo"\s*:\s*\{\s*"titleName"\s*:\s*")[^"]*(")
+function convertAnchorsToCustomFormat(html) {
+  // Create a temporary DOM element to parse the HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+
+  // Get all anchor tags
+  const anchors = tempDiv.querySelectorAll('a');
+
+  // Loop through all anchor tags and replace them
+  anchors.forEach(anchor => {
+    const href = anchor.getAttribute('href');
+    const text = anchor.textContent;
+
+    // Create the custom format string
+    const customFormat = `[url=${href}]${text}[\\url]`;
+
+    // Replace the anchor tag with the custom format
+    const span = document.createTextNode(customFormat);
+    anchor.parentNode.replaceChild(span, anchor);
+  });
+
+  // Return the modified HTML as a string
+  return tempDiv.innerHTML;
+}
