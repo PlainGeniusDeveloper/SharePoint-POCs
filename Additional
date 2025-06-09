@@ -1,40 +1,60 @@
-function deleteValueByPath(obj, path) {
-    if (!obj || !path) return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bulk JSON Cleaner for SharePoint</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    textarea {
+      width: 100%;
+      height: 250px;
+      margin: 10px 0;
+      font-family: monospace;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    h2 {
+      color: #d0271d;
+    }
+  </style>
+</head>
+<body>
+  <h2>🧹 Bulk JSON Cleaner for SharePoint Quick Edit</h2>
 
-    // Convert bracket notation (e.g., tabsDetails[1].tabContent) to dot notation (tabsDetails.1.tabContent)
-    const keys = path.replace(/(\d+)/g, ".$1").split(".");
-    let current = obj;
+  <p><b>Step 1:</b> Paste your Excel JSON column data (multiple rows):</p>
+  <textarea id="inputArea" placeholder="Paste multiple rows from Excel here..."></textarea>
 
-    for (let i = 0; i < keys.length - 1; i++) {
-        const key = keys[i];
+  <button onclick="cleanRows()">Clean All Rows</button>
 
-        if (!(key in current)) {
-            return; // Path does not exist, exit
-        }
+  <p><b>Step 2:</b> Copy this cleaned data for SharePoint:</p>
+  <textarea id="outputArea" placeholder="Cleaned multi-row JSON output..."></textarea>
 
-        current = current[key]; // Traverse deeper
+  <script>
+    function cleanHtmlEntities(text) {
+      return text
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/""/g, '"')  // Excel double-double quotes
+        .trim();
     }
 
-    // Delete the final key dynamically
-    const lastKey = keys[keys.length - 1];
-    if (lastKey in current) {
-        delete current[lastKey];
-        console.log(`Deleted: ${path}`);
+    function cleanRows() {
+      const input = document.getElementById("inputArea").value;
+      const rows = input.split(/\r?\n/);
+
+      const cleanedRows = rows.map(row => cleanHtmlEntities(row));
+      document.getElementById("outputArea").value = cleanedRows.join("\n");
     }
-}
-
-function processJsonTemplate(jsonTemplate, mapping) {
-    for (const [jsonPath, config] of Object.entries(mapping)) {
-        const elements = document.querySelectorAll(config.selector);
-
-        elements.forEach((element) => {
-            if (element.closest(".section-description")?.classList.contains("disable_effect")) {
-                deleteValueByPath(jsonTemplate, jsonPath); // Use JSON path dynamically
-            }
-        });
-
-        if (config.handler) {
-            config.handler(jsonPath, config);
-        }
-    }
-}
+  </script>
+</body>
+</html>
