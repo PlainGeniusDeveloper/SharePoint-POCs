@@ -1,60 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Bulk JSON Cleaner for SharePoint</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      max-width: 800px;
-      margin: auto;
-    }
-    textarea {
-      width: 100%;
-      height: 250px;
-      margin: 10px 0;
-      font-family: monospace;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    h2 {
-      color: #d0271d;
-    }
-  </style>
-</head>
-<body>
-  <h2>🧹 Bulk JSON Cleaner for SharePoint Quick Edit</h2>
+Subject: Request to Raise Ticket Post New System Rollout
 
-  <p><b>Step 1:</b> Paste your Excel JSON column data (multiple rows):</p>
-  <textarea id="inputArea" placeholder="Paste multiple rows from Excel here..."></textarea>
+Dear [Recipient's Name],
 
-  <button onclick="cleanRows()">Clean All Rows</button>
+As discussed during our call, I have provided you with a demo of the new system. Since the rollout of the new system will take some time, I would like to kindly request you to raise a ticket once the new system is live.
 
-  <p><b>Step 2:</b> Copy this cleaned data for SharePoint:</p>
-  <textarea id="outputArea" placeholder="Cleaned multi-row JSON output..."></textarea>
+The new platform will make it much easier for you to create and publish content efficiently.
 
-  <script>
-    function cleanHtmlEntities(text) {
-      return text
-        .replace(/&quot;/g, '"')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/""/g, '"')  // Excel double-double quotes
-        .trim();
-    }
+Please feel free to reach out in case you need any further assistance.
 
-    function cleanRows() {
-      const input = document.getElementById("inputArea").value;
-      const rows = input.split(/\r?\n/);
-
-      const cleanedRows = rows.map(row => cleanHtmlEntities(row));
-      document.getElementById("outputArea").value = cleanedRows.join("\n");
-    }
-  </script>
-</body>
-</html>
+Best regards,
+[Your Name]
+[Your Designation]
+[Your Contact Information]
