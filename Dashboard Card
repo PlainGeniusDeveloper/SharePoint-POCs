@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Content Publishing Workflow</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f4f8;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card {
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    .card p {
+      font-size: 0.95rem;
+      margin-bottom: 15px;
+      color: #555;
+    }
+    .card a {
+      text-decoration: none;
+      color: #007bff;
+      font-weight: bold;
+    }
+    .card a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>Content Publishing Workflow</h1>
+  <div class="card-container">
+
+    <div class="card">
+      <h2>Step 1: Raise JIRA Request</h2>
+      <p>Start by raising a JIRA ticket with content and metadata details using the provided form.</p>
+      <a href="#">Raise JIRA Request</a>
+    </div>
+
+    <div class="card">
+      <h2>Step 2: CMS Setup by Support Team</h2>
+      <p>The CMS Support Team will create a blank page and do the initial setup based on JIRA details.</p>
+    </div>
+
+    <div class="card">
+      <h2>Step 3: Update Page Content</h2>
+      <p>After setup, update the content on the blank page according to your requirements.</p>
+      <!-- Optional link -->
+      <!-- <a href="#">Update CMS Content</a> -->
+    </div>
+
+    <div class="card">
+      <h2>Step 4: Send for Approval</h2>
+      <p>Submit the page for approval. The assigned approver will be automatically notified.</p>
+      <!-- Optional link -->
+      <!-- <a href="#">Submit for Approval</a> -->
+    </div>
+
+    <div class="card">
+      <h2>Step 5: Approval & Publishing</h2>
+      <p>Once approved, the content will be published to the live environment.</p>
+    </div>
+
+    <div class="card">
+      <h2>Step 6: First-Time Publication Request (If Applicable)</h2>
+      <p>If this is the first time publishing, raise a request to enable/disable visibility on the IT Portal. Otherwise, content will go live within 24 hours.</p>
+      <a href="#">Raise Enable/Disable Request</a>
+    </div>
+
+  </div>
+</body>
+</html>
