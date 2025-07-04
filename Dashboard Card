@@ -1,141 +1,93 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Content Publishing Workflow</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f2f4f8;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 10px;
-    }
-    .notes {
-      max-width: 1000px;
-      margin: 20px auto;
-      background-color: #fffbe6;
-      border-left: 5px solid #f1c40f;
-      padding: 20px;
-      border-radius: 8px;
-      color: #333;
-    }
-    .notes h3 {
-      margin-top: 0;
-      font-size: 1.1rem;
-      color: #b37f00;
-    }
-    .notes ul {
-      padding-left: 20px;
-    }
-    .notes li {
-      margin-bottom: 10px;
-      font-size: 0.95rem;
-    }
-    .notes a {
-      color: #007bff;
-      font-weight: bold;
-      text-decoration: none;
-    }
-    .notes a:hover {
-      text-decoration: underline;
-    }
+# Re-attempt saving the ultra-detailed storyboard as a text file
 
-    .card-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-      margin-top: 30px;
-    }
-    .card {
-      background-color: #fff;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s;
-    }
-    .card:hover {
-      transform: translateY(-5px);
-    }
-    .card h2 {
-      font-size: 1.2rem;
-      margin-bottom: 10px;
-      color: #2c3e50;
-    }
-    .card p {
-      font-size: 0.95rem;
-      margin-bottom: 15px;
-      color: #555;
-    }
-    .card a {
-      text-decoration: none;
-      color: #007bff;
-      font-weight: bold;
-    }
-    .card a:hover {
-      text-decoration: underline;
-    }
-  </style>
-</head>
-<body>
-  <h1>Content Publishing Workflow</h1>
+ultra_detailed_storyboard = """
+🎬 ULTRA-DETAILED VIDEO STORYBOARD – SharePoint CMS Single Page Application
 
-<div class="notes">
-  <h3>Important Notes</h3>
-  <ul>
-    <li>
-      You can upload your assets (images, PDFs, etc.) in the <strong>Site Assets</strong> folder if they are not hosted elsewhere.
-      Organize them under a content-type-specific folder, and then inside the content offering folder.<br/>
-      <strong>Example:</strong> If your assets belong to <em>Product → Oracle</em>, create and store them under <code>Product/Oracle</code> folder.
-    </li>
-    <li>
-      You can <a href="#">onboard your colleagues</a> as Content Creators to help manage and edit content collaboratively.
-    </li>
-  </ul>
-</div>
+(Slide-by-slide content with narration, on-screen text, visuals, and animation cues)
 
+Slide 1 (0:00–0:07)
+Title: Introducing SharePoint CMS – A Smart Content Management Experience
+Voice-over: “Welcome to a powerful content management experience — built entirely on SharePoint, delivered as a modern Single Page Application.”
+On-screen text: “Introducing SharePoint CMS” / “A Smart Content Management Experience”
+Visual: Company logo fade-in, dashboard background sharpens, title slides up
 
-  <div class="card-container">
+Slide 2 (0:07–0:15)
+Title: System Overview
+Voice-over: “This platform empowers teams to manage content at enterprise scale, with a structured, role-based workflow. Though it’s built on a single page, you’ll see brief reloads for full context—and seamless navigation throughout.”
+On-screen bullets: “SPA on SharePoint”, “Page-based navigation”, “Easy content editing & control”
+Visual: CMS sidebar + reload animation
 
-    <div class="card">
-      <h2>Step 1: Raise JIRA Request</h2>
-      <p>Start by raising a JIRA ticket with content and metadata details using the provided form.</p>
-      <a href="#">Raise JIRA Request</a>
-    </div>
+Slide 3 (0:15–0:27)
+Title: First-Time User Access
+Voice-over: “For brand-new users, the journey starts with a Jira request. Once submitted, our Support Team provisions your user account and permissions within the CMS. Only then can you step in as a Creator.”
+Visual: Flowchart – User → Jira → Support → Access Granted
 
-    <div class="card">
-      <h2>Step 2: CMS Setup by Support Team</h2>
-      <p>The CMS Support Team will create a blank page and do the initial setup based on JIRA details.</p>
-    </div>
+Slide 4 (0:27–0:36)
+Title: Understanding Roles
+Voice-over: “Two key roles define our workflow: the Creator and the Approver. The Creator drafts and submits content; the Approver reviews, provides feedback, or gives the green light to publish.”
+Visual: Side-by-side panels: Creator (checklist), Approver (gavel icon)
 
-    <div class="card">
-      <h2>Step 3: Update Page Content</h2>
-      <p>After setup, update the content on the blank page according to your requirements.</p>
-    </div>
+Slide 5 (0:36–0:47)
+Title: Content Types – Product, Service, Platform
+Voice-over: “We support three primary content types: Product, Service, and Platform. Each type serves a distinct audience and purpose within your organization.”
+Visual: Three vertical cards with icons and taglines
 
-    <div class="card">
-      <h2>Step 4: Send for Approval</h2>
-      <p>Submit the page for approval. The assigned approver will be automatically notified.</p>
-    </div>
+Slide 6 (0:47–0:59)
+Title: Deep Dive – Product Content
+Voice-over: “Product content focuses on individual offerings — from features and benefits to pricing and demo assets.”
+Visual: Sample product page, KB link overlay
 
-    <div class="card">
-      <h2>Step 5: Approval & Publishing</h2>
-      <p>Once approved, the content will be published to the live environment.</p>
-    </div>
+Slide 7 (0:59–1:11)
+Title: Deep Dive – Service Content
+Voice-over: “Service content describes offerings like consulting, support packages, or onboarding programs.”
+Visual: Service page mockup + related articles sidebar
 
-    <div class="card">
-      <h2>Step 6: First-Time Publication Request (If Applicable)</h2>
-      <p>If this is the first time publishing, raise a request to enable/disable visibility on the IT Portal. Otherwise, content will go live within 24 hours.</p>
-      <a href="#">Raise Enable/Disable Request</a>
-    </div>
+Slide 8 (1:11–1:23)
+Title: Deep Dive – Platform Content
+Voice-over: “Platform content covers your technical ecosystem — APIs, integrations, and infrastructure.”
+Visual: Architecture diagram + code snippet
 
-  </div>
-</body>
-</html>
+Slide 9 (1:23–1:33)
+Title: Knowledge Base Articles
+Voice-over: “Every content type is complemented by Knowledge Base Articles — from FAQs to in-depth how-tos.”
+Visual: Shrunk content cards + KB panels appear
+
+Slide 10 (1:33–1:44)
+Title: Content Lifecycle – Draft to Publish
+Voice-over: “The content lifecycle is simple and structured. The Creator drafts and submits content. The Approver reviews the draft, then approves or returns it for edits.”
+Visual: Timeline (Draft → Submit → Review → Approve → Publish)
+
+Slide 11 (1:44–1:55)
+Title: First-Time Publishing Workflow
+Voice-over: “When content goes live for the first time, a Jira request is required to enable or disable the production link. For updates, no request is needed — changes auto-publish within 24 hours.”
+Visual: Split screen: “First time?” vs “Already live?”
+
+Slide 12 (1:55–2:07)
+Title: Content Explorer Wizard
+Voice-over: “Our landing page features the Content Explorer Wizard — a powerful filter panel that lets you preview content by user role, content type, content offering, and workflow stage.”
+Visual: Filters dropdown + real-time preview grid
+
+Slide 13 (2:07–2:17)
+Title: Conclusion – Collaborate, Control, Publish
+Voice-over: “From first-time setup to everyday updates, this SharePoint CMS provides the structure, visibility, and speed your team needs — empowering you to collaborate effectively and publish with confidence.”
+Visual: Tagline animation + team at work + CMS screenshot
+
+Slide 14 (2:17–2:25)
+Title: Need Help?
+Voice-over: “Need access? Raise a Jira ticket. Questions? Reach out to the CMS Support Team anytime.”
+On-screen: Jira link + Support email + help icon
+
+---
+Execution Tips:
+- Use soft background music
+- Keep pace moderate with short pauses
+- Match visuals to voice cue with timed animations
+- Use your brand’s icon set and color palette throughout
+"""
+
+# Save the file
+file_path = "/mnt/data/SharePoint_CMS_Ultra_Detailed_Storyboard.txt"
+with open(file_path, "w") as f:
+    f.write(ultra_detailed_storyboard.strip())
+
+file_path
