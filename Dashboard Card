@@ -1,104 +1,13 @@
-🎬 FULL VIDEO STORYBOARD – SharePoint CMS Single Page Application
+Title: Intuitive WYSIWYG Editing
+Voice-over:
 
-(Slide-by-slide content with narration, on-screen text, visuals, and animation cues)
+“To make editing even simpler, the CMS offers a full WYSIWYG editor — allowing creators to format text, insert images, links, and tables, all without writing any HTML.
+What you see while editing is exactly how it will appear once published.”
 
-Slide 1 (0:00–0:10)
-Title: Why was this CMS needed?
-Voice-over: “Before we dive into how the system works, let’s understand *why* it was created.
-In the current environment, most teams document their content on Confluence — but the information is scattered across multiple pages. Each user creates pages in their own format, which leads to inconsistency, confusion, and poor discoverability.”
-On-screen: Screenshot of random Confluence pages, highlight inconsistent layouts
+On-screen visuals:
 
-Slide 2 (0:10–0:20)
-Title: The Solution – A Standardized CMS
-Voice-over: “To solve this, we built a centralized, Single Page Application — on top of SharePoint.
-This CMS provides standard templates for each content type — Product, Service, and Platform — ensuring every entry follows a predefined, readable, and user-friendly format.”
-On-screen: SPA layout preview + three icons for Product / Service / Platform
+Screenshot or animation of the editor
 
-Slide 3 (0:20–0:30)
-Title: From CMS to IT Service Portal
-Voice-over: “This CMS is only the authoring environment. Once content is created and approved, it gets published to the **IT Service Portal**, where end-users consume it.
-So while CMS is for authors and approvers, the Service Portal is for content discovery and use.”
-On-screen: Flow diagram: CMS → Approval → IT Service Portal
+Toolbar with formatting options (bold, headers, bullets, etc.)
 
-Slide 4 (0:30–0:38)
-Title: System Overview
-Voice-over: “This SPA on SharePoint supports structured content workflows, role-based control, and simple navigation across content types.
-Pages may reload briefly, but the experience is seamless and consistent.”
-On-screen bullets: SPA on SharePoint, Easy editing, Role-based visibility
-
-Slide 5 (0:38–0:48)
-Title: First-Time User Access
-Voice-over: “New users begin by raising a Jira request. Once approved, the Support Team sets up their CMS account and role-based access.
-Only then can they start creating content.”
-On-screen: Flowchart – User → Jira Request → Support → CMS Access
-
-Slide 6 (0:48–0:58)
-Title: Understanding Roles
-Voice-over: “There are two key roles — **Creator** and **Approver**.
-Creators draft and submit content. Approvers review, approve, or return the content with feedback.”
-On-screen: Creator: Draft → Submit | Approver: Review → Approve / Reject
-
-Slide 7 (0:58–1:10)
-Title: Content Types – Product, Service, Platform
-Voice-over: “This CMS supports three primary content types:
-- **Product**: Information about features, specs, and benefits.
-- **Service**: Descriptions of consulting or support offerings.
-- **Platform**: Technical content like integrations and APIs.”
-On-screen: Three vertical cards/icons with brief descriptions
-
-Slide 8 (1:10–1:20)
-Title: Product Content
-Voice-over: “Product content showcases features, business value, pricing, or use cases.
-It often includes links to Knowledge Base Articles — like FAQs or setup guides.”
-On-screen: Product page layout + knowledge base panel
-
-Slide 9 (1:20–1:30)
-Title: Service Content
-Voice-over: “Service content covers offerings like onboarding, consulting, or support workflows.
-It may include SLAs, contact instructions, and useful links.”
-On-screen: Service tier cards + embedded how-to article
-
-Slide 10 (1:30–1:40)
-Title: Platform Content
-Voice-over: “Platform content is more technical — including APIs, authentication flows, integration guides, and diagrams for the system architecture.”
-On-screen: Architecture diagram + code snippet + ‘Developer Docs’ link
-
-Slide 11 (1:40–1:48)
-Title: Knowledge Base Articles
-Voice-over: “Each content type can link related Knowledge Base Articles — from quick how-tos to troubleshooting workflows.”
-On-screen: Table of related articles with article type icons
-
-Slide 12 (1:48–1:58)
-Title: Content Lifecycle – Draft to Publish
-Voice-over: “The content lifecycle flows like this:
-Draft → Submit for Approval → Review → Approve or Reject → Publish”
-On-screen: Timeline graphic with role tags at each stage
-
-Slide 13 (1:58–2:08)
-Title: First-Time Publishing Flow
-Voice-over: “When content is published for the first time, an additional Jira request must be submitted to enable or disable the production link.
-For future updates, no extra request is needed — changes will reflect automatically within 24 hours.”
-On-screen: Split screen – First Time: Jira request | Already Live: Auto-update badge
-
-Slide 14 (2:08–2:18)
-Title: Content Explorer Wizard
-Voice-over: “On the CMS landing page, you’ll find the Content Explorer Wizard.
-You can filter and preview content by user role, content type, content offering, and content stage — all in one place.”
-On-screen: Wizard UI with dropdown filters and content card grid
-
-Slide 15 (2:18–2:26)
-Title: Collaborate. Control. Publish.
-Voice-over: “From structured creation to consistent publishing, this CMS ensures teams collaborate efficiently, follow governance, and deliver high-quality content across the organization.”
-On-screen: Three pillar cards: Collaborate | Control | Publish
-
-Slide 16 (2:26–2:35)
-Title: Need Help?
-Voice-over: “Need access? Raise a Jira ticket. Questions? Contact the CMS Support Team.”
-On-screen: Jira link, Support email, Help icon
-
----
-Execution Notes:
-- Use soft instrumental background music
-- Maintain 8–10 second timing per slide
-- Visuals should reflect brand identity and keep consistent styling
-- Use transitions like fade-in, slide-up, and subtle scaling
+Live preview on the right side
