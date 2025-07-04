@@ -1,7 +1,21 @@
-# Re-attempt saving the ultra-detailed storyboard as a text file
-
 ultra_detailed_storyboard = """
 🎬 ULTRA-DETAILED VIDEO STORYBOARD – SharePoint CMS Single Page Application
+
+Title: Why was this CMS built?
+Voice-over (English):
+
+"Before we dive into the process, let’s understand why this CMS was built in the first place.
+Traditionally, teams documented their content on Confluence — but the information was scattered across multiple pages.
+Each user followed their own structure and format, making it difficult to find or consume content consistently.
+This made it hard to maintain clarity, governance, and discoverability."
+
+🎬 Slide 2: The Solution – Standardized Content via CMS
+Title: From Chaos to Clarity
+Voice-over (English):
+
+"With the new SharePoint CMS, we introduce standard templates for each content type — whether it's Product, Service, or Platform.
+These templates ensure that every piece of content follows a predefined, readable, and user-friendly format.
+This consistency makes it easier for both creators and consumers to manage, review, and understand the content — across teams, and across time."
 
 (Slide-by-slide content with narration, on-screen text, visuals, and animation cues)
 
