@@ -1,9 +1,43 @@
-Welcome to the future of structured content creation.
-In this short walkthrough, we’ll take you through a powerful CMS —
-a Single Page Application built on SharePoint —
-designed to make content creation simpler, smarter, and standardized.
+Subject: 🚀 Our New SharePoint CMS is Now Live!
 
-Whether you're a creator drafting content, or an approver ensuring quality —
-this system ensures clarity, control, and a seamless publishing experience.
+Email Body:
 
-Let’s begin."
+Hi Team,
+
+We’re excited to announce that our brand-new SharePoint-based CMS (Content Management System) is now officially live! 🎉
+
+This modern, single-page application is designed to bring clarity, structure, and governance to how we create and manage IT-related content — replacing the chaos of scattered Confluence pages with a consistent, templated experience.
+
+🔍 What’s New?
+
+✨ Standardized templates for Product, Service, and Platform content
+
+🧠 WYSIWYG editing — what you see is what you publish
+
+✅ Role-based workflows for Creators and Approvers
+
+🔔 Email notifications for review and approval
+
+🔄 Auto-publishing to the IT Service Portal
+
+
+🛠️ How to Get Started?
+
+If you’re a new user, please raise a Jira request to get CMS access.
+Once your profile is set up, you can begin creating and submitting content right away.
+
+📝 Note: For first-time publishing, you’ll need to raise one more request to enable the content link on the IT Service Portal. For updates after that — content will auto-refresh within 24 hours.
+
+🎥 Need a Demo?
+
+A short walkthrough video is available [Insert Link] to guide you through every step.
+
+
+---
+
+Let’s make content creation easier, smarter, and faster — together!
+
+Best regards,
+[Your Name]
+[Your Team or Role]
+[Optional: Helpdesk email / Jira link / Support channel]
