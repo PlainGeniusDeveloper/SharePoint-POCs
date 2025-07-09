@@ -1,5 +1,9 @@
-In this quick walkthrough, see how our new SharePoint-based CMS solves that — with structured templates, role-based workflows, and a seamless publishing experience to the IT Service Portal.
+Across the organization, content is often created in scattered ways — with different teams using Confluence pages in inconsistent formats.
 
-Whether you're a content creator or approver, this CMS is built to make your work faster, clearer, and more standardized.
+This makes it harder to find, understand, and maintain important information.
 
-Watch the video to understand how it works — from first-time access to publishing, and everything in between.
+To solve this, we built a centralized CMS — a SharePoint-based single page application — where teams can create structured content using standard templates.
+
+It supports role-based workflows for creators and approvers, and once approved, the content is automatically published to the IT Service Portal.
+
+In short — content is created here, and consumed there.”
