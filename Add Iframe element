@@ -1,21 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>CKEditor 5 Iframe Example</title>
-  <script src="https://cdn.ckeditor.com/ckeditor5/41.2.1/classic/ckeditor.js"></script>
+  <meta charset="UTF-8">
+  <title>CKEditor 5 with iframe support</title>
+  <script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic-with-html-embed@1.0.2/build/ckeditor.js"></script>
+  <style>
+    #editor {
+      max-width: 700px;
+      margin: 50px auto;
+    }
+  </style>
 </head>
 <body>
 
-  <h2>CKEditor 5 with iframe</h2>
+  <h2 style="text-align:center;">CKEditor 5 with iframe (via HtmlEmbed)</h2>
   <div id="editor"></div>
 
   <script>
     ClassicEditor
       .create(document.querySelector('#editor'), {
-        extraPlugins: [],
-        toolbar: [ 'sourceEditing', 'undo', 'redo', 'bold', 'italic' ],
-        // IMPORTANT: Enable HTML support
+        toolbar: [
+          'undo', 'redo', '|',
+          'bold', 'italic', 'link', '|',
+          'htmlEmbed', 'sourceEditing'
+        ],
+        htmlEmbed: {
+          showPreviews: true
+        },
         htmlSupport: {
           allow: [
             {
@@ -25,17 +36,13 @@
               styles: true
             }
           ]
-        },
-        // Needed to paste or type raw HTML
-        htmlEmbed: {
-          showPreviews: true
         }
       })
       .then(editor => {
         console.log('Editor ready');
       })
       .catch(error => {
-        console.error(error);
+        console.error('Editor error:', error);
       });
   </script>
 
