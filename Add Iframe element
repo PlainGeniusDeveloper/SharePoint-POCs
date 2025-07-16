@@ -1,50 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>CKEditor 5 with iframe support</title>
-  <script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic-with-html-embed@1.0.2/build/ckeditor.js"></script>
-  <style>
-    #editor {
-      max-width: 700px;
-      margin: 50px auto;
-    }
-  </style>
-</head>
-<body>
+<html>
+  <head>
+    <title>CKEditor 5 with iframe</title>
+    <script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic-with-html-embed@1.0.2/build/ckeditor.js"></script>
+  </head>
+  <body>
+    <div id="editor"></div>
 
-  <h2 style="text-align:center;">CKEditor 5 with iframe (via HtmlEmbed)</h2>
-  <div id="editor"></div>
-
-  <script>
-    ClassicEditor
-      .create(document.querySelector('#editor'), {
-        toolbar: [
-          'undo', 'redo', '|',
-          'bold', 'italic', 'link', '|',
-          'htmlEmbed', 'sourceEditing'
-        ],
-        htmlEmbed: {
-          showPreviews: true
-        },
-        htmlSupport: {
-          allow: [
-            {
-              name: 'iframe',
-              attributes: true,
-              classes: true,
-              styles: true
-            }
-          ]
-        }
-      })
-      .then(editor => {
-        console.log('Editor ready');
-      })
-      .catch(error => {
-        console.error('Editor error:', error);
-      });
-  </script>
-
-</body>
+    <script>
+      ClassicEditor
+        .create(document.querySelector('#editor'), {
+          toolbar: ['undo', 'redo', 'bold', 'italic', 'htmlEmbed'],
+          htmlEmbed: {
+            showPreviews: true
+          },
+          htmlSupport: {
+            allow: [
+              {
+                name: 'iframe',
+                attributes: true,
+                classes: true,
+                styles: true
+              }
+            ]
+          }
+        })
+        .then(editor => {
+          console.log("Editor ready");
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    </script>
+  </body>
 </html>
