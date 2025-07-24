@@ -1,9 +1,24 @@
-Across the organization, content is often created in scattered ways — with different teams using Confluence pages in inconsistent formats.
+async function getWorkflowInstancesForItem(listId, itemId) {
+  const siteUrl = _spPageContextInfo.webAbsoluteUrl;
+  const url = `${siteUrl}/_api/SP.WorkflowServices.WorkflowInstanceService.Current/EnumerateInstancesForListItem`;
 
-This makes it harder to find, understand, and maintain important information.
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json;odata=verbose',
+      'Content-Type': 'application/json;odata=verbose',
+      'X-RequestDigest': document.getElementById("__REQUESTDIGEST").value
+    },
+    body: JSON.stringify({
+      'listId': listId,
+      'itemId': itemId
+    })
+  });
 
-To solve this, we built a centralized CMS — a SharePoint-based single page application — where teams can create structured content using standard templates.
+  if (!response.ok) {
+    throw new Error("Failed to get workflow instances");
+  }
 
-It supports role-based workflows for creators and approvers, and once approved, the content is automatically published to the IT Service Portal.
-
-In short — content is created here, and consumed there.”
+  const data = await response.json();
+  return data.d.WorkflowInstances.results;
+}
