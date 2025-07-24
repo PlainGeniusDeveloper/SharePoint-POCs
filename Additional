@@ -1,5 +1,24 @@
 <script>
-  // 1. Get all workflow instances for the given item
+  // STEP 1: Get List ID from List Title
+  async function getListIdByTitle(listTitle) {
+    const siteUrl = _spPageContextInfo.webAbsoluteUrl;
+    const url = `${siteUrl}/_api/web/lists/getbytitle('${listTitle}')?$select=Id`;
+
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json;odata=verbose'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to get list ID");
+    }
+
+    const data = await response.json();
+    return data.d.Id;
+  }
+
+  // STEP 2: Get Workflow Instances for the Item
   async function getWorkflowInstancesForItem(listId, itemId) {
     const siteUrl = _spPageContextInfo.webAbsoluteUrl;
     const url = `${siteUrl}/_api/SP.WorkflowServices.WorkflowInstanceService.Current/EnumerateInstancesForListItem`;
@@ -12,8 +31,8 @@
         'X-RequestDigest': document.getElementById("__REQUESTDIGEST").value
       },
       body: JSON.stringify({
-        'listId': listId,
-        'itemId': itemId
+        listId: listId,
+        itemId: itemId
       })
     });
 
@@ -25,7 +44,7 @@
     return data.d.WorkflowInstances.results;
   }
 
-  // 2. Terminate a single workflow instance
+  // STEP 3: Terminate Faulted/Suspended Workflow
   async function terminateWorkflowInstance(instanceId, listId, itemId) {
     const siteUrl = _spPageContextInfo.webAbsoluteUrl;
     const url = `${siteUrl}/_api/SP.WorkflowServices.WorkflowInstanceService.Current/TerminateWorkflow`;
@@ -51,7 +70,7 @@
     console.log(`Terminated workflow instance: ${instanceId}`);
   }
 
-  // 3. Clean up all faulty workflow instances before updating
+  // STEP 4: Clean up all Faulted/Suspended Workflows
   async function cleanUpWorkflowErrors(listId, itemId) {
     const instances = await getWorkflowInstancesForItem(listId, itemId);
 
@@ -63,7 +82,7 @@
     }
   }
 
-  // 4. Update the list item safely
+  // STEP 5: Update the List Item
   async function updateListItem(listTitle, itemId, updatePayload) {
     const siteUrl = _spPageContextInfo.webAbsoluteUrl;
     const itemUrl = `${siteUrl}/_api/web/lists/getbytitle('${listTitle}')/items(${itemId})`;
@@ -87,19 +106,20 @@
     console.log("Item updated successfully");
   }
 
-  // 5. Main function to run all steps together
-  async function updateItemSafelyModular(listTitle, listId, itemId, updatePayload) {
+  // FINAL MAIN FUNCTION (Call This One)
+  async function updateItemWithWorkflowCheck(listTitle, itemId, updatePayload) {
     try {
+      const listId = await getListIdByTitle(listTitle);
       await cleanUpWorkflowErrors(listId, itemId);
       await updateListItem(listTitle, itemId, updatePayload);
       alert("Item updated successfully!");
     } catch (err) {
-      console.error("Error:", err);
+      console.error("Update failed:", err);
       alert("Something went wrong:\n\n" + err.message);
     }
   }
 
-  // 6. Example usage (you can trigger this on button click or form submission)
-  // updateItemSafelyModular("My Tasks", _spPageContextInfo.pageListId, 12, { Title: "New title" });
+  // ✅ USAGE EXAMPLE
+  // updateItemWithWorkflowCheck("My Tasks", 12, { Title: "New Value from Code" });
 
 </script>
