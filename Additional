@@ -1,24 +1,105 @@
-async function getWorkflowInstancesForItem(listId, itemId) {
-  const siteUrl = _spPageContextInfo.webAbsoluteUrl;
-  const url = `${siteUrl}/_api/SP.WorkflowServices.WorkflowInstanceService.Current/EnumerateInstancesForListItem`;
+<script>
+  // 1. Get all workflow instances for the given item
+  async function getWorkflowInstancesForItem(listId, itemId) {
+    const siteUrl = _spPageContextInfo.webAbsoluteUrl;
+    const url = `${siteUrl}/_api/SP.WorkflowServices.WorkflowInstanceService.Current/EnumerateInstancesForListItem`;
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json;odata=verbose',
-      'Content-Type': 'application/json;odata=verbose',
-      'X-RequestDigest': document.getElementById("__REQUESTDIGEST").value
-    },
-    body: JSON.stringify({
-      'listId': listId,
-      'itemId': itemId
-    })
-  });
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json;odata=verbose',
+        'Content-Type': 'application/json;odata=verbose',
+        'X-RequestDigest': document.getElementById("__REQUESTDIGEST").value
+      },
+      body: JSON.stringify({
+        'listId': listId,
+        'itemId': itemId
+      })
+    });
 
-  if (!response.ok) {
-    throw new Error("Failed to get workflow instances");
+    if (!response.ok) {
+      throw new Error("Failed to get workflow instances");
+    }
+
+    const data = await response.json();
+    return data.d.WorkflowInstances.results;
   }
 
-  const data = await response.json();
-  return data.d.WorkflowInstances.results;
-}
+  // 2. Terminate a single workflow instance
+  async function terminateWorkflowInstance(instanceId, listId, itemId) {
+    const siteUrl = _spPageContextInfo.webAbsoluteUrl;
+    const url = `${siteUrl}/_api/SP.WorkflowServices.WorkflowInstanceService.Current/TerminateWorkflow`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json;odata=verbose',
+        'Content-Type': 'application/json;odata=verbose',
+        'X-RequestDigest': document.getElementById("__REQUESTDIGEST").value
+      },
+      body: JSON.stringify({
+        workflowInstanceId: instanceId,
+        listId: listId,
+        itemId: itemId
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to terminate workflow instance: ${instanceId}`);
+    }
+
+    console.log(`Terminated workflow instance: ${instanceId}`);
+  }
+
+  // 3. Clean up all faulty workflow instances before updating
+  async function cleanUpWorkflowErrors(listId, itemId) {
+    const instances = await getWorkflowInstancesForItem(listId, itemId);
+
+    for (let instance of instances) {
+      const status = instance.Status;
+      if (status === "Faulted" || status === "Suspended") {
+        await terminateWorkflowInstance(instance.Id, listId, itemId);
+      }
+    }
+  }
+
+  // 4. Update the list item safely
+  async function updateListItem(listTitle, itemId, updatePayload) {
+    const siteUrl = _spPageContextInfo.webAbsoluteUrl;
+    const itemUrl = `${siteUrl}/_api/web/lists/getbytitle('${listTitle}')/items(${itemId})`;
+
+    const response = await fetch(itemUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json;odata=verbose',
+        'Content-Type': 'application/json;odata=verbose',
+        'X-RequestDigest': document.getElementById("__REQUESTDIGEST").value,
+        'IF-MATCH': '*',
+        'X-HTTP-Method': 'MERGE'
+      },
+      body: JSON.stringify(updatePayload)
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to update the item.");
+    }
+
+    console.log("Item updated successfully");
+  }
+
+  // 5. Main function to run all steps together
+  async function updateItemSafelyModular(listTitle, listId, itemId, updatePayload) {
+    try {
+      await cleanUpWorkflowErrors(listId, itemId);
+      await updateListItem(listTitle, itemId, updatePayload);
+      alert("Item updated successfully!");
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Something went wrong:\n\n" + err.message);
+    }
+  }
+
+  // 6. Example usage (you can trigger this on button click or form submission)
+  // updateItemSafelyModular("My Tasks", _spPageContextInfo.pageListId, 12, { Title: "New title" });
+
+</script>
