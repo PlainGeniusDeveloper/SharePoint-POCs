@@ -51,3 +51,10 @@ export function showApprovalPopup({ onSubmit, onCancel, showCancelButton = true 
     };
   }
 }
+
+
+showApprovalPopup({
+  onSubmit: (action, comment) => { /* ... */ },
+  onCancel: () => { /* ... */ }
+});
+
