@@ -1,16 +1,31 @@
 case "editor-modal-related-links":
+  // Get CKEditor content for the modal
   let related_links_desc = getEditorData("editor-modal-related-links");
+
+  // Use jQuery to find the first anchor tag
   const relatedLinkExtracted = $(related_links_desc).find("a").first();
+
+  // Extract href and text
   const linkHref = relatedLinkExtracted.attr("href") || "";
   const linkDisplayText = relatedLinkExtracted.text() || "";
 
-  // ✅ Remove domain if internal link
+  // 🔧 Remove domain prefix if present
   const origin = window.location.origin;
-  const cleanedLinkHref = linkHref.startsWith(origin)
+  let cleanedLinkHref = linkHref.startsWith(origin)
     ? linkHref.replace(origin, '')
     : linkHref;
 
-  // Update the DOM
+  // 🔒 Ensure internal links start with "/"
+  if (
+    cleanedLinkHref &&
+    !cleanedLinkHref.startsWith('http') &&
+    !cleanedLinkHref.startsWith('/')
+  ) {
+    cleanedLinkHref = '/' + cleanedLinkHref;
+  }
+
+  // ✅ Update the DOM with sanitized link
   currentRow.find(".related-links-anchor").attr("href", cleanedLinkHref);
   currentRow.find(".related-links-anchor").text(linkDisplayText);
+
   break;
