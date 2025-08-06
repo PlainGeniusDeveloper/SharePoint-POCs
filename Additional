@@ -1,3 +1,16 @@
-Your content has been saved successfully.
-⚠ However, there's an issue with the workflow and it will not run at the moment.
-Please raise a support ticket using the following link: Raise a ticket
+case "editor-modal-related-links":
+  let related_links_desc = getEditorData("editor-modal-related-links");
+  const relatedLinkExtracted = $(related_links_desc).find("a").first();
+  const linkHref = relatedLinkExtracted.attr("href") || "";
+  const linkDisplayText = relatedLinkExtracted.text() || "";
+
+  // ✅ Remove domain if internal link
+  const origin = window.location.origin;
+  const cleanedLinkHref = linkHref.startsWith(origin)
+    ? linkHref.replace(origin, '')
+    : linkHref;
+
+  // Update the DOM
+  currentRow.find(".related-links-anchor").attr("href", cleanedLinkHref);
+  currentRow.find(".related-links-anchor").text(linkDisplayText);
+  break;
