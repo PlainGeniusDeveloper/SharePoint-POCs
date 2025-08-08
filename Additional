@@ -1,31 +1,35 @@
-case "editor-modal-related-links":
-  // Get CKEditor content for the modal
-  let related_links_desc = getEditorData("editor-modal-related-links");
+case "approveButton":
+case "rejectButton":
+    if (reviewStage === "approver") {
+        console.log(`${actionType} button clicked`);
 
-  // Use jQuery to find the first anchor tag
-  const relatedLinkExtracted = $(related_links_desc).find("a").first();
+        popup.showApprovalPopup({
+            onSubmit: (action, comment) => {
+                if (!action) {
+                    alert("Please select either 'Approve' or 'Reject' before submitting.");
+                    return;
+                }
 
-  // Extract href and text
-  const linkHref = relatedLinkExtracted.attr("href") || "";
-  const linkDisplayText = relatedLinkExtracted.text() || "";
+                const isApprove = action === "approve";
+                const statusCode = isApprove ? 0 : 1;
 
-  // 🔧 Remove domain prefix if present
-  const origin = window.location.origin;
-  let cleanedLinkHref = linkHref.startsWith(origin)
-    ? linkHref.replace(origin, '')
-    : linkHref;
+                console.log(`${action.charAt(0).toUpperCase() + action.slice(1)} submitted with comment:`, comment);
 
-  // 🔒 Ensure internal links start with "/"
-  if (
-    cleanedLinkHref &&
-    !cleanedLinkHref.startsWith('http') &&
-    !cleanedLinkHref.startsWith('/')
-  ) {
-    cleanedLinkHref = '/' + cleanedLinkHref;
-  }
-
-  // ✅ Update the DOM with sanitized link
-  currentRow.find(".related-links-anchor").attr("href", cleanedLinkHref);
-  currentRow.find(".related-links-anchor").text(linkDisplayText);
-
-  break;
+                handleModerationAction(statusCode, comment)
+                    .then(() => {
+                        loaderAPI.hideLoader();
+                        alertAPI.showAlert(
+                            isApprove
+                                ? `Congratulations! Your content review request has been approved successfully!\nYour published content will be reflected in the IT Service Portal within the next 24 hours.`
+                                : `Your content review request has been rejected successfully.`,
+                            "success",
+                            () => {
+                                window.location.href = siteUrl; // Redirect after action
+                            },
+                            isApprove ? "approve" : "reject" // ✅ Extra parameter for alert type
+                        );
+                    });
+            }
+        });
+    }
+    break;
