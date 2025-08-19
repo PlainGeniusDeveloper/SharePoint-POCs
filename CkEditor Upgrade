@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CKEditor with Custom iFrame Button</title>
+  <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+  <style>
+    #editor {
+      border: 1px solid #ccc;
+      min-height: 200px;
+    }
+  </style>
+</head>
+<body>
+  <h2>CKEditor with iFrame Button</h2>
+  <div id="editor">Type something...</div>
+
+  <script>
+    ClassicEditor
+      .create(document.querySelector('#editor'), {
+        toolbar: ['bold', 'italic', 'link', '|', 'iframe', '|', 'undo', 'redo'],
+        extraPlugins: [IframePlugin]   // register our plugin
+      })
+      .catch(error => {
+        console.error(error);
+      });
+
+    // Define custom plugin
+    function IframePlugin(editor) {
+      editor.ui.componentFactory.add('iframe', locale => {
+        const view = new editor.ui.button.ButtonView(locale);
+
+        view.set({
+          label: 'Insert iFrame',
+          withText: true,
+          tooltip: true
+        });
+
+        // When button is clicked
+        view.on('execute', () => {
+          const url = prompt('Enter YouTube embed URL (e.g. https://www.youtube.com/embed/xyz):');
+          if (!url) return;
+
+          // Insert iframe HTML using HtmlEmbed (built-in in free version)
+          editor.model.change(writer => {
+            const iframeElement = writer.createElement('htmlEmbed', {
+              value: `<iframe src="${url}" width="560" height="315" frameborder="0" allowfullscreen></iframe>`
+            });
+            editor.model.insertContent(iframeElement, editor.model.document.selection);
+          });
+        });
+
+        return view;
+      });
+    }
+  </script>
+</body>
+</html>
