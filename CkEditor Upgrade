@@ -1,57 +1,96 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>CKEditor with Custom iFrame Button</title>
-  <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+  <title>Custom WYSIWYG Editor</title>
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    #toolbar {
+      margin-bottom: 10px;
+    }
+    #toolbar button {
+      margin-right: 5px;
+      padding: 5px 10px;
+      border: 1px solid #ccc;
+      background: #f8f8f8;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    #toolbar button:hover {
+      background: #eee;
+    }
     #editor {
       border: 1px solid #ccc;
       min-height: 200px;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    iframe {
+      max-width: 100%;
+      border-radius: 6px;
+      margin: 8px 0;
     }
   </style>
 </head>
 <body>
-  <h2>CKEditor with iFrame Button</h2>
-  <div id="editor">Type something...</div>
+  <h2>My Custom WYSIWYG Editor</h2>
+
+  <!-- Toolbar -->
+  <div id="toolbar">
+    <button onclick="format('bold')"><b>B</b></button>
+    <button onclick="format('italic')"><i>I</i></button>
+    <button onclick="format('underline')"><u>U</u></button>
+    <button onclick="insertLink()">🔗 Link</button>
+    <button onclick="insertIframe()">📺 YouTube</button>
+  </div>
+
+  <!-- Editable Area -->
+  <div id="editor" contenteditable="true">
+    Type something here...
+  </div>
 
   <script>
-    ClassicEditor
-      .create(document.querySelector('#editor'), {
-        toolbar: ['bold', 'italic', 'link', '|', 'iframe', '|', 'undo', 'redo'],
-        extraPlugins: [IframePlugin]   // register our plugin
-      })
-      .catch(error => {
-        console.error(error);
-      });
+    // Basic formatting
+    function format(command) {
+      document.execCommand(command, false, null);
+    }
 
-    // Define custom plugin
-    function IframePlugin(editor) {
-      editor.ui.componentFactory.add('iframe', locale => {
-        const view = new editor.ui.button.ButtonView(locale);
+    // Insert hyperlink
+    function insertLink() {
+      let url = prompt("Enter URL:");
+      if (url) {
+        document.execCommand("createLink", false, url);
+      }
+    }
 
-        view.set({
-          label: 'Insert iFrame',
-          withText: true,
-          tooltip: true
-        });
+    // Insert YouTube iframe
+    function insertIframe() {
+      let url = prompt("Enter YouTube URL:");
+      if (!url) return;
 
-        // When button is clicked
-        view.on('execute', () => {
-          const url = prompt('Enter YouTube embed URL (e.g. https://www.youtube.com/embed/xyz):');
-          if (!url) return;
+      let embedUrl = url;
 
-          // Insert iframe HTML using HtmlEmbed (built-in in free version)
-          editor.model.change(writer => {
-            const iframeElement = writer.createElement('htmlEmbed', {
-              value: `<iframe src="${url}" width="560" height="315" frameborder="0" allowfullscreen></iframe>`
-            });
-            editor.model.insertContent(iframeElement, editor.model.document.selection);
-          });
-        });
+      // Detect YouTube and convert to embed link
+      const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+      if (ytMatch && ytMatch[1]) {
+        embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}`;
+      } else {
+        alert("Currently only YouTube URLs are supported!");
+        return;
+      }
 
-        return view;
-      });
+      const iframeHTML = `
+        <iframe width="560" height="315"
+          src="${embedUrl}"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>`;
+
+      document.execCommand("insertHTML", false, iframeHTML);
     }
   </script>
 </body>
