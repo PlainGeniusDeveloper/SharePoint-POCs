@@ -1,36 +1,87 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>CKEditor 5 with iframe</title>
-    <script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic-with-html-embed@1.0.2/build/ckeditor.js"></script>
-  </head>
-  <body>
-    <div id="editor"></div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CKEditor 5 Custom Iframe Button</title>
+  <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+  <style>
+    #editor {
+      max-width: 800px;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+      min-height: 200px;
+    }
+  </style>
+</head>
+<body>
+  <h2>CKEditor 5 with Custom Iframe Button</h2>
+  <div id="editor"></div>
 
-    <script>
-      ClassicEditor
-        .create(document.querySelector('#editor'), {
-          toolbar: ['undo', 'redo', 'bold', 'italic', 'htmlEmbed'],
-          htmlEmbed: {
-            showPreviews: true
-          },
-          htmlSupport: {
-            allow: [
-              {
-                name: 'iframe',
-                attributes: true,
-                classes: true,
-                styles: true
-              }
-            ]
-          }
-        })
-        .then(editor => {
-          console.log("Editor ready");
-        })
-        .catch(error => {
-          console.error(error);
+  <script>
+    // Custom Iframe Plugin
+    class IframePlugin {
+      constructor(editor) {
+        this.editor = editor;
+      }
+
+      init() {
+        const editor = this.editor;
+
+        editor.ui.componentFactory.add('insertIframe', locale => {
+          const view = new window.CKEDITOR5.ui.button.ButtonView(locale);
+
+          view.set({
+            label: 'Insert Iframe',
+            tooltip: true,
+            icon: `
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" 
+                fill="none" stroke="currentColor" stroke-width="2" 
+                stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="14" rx="2" ry="2"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            `
+          });
+
+          // Button click action
+          view.on('execute', () => {
+            const snippet = prompt('Paste your iframe snippet:');
+            if (snippet) {
+              editor.model.change(writer => {
+                const viewFragment = editor.data.processor.toView(snippet);
+                const modelFragment = editor.data.toModel(viewFragment);
+                editor.model.insertContent(modelFragment, editor.model.document.selection);
+              });
+            }
+          });
+
+          return view;
         });
-    </script>
-  </body>
+      }
+    }
+
+    // Initialize CKEditor
+    ClassicEditor
+      .create(document.querySelector('#editor'), {
+        extraPlugins: [IframePlugin],
+        toolbar: [
+          'heading', '|',
+          'bold', 'italic', 'link', 'insertIframe', '|',
+          'bulletedList', 'numberedList', '|',
+          'blockQuote', 'insertTable', 'undo', 'redo'
+        ],
+        htmlSupport: {
+          allow: [
+            {
+              name: /.*/,       // allow all elements
+              attributes: true, // allow all attributes
+              classes: true,    // allow all classes
+              styles: true      // allow inline styles
+            }
+          ]
+        }
+      })
+      .catch(error => console.error(error));
+  </script>
+</body>
 </html>
