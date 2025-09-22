@@ -2,27 +2,37 @@ function mergeJSON(defaultJson, specificJson) {
   function deepMerge(defaultObj, specificObj) {
     const result = {};
 
-    // loop over default keys
+    // Loop over all keys in default
     for (const key in defaultObj) {
-      if (Object.prototype.hasOwnProperty.call(defaultObj, key)) {
-        const defaultVal = defaultObj[key];
-        const specificVal = specificObj?.[key];
+      const defaultVal = defaultObj[key];
+      const specificVal = specificObj?.[key];
 
-        // agar value object hai (nested) → recursive merge
-        if (typeof defaultVal === "object" && defaultVal !== null && !Array.isArray(defaultVal)) {
-          result[key] = deepMerge(defaultVal, specificVal || {});
+      if (specificVal === undefined || specificVal === null || specificVal === "") {
+        // Specific missing or empty → use default
+        if (typeof defaultVal === "object" && defaultVal !== null) {
+          // Deep clone default object
+          result[key] = deepMerge(defaultVal, {});
         } else {
-          // normal value
-          if (specificVal !== undefined && specificVal !== null && specificVal !== "") {
-            result[key] = specificVal;
-          } else {
-            result[key] = defaultVal;
-          }
+          result[key] = defaultVal;
+        }
+      } else {
+        // Specific has value
+        if (
+          typeof defaultVal === "object" &&
+          defaultVal !== null &&
+          typeof specificVal === "object" &&
+          !Array.isArray(defaultVal)
+        ) {
+          // Both objects → recursive merge
+          result[key] = deepMerge(defaultVal, specificVal);
+        } else {
+          // Primitive or array → use specific
+          result[key] = specificVal;
         }
       }
     }
 
-    // loop over specific keys jo default me missing hai
+    // Add any extra keys present in specific but not in default
     if (specificObj) {
       for (const key in specificObj) {
         if (!(key in result)) {
