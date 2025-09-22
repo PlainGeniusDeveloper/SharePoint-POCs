@@ -1,42 +1,91 @@
-function mergeTemplates(standard, specific) {
-  const missingKeys = [];
+function MERGE_JSON(defaultJSON, specificJSON) {
+    // Create a deep copy of defaultJSON to avoid modifying the original
+    let merged = JSON.parse(JSON.stringify(defaultJSON));
 
-  function deepMerge(defaultObj, specificObj, path = "") {
-    const result = Array.isArray(defaultObj) ? [] : {};
-
-    const keys = new Set([
-      ...Object.keys(defaultObj),
-      ...(specificObj && typeof specificObj === "object" ? Object.keys(specificObj) : [])
-    ]);
-
-    keys.forEach((key) => {
-      const fullPath = path ? `${path}.${key}` : key;
-      const defaultVal = defaultObj[key];
-      const specificVal = specificObj?.[key];
-
-      if (
-        typeof defaultVal === "object" &&
-        defaultVal !== null &&
-        !Array.isArray(defaultVal)
-      ) {
-        result[key] = deepMerge(
-          defaultVal,
-          specificVal && typeof specificVal === "object" ? specificVal : {},
-          fullPath
-        );
-      } else {
-        if (specificVal !== undefined && specificVal !== null && specificVal !== "") {
-          result[key] = specificVal;
-        } else {
-          result[key] = defaultVal;
-          missingKeys.push(fullPath); // track missing / default-filled keys
+    // Recursively merge specificJSON into merged
+    function mergeObjects(obj1, obj2) {
+        for (let key in obj2) {
+            if (obj2[key] !== null && typeof obj2[key] === 'object') {
+                if (Array.isArray(obj2[key])) {
+                    // Handle arrays: use specific array if it exists, otherwise keep default
+                    obj1[key] = obj2[key].length > 0 ? obj2[key] : obj1[key] || [];
+                } else {
+                    // If both are objects, recurse
+                    obj1[key] = obj1[key] || {};
+                    mergeObjects(obj1[key], obj2[key]);
+                }
+            } else if (obj2[key] === '' || obj2[key] === undefined || obj2[key] === null) {
+                // If specific value is empty, keep default value
+                // Do nothing, obj1[key] retains its value
+            } else {
+                // Override with specific value if it exists
+                obj1[key] = obj2[key];
+            }
         }
-      }
-    });
+    }
 
-    return result;
-  }
-
-  const merged = deepMerge(standard, specific);
-  return { merged, missingKeys };
+    mergeObjects(merged, specificJSON);
+    return merged;
 }
+
+// Example usage with arrays and deeper nesting:
+let defaultJSON = {
+    "titleName": "Features Details",
+    "tabAccordionList": [
+        { "id": 1, "name": "Tab1" },
+        { "id": 2, "name": "Tab2" }
+    ],
+    "tabs": [
+        {
+            "tabName": "Availability",
+            "isDisabled": false,
+            "tabContent": {
+                "titleName": "Availability",
+                "tabListView": {
+                    "dropDownOneTitle": "Region",
+                    "dropDownTwoTitle": "Country",
+                    "dropDownContents": [
+                        { "id": 1, "value": "North" },
+                        { "id": 2, "value": "South" }
+                    ],
+                    "nested": {
+                        "level1": {
+                            "level2": "Default Deep Value"
+                        }
+                    }
+                },
+                "description": ""
+            }
+        }
+    ]
+};
+
+let specificJSON = {
+    "titleName": "",
+    "tabAccordionList": [
+        { "id": 1, "name": "CustomTab1" }
+    ],
+    "tabs": [
+        {
+            "tabName": "Availability",
+            "isDisabled": true,
+            "tabContent": {
+                "titleName": "Custom Availability",
+                "tabListView": {
+                    "dropDownOneTitle": "",
+                    "dropDownTwoTitle": "Custom Territory",
+                    "dropDownContents": [
+                        { "id": 1, "value": "East" }
+                    ],
+                    "nested": {
+                        "level1": {
+                            "level2": "Custom Deep Value"
+                        }
+                    }
+                }
+            }
+        }
+    ]
+};
+
+let result =
