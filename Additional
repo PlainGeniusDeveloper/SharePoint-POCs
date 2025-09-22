@@ -1,35 +1,33 @@
-case "approveButton":
-case "rejectButton":
-    if (reviewStage === "approver") {
-        console.log(`${actionType} button clicked`);
+function mergeJSON(defaultJson, specificJson) {
+  function deepMerge(defaultObj, specificObj) {
+    const result = {};
 
-        popup.showApprovalPopup({
-            onSubmit: (action, comment) => {
-                if (!action) {
-                    alert("Please select either 'Approve' or 'Reject' before submitting.");
-                    return;
-                }
+    for (const key in defaultObj) {
+      if (Object.prototype.hasOwnProperty.call(defaultObj, key)) {
+        const defaultVal = defaultObj[key];
+        const specificVal = specificObj?.[key];
 
-                const isApprove = action === "approve";
-                const statusCode = isApprove ? 0 : 1;
-
-                console.log(`${action.charAt(0).toUpperCase() + action.slice(1)} submitted with comment:`, comment);
-
-                handleModerationAction(statusCode, comment)
-                    .then(() => {
-                        loaderAPI.hideLoader();
-                        alertAPI.showAlert(
-                            isApprove
-                                ? `Congratulations! Your content review request has been approved successfully!\nYour published content will be reflected in the IT Service Portal within the next 24 hours.`
-                                : `Your content review request has been rejected successfully.`,
-                            "success",
-                            () => {
-                                window.location.href = siteUrl; // Redirect after action
-                            },
-                            isApprove ? "approve" : "reject" // ✅ Extra parameter for alert type
-                        );
-                    });
-            }
-        });
+        if (specificVal !== undefined && specificVal !== null && specificVal !== "") {
+          if (typeof defaultVal === "object" && !Array.isArray(defaultVal) && typeof specificVal === "object") {
+            result[key] = deepMerge(defaultVal, specificVal);
+          } else {
+            result[key] = specificVal; // specific has valid value
+          }
+        } else {
+          result[key] = defaultVal; // take default if missing or empty
+        }
+      }
     }
-    break;
+
+    // Add keys present in specific but not in default
+    for (const key in specificObj) {
+      if (!(key in result)) {
+        result[key] = specificObj[key];
+      }
+    }
+
+    return result;
+  }
+
+  return deepMerge(defaultJson, specificJson || {});
+}
