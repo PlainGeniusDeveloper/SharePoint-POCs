@@ -1,48 +1,36 @@
 function mergeJSON(defaultJson, specificJson) {
-  function deepMerge(defaultObj, specificObj) {
-    const result = {};
+  if (typeof defaultJson !== "object" || defaultJson === null) return specificJson;
 
-    // Loop over all keys in default
-    for (const key in defaultObj) {
-      const defaultVal = defaultObj[key];
-      const specificVal = specificObj?.[key];
+  const result = Array.isArray(defaultJson) ? [] : {};
 
-      if (specificVal === undefined || specificVal === null || specificVal === "") {
-        // Specific missing or empty → use default
-        if (typeof defaultVal === "object" && defaultVal !== null) {
-          // Deep clone default object
-          result[key] = deepMerge(defaultVal, {});
-        } else {
-          result[key] = defaultVal;
-        }
+  const keys = new Set([
+    ...Object.keys(defaultJson),
+    ...(specificJson && typeof specificJson === "object" ? Object.keys(specificJson) : [])
+  ]);
+
+  keys.forEach((key) => {
+    const defaultVal = defaultJson[key];
+    const specificVal = specificJson?.[key];
+
+    // Agar dono objects hai (array nahi) → recursive merge
+    if (
+      typeof defaultVal === "object" &&
+      defaultVal !== null &&
+      !Array.isArray(defaultVal)
+    ) {
+      result[key] = mergeJSON(
+        defaultVal,
+        typeof specificVal === "object" && specificVal !== null ? specificVal : {}
+      );
+    } else {
+      // primitive ya array
+      if (specificVal !== undefined && specificVal !== null && specificVal !== "") {
+        result[key] = specificVal;
       } else {
-        // Specific has value
-        if (
-          typeof defaultVal === "object" &&
-          defaultVal !== null &&
-          typeof specificVal === "object" &&
-          !Array.isArray(defaultVal)
-        ) {
-          // Both objects → recursive merge
-          result[key] = deepMerge(defaultVal, specificVal);
-        } else {
-          // Primitive or array → use specific
-          result[key] = specificVal;
-        }
+        result[key] = defaultVal;
       }
     }
+  });
 
-    // Add any extra keys present in specific but not in default
-    if (specificObj) {
-      for (const key in specificObj) {
-        if (!(key in result)) {
-          result[key] = specificObj[key];
-        }
-      }
-    }
-
-    return result;
-  }
-
-  return deepMerge(defaultJson, specificJson || {});
+  return result;
 }
