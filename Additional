@@ -1,36 +1,42 @@
-function mergeJSON(defaultJson, specificJson) {
-  if (typeof defaultJson !== "object" || defaultJson === null) return specificJson;
+function mergeTemplates(standard, specific) {
+  const missingKeys = [];
 
-  const result = Array.isArray(defaultJson) ? [] : {};
+  function deepMerge(defaultObj, specificObj, path = "") {
+    const result = Array.isArray(defaultObj) ? [] : {};
 
-  const keys = new Set([
-    ...Object.keys(defaultJson),
-    ...(specificJson && typeof specificJson === "object" ? Object.keys(specificJson) : [])
-  ]);
+    const keys = new Set([
+      ...Object.keys(defaultObj),
+      ...(specificObj && typeof specificObj === "object" ? Object.keys(specificObj) : [])
+    ]);
 
-  keys.forEach((key) => {
-    const defaultVal = defaultJson[key];
-    const specificVal = specificJson?.[key];
+    keys.forEach((key) => {
+      const fullPath = path ? `${path}.${key}` : key;
+      const defaultVal = defaultObj[key];
+      const specificVal = specificObj?.[key];
 
-    // Agar dono objects hai (array nahi) → recursive merge
-    if (
-      typeof defaultVal === "object" &&
-      defaultVal !== null &&
-      !Array.isArray(defaultVal)
-    ) {
-      result[key] = mergeJSON(
-        defaultVal,
-        typeof specificVal === "object" && specificVal !== null ? specificVal : {}
-      );
-    } else {
-      // primitive ya array
-      if (specificVal !== undefined && specificVal !== null && specificVal !== "") {
-        result[key] = specificVal;
+      if (
+        typeof defaultVal === "object" &&
+        defaultVal !== null &&
+        !Array.isArray(defaultVal)
+      ) {
+        result[key] = deepMerge(
+          defaultVal,
+          specificVal && typeof specificVal === "object" ? specificVal : {},
+          fullPath
+        );
       } else {
-        result[key] = defaultVal;
+        if (specificVal !== undefined && specificVal !== null && specificVal !== "") {
+          result[key] = specificVal;
+        } else {
+          result[key] = defaultVal;
+          missingKeys.push(fullPath); // track missing / default-filled keys
+        }
       }
-    }
-  });
+    });
 
-  return result;
+    return result;
+  }
+
+  const merged = deepMerge(standard, specific);
+  return { merged, missingKeys };
 }
