@@ -1,0 +1,65 @@
+// Existing logic
+if (result.data[0].Review_x0020_Stage) {
+    // For non-publish scenarios, use CMS JSON
+    parsed_json = JSON.parse(result.data[0].CMS_JSON);
+
+    // Check if Review_x0020_Stage and Confirmation exist before assignment
+    itemIdLoaded = result.data[0].ID;
+    reviewStage = result.data[0].Review_x0020_Stage
+        ? result.data[0].Review_x0020_Stage.toLowerCase()
+        : null; // Assign null if not present
+    itemConfirmation = result.data[0].Confirmation
+        ? result.data[0].Confirmation.toLowerCase()
+        : null; // Assign null if not present
+
+    // 👇 ADD HERE: Call to initialize hidden fields for checkout
+    const isCheckedOut = result.data[0].IsCheckedOut === true ? 'Yes' : 'No';
+    const checkedOutBy = result.data[0].CheckedOutBy || '';
+
+    // This ensures hidden fields exist and are populated
+    setCheckoutHiddenFields(isCheckedOut, checkedOutBy);
+}
+else {
+    // For publish scenarios, use Portal JSON
+    parsed_json = JSON.parse(result.data[0].Portal_JSON);
+
+    reviewStage = null;
+    itemConfirmation = null;
+
+    // 👇 Add same hidden field setup for consistency
+    setCheckoutHiddenFields('No', '');
+}
+
+// =============================
+// Hidden field functions
+// =============================
+function setCheckoutHiddenFields(isCheckedOut, checkedOutBy) {
+    ensureCheckoutHiddenFields();
+
+    const h1 = document.getElementById('hidIsCheckedOut');
+    const h2 = document.getElementById('hidCheckedOutBy');
+
+    if (h1) h1.value = isCheckedOut === 'Yes' ? 'Yes' : 'No';
+    if (h2) h2.value = checkedOutBy || '';
+
+    // Re-run validation if needed
+    if (typeof validateUpdateButton === 'function') {
+        validateUpdateButton();
+    }
+}
+
+function ensureCheckoutHiddenFields() {
+    if (!document.getElementById('hidIsCheckedOut')) {
+        const h1 = document.createElement('input');
+        h1.type = 'hidden';
+        h1.id = 'hidIsCheckedOut';
+        document.body.appendChild(h1);
+    }
+
+    if (!document.getElementById('hidCheckedOutBy')) {
+        const h2 = document.createElement('input');
+        h2.type = 'hidden';
+        h2.id = 'hidCheckedOutBy';
+        document.body.appendChild(h2);
+    }
+}
