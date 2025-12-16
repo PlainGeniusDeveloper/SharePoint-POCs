@@ -1,0 +1,58 @@
+public static String retrieveImages(
+        String html,
+        String baseUrl,
+        String saveUrl,
+        String uploadUrl,
+        String appType,
+        String application
+) {
+
+    ImageProcessingService processingService = new ImageProcessingService();
+
+    Pattern pattern = Pattern.compile(
+            "(?i)<img[^>]*?src\\s*=\\s*(?:\"([^\"]+)\"|'([^']+)'|([^\\s>]+))[^>]*>"
+    );
+
+    Matcher matcher = pattern.matcher(html);
+
+    StringBuffer result = new StringBuffer();
+
+    while (matcher.find()) {
+
+        String imgTag = matcher.group(0);
+
+        String src =
+                matcher.group(1) != null ? matcher.group(1) :
+                matcher.group(2) != null ? matcher.group(2) :
+                matcher.group(3);
+
+        // Skip already processed images
+        if (src == null || src.startsWith(baseUrl)) {
+            matcher.appendReplacement(result, imgTag);
+            continue;
+        }
+
+        String destinationImageUrl =
+                processingService.imageProcessing(
+                        baseUrl,
+                        src,
+                        uploadUrl,
+                        appType,
+                        null,
+                        saveUrl,
+                        application
+                );
+
+        // Replace src inside img tag
+        String updatedImgTag = imgTag.replace(src, destinationImageUrl);
+
+        matcher.appendReplacement(
+                result,
+                Matcher.quoteReplacement(updatedImgTag)
+        );
+    }
+
+    matcher.appendTail(result);
+
+    return result.toString();
+}
